@@ -1,13 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Squishy E-Commerce</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Squishies — Squeeze the Stress Away</title>
+  <meta name="description" content="Cute, ultra-soft, slow-rising squishies made for your study breaks, desk moments, and everyday smiles.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo-mark.svg">
 </head>
 <body>
-    <h1>Squishy E-Commerce</h1>
-    <script src="script.js"></script>
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header" id="top">
+    <div class="container header__inner">
+      <a href="#top" class="logo">
+        <img src="assets/images/logo-mark.svg" alt="" class="logo__mark" width="36" height="36">
+        <span class="logo__text">Squishies</span>
+      </a>
+
+      <nav class="main-nav" id="mainNav">
+        <a href="#top">Home</a>
+        <a href="#shop">Shop</a>
+        <a href="#about">About</a>
+      </nav>
+
+      <div class="header__actions">
+        <a href="#shop" class="btn btn--pink btn--sm">Shop Now</a>
+        <button class="cart-btn" id="cartBtn" aria-label="View cart, 0 items">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6h15l-1.5 9h-12L5 3H2" stroke="#2D1B3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="20" r="1.5" fill="#2D1B3D"/>
+            <circle cx="18" cy="20" r="1.5" fill="#2D1B3D"/>
+          </svg>
+          <span class="cart-btn__count" id="cartCount">0</span>
+        </button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="mainNav">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+      <div class="hero__blob hero__blob--purple" aria-hidden="true"></div>
+      <div class="hero__blob hero__blob--pink" aria-hidden="true"></div>
+      <div class="hero__dot" aria-hidden="true"></div>
+
+      <div class="container hero__inner">
+        <div class="hero__copy">
+          <span class="eyebrow eyebrow--pink">+ Premium TPR + Memory Foam</span>
+          <h1 class="hero__title">
+            Squeeze the<br>
+            <span class="text-pink">Stress</span> Away.
+          </h1>
+          <p class="hero__desc">
+            Cute, ultra-soft, slow-rising Squishies made for your study breaks, desk moments, and everyday smiles.
+          </p>
+          <a href="#shop" class="btn btn--pink btn--lg">Pick Your Squish →</a>
+
+          <ul class="hero__badges">
+            <li>Ages 3+</li>
+            <li>Non-Toxic</li>
+            <li>BPA-Free</li>
+            <li>Hypoallergenic</li>
+            <li>Low-Odor</li>
+          </ul>
+        </div>
+
+        <div class="hero__media">
+          <div class="hero__image-card">
+            <img src="assets/images/hero-collage.svg" alt="Six kawaii squishy toys: bread, peach, chick, cat, cloud, and bunny" width="420" height="420">
+            <span class="hero__tag hero__tag--soft">Ultra-soft<br><strong>Slow-rising</strong></span>
+            <span class="hero__tag hero__tag--price">Starting from<br><strong>₱89 only</strong></span>
+          </div>
+          <div class="hero__scroll" aria-hidden="true">
+            <span>SCROLL</span>
+            <svg width="14" height="18" viewBox="0 0 14 18" fill="none"><path d="M7 0v16M1 11l6 6 6-6" stroke="#B7ADC0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MOST SQUEEZED (PRODUCTS) ============ -->
+    <section class="products" id="shop">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow eyebrow--pink">★ Customer Favorites</span>
+          <h2>Most Squeezed</h2>
+          <p>The ones our customers keep coming back for.</p>
+        </div>
+
+        <div class="product-grid">
+
+          <article class="product-card">
+            <div class="product-card__media">
+              <img src="assets/images/product-dumpling.svg" alt="Steamed Dumpling Squishy — pastel bao with a happy face" width="400" height="300" loading="lazy">
+              <span class="badge badge--pink">Fan Fave</span>
+            </div>
+            <div class="product-card__body">
+              <h3>Steamed Dumpling Squishy</h3>
+              <p class="product-card__desc">Pastel bao with a happy face</p>
+              <div class="product-card__footer">
+                <span class="price">₱89</span>
+                <button class="btn btn--pink btn--sm add-to-cart" data-name="Steamed Dumpling Squishy" data-price="89">+ Add to Cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-card__media">
+              <img src="assets/images/product-catpaw.svg" alt="Cat Paw Squishy — pink paw pads, ultra soft" width="400" height="300" loading="lazy">
+              <span class="badge badge--pink">So Cute</span>
+            </div>
+            <div class="product-card__body">
+              <h3>Cat Paw Squishy</h3>
+              <p class="product-card__desc">Pink paw pads, ultra soft</p>
+              <div class="product-card__footer">
+                <span class="price">₱89</span>
+                <button class="btn btn--pink btn--sm add-to-cart" data-name="Cat Paw Squishy" data-price="89">+ Add to Cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-card__media">
+              <img src="assets/images/product-peanut.svg" alt="Peanut Squishy — textured shell, mega squeezable" width="400" height="300" loading="lazy">
+              <span class="badge badge--mint">Bestseller</span>
+            </div>
+            <div class="product-card__body">
+              <h3>Peanut Squishy</h3>
+              <p class="product-card__desc">Textured shell, mega squeezable</p>
+              <div class="product-card__footer">
+                <span class="price">₱89</span>
+                <button class="btn btn--pink btn--sm add-to-cart" data-name="Peanut Squishy" data-price="89">+ Add to Cart</button>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <div class="section-cta">
+          <a href="#shop" class="btn btn--outline">View All Squishies →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROMO SETS ============ -->
+    <section class="promo" id="promo">
+      <div class="container">
+        <div class="section-head">
+          <h2>Promo Sets</h2>
+          <p>More squish, more savings. Pick the set that fits you.</p>
+        </div>
+
+        <div class="promo-grid">
+
+          <article class="promo-card">
+            <div class="promo-card__body">
+              <h3>Solo Squish</h3>
+              <p class="promo-card__meta">1 Squishy</p>
+              <p class="promo-card__price">₱89</p>
+              <p class="promo-card__desc">Perfect intro. Pick your fave or try the mystery.</p>
+              <ul class="promo-card__list">
+                <li>1 Squishy of choice</li>
+                <li>Individual gift pouch</li>
+                <li>Sticker included</li>
+              </ul>
+            </div>
+            <button class="btn btn--lavender promo-card__btn add-to-cart" data-name="Solo Squish" data-price="89">Get One</button>
+          </article>
+
+          <article class="promo-card">
+            <div class="promo-card__body">
+              <span class="badge badge--mint badge--floating">Save ₱18</span>
+              <h3>Stress-Free Trio</h3>
+              <p class="promo-card__meta">3 Squishies</p>
+              <p class="promo-card__price">₱249 <s>₱267</s></p>
+              <p class="promo-card__desc">One for desk, one for bag, one for gifting.</p>
+              <ul class="promo-card__list">
+                <li>3 Squishies of choice</li>
+                <li>Ribbon-tied gift box</li>
+                <li>2 bonus stickers</li>
+              </ul>
+            </div>
+            <button class="btn btn--pink promo-card__btn add-to-cart" data-name="Stress-Free Trio" data-price="249">Get the Trio</button>
+          </article>
+
+          <article class="promo-card promo-card--featured">
+            <span class="badge badge--purple badge--pill">Most Popular ★</span>
+            <div class="promo-card__body">
+              <span class="badge badge--mint badge--floating">Free Sticker Sheet</span>
+              <h3>Collector's Box</h3>
+              <p class="promo-card__meta">6 Different Designs</p>
+              <p class="promo-card__price">₱459</p>
+              <p class="promo-card__desc">The full experience. Six unique designs, curated for you.</p>
+              <ul class="promo-card__list">
+                <li>6 unique Squishies</li>
+                <li>Keepsake collector box</li>
+                <li>Full sticker sheet</li>
+                <li>Mystery bonus item</li>
+              </ul>
+            </div>
+            <button class="btn btn--dark promo-card__btn add-to-cart" data-name="Collector's Box" data-price="459">Build My Collection</button>
+          </article>
+
+          <article class="promo-card">
+            <div class="promo-card__body">
+              <h3>Wholesale / Party Pack</h3>
+              <p class="promo-card__meta">20 Squishies</p>
+              <p class="promo-card__price">₱1,400</p>
+              <p class="promo-card__desc">Events, giveaways, or reselling. Bulk pricing, full variety.</p>
+              <ul class="promo-card__list">
+                <li>20 assorted Squishies</li>
+                <li>Bulk poly bag packaging</li>
+                <li>Custom note option</li>
+                <li>Priority dispatch</li>
+              </ul>
+            </div>
+            <button class="btn btn--peach promo-card__btn add-to-cart" data-name="Wholesale / Party Pack" data-price="1400">Order in Bulk</button>
+          </article>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer" id="about">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <a href="#top" class="logo logo--footer">
+          <img src="assets/images/logo-mark.svg" alt="" class="logo__mark" width="32" height="32">
+          <span class="logo__text">Squishies</span>
+        </a>
+        <p>Soft, slow-rising, and impossibly cute. Made to squeeze the stress away — one satisfying squish at a time.</p>
+        <p class="footer__by">By Team SISO · Philippines</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Quick Links</h4>
+        <a href="#shop">Shop</a>
+        <a href="#about">About</a>
+      </div>
+
+      <div class="footer__col">
+        <h4>Get in Touch</h4>
+        <a href="mailto:siso@gmail.com" class="footer__email">siso@gmail.com</a>
+        <p class="footer__note">Orders dispatched within 1–3 business days.<br>Philippines-wide delivery available.</p>
+      </div>
+    </div>
+
+    <div class="container footer__bottom">
+      <p>© 2026 Squishies by Team SISO. All rights reserved.</p>
+      <p>Ultra-soft. Slow-rising. Always cute.</p>
+    </div>
+  </footer>
+
+  <!-- Toast for cart notifications -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/main.js"></script>
 </body>
 </html>
