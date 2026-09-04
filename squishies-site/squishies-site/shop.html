@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — Squishies</title>
+  <meta name="description" content="Browse every Squishy — premium TPR and memory foam, slow-rising, non-toxic, and impossibly cute.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo-mark.svg">
+</head>
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header" id="top">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <img src="assets/images/logo-mark.svg" alt="" class="logo__mark" width="36" height="36">
+        <span class="logo__text">Squishies</span>
+      </a>
+
+      <nav class="main-nav" id="mainNav">
+        <a href="index.html">Home</a>
+        <a href="shop.html" aria-current="page">Shop</a>
+        <a href="about.html">About</a>
+      </nav>
+
+      <div class="header__actions">
+        <a href="shop.html" class="btn btn--pink btn--sm">Shop Now</a>
+        <button class="cart-btn" id="cartBtn" aria-label="View cart, 0 items" aria-haspopup="dialog">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6h15l-1.5 9h-12L5 3H2" stroke="#2D1B3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="20" r="1.5" fill="#2D1B3D"/>
+            <circle cx="18" cy="20" r="1.5" fill="#2D1B3D"/>
+          </svg>
+          <span class="cart-btn__count" id="cartCount">0</span>
+        </button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="mainNav">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ SHOP HERO / FILTERS ============ -->
+    <section class="shop-hero">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow eyebrow--pink">All Squishies</span>
+          <h1>Pick Your Squish</h1>
+          <p>Every Squishy is made from premium TPR and memory foam — slow-rising, non-toxic, and impossibly cute.</p>
+        </div>
+
+        <div class="shop-controls">
+          <div class="search-field">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="#B7ADC0" stroke-width="2"/>
+              <path d="M20 20l-4.5-4.5" stroke="#B7ADC0" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" id="shopSearch" placeholder="Search squishies…" aria-label="Search squishies">
+          </div>
+
+          <div class="filter-pills" id="filterPills" role="group" aria-label="Filter by category">
+            <button class="filter-pill is-active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="food">Food</button>
+            <button class="filter-pill" data-filter="animal">Animal</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SHOP GRID ============ -->
+    <section class="shop-grid-section">
+      <div class="container">
+        <div class="product-grid product-grid--shop" id="shopGrid">
+
+          <article class="product-card" data-category="food" data-name="steamed dumpling squishy">
+            <div class="product-card__media">
+              <img src="assets/images/product-dumpling.svg" alt="Steamed Dumpling Squishy — pastel bao with a happy face" width="400" height="300" loading="lazy">
+              <span class="badge badge--pink">Fan Fave</span>
+            </div>
+            <div class="product-card__body">
+              <h3><a href="product.html?slug=dumpling">Steamed Dumpling Squishy</a></h3>
+              <p class="product-card__desc">Pastel bao with a happy face</p>
+              <div class="product-card__footer product-card__footer--shop">
+                <span class="price">₱89</span>
+                <div class="product-card__btns">
+                  <a class="btn btn--outline btn--sm" href="product.html?slug=dumpling">View Item</a>
+                  <button class="btn btn--pink btn--sm add-to-cart" data-name="Steamed Dumpling Squishy" data-price="89" data-image="assets/images/product-dumpling.svg">+ Cart</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card" data-category="food" data-name="cheese cube squishy">
+            <div class="product-card__media">
+              <img src="assets/images/product-cheese.svg" alt="Cheese Cube Squishy — cuboid slow-rise memory foam" width="400" height="300" loading="lazy">
+              <span class="badge badge--purple">New Drop</span>
+            </div>
+            <div class="product-card__body">
+              <h3><a href="product.html?slug=cheese">Cheese Cube Squishy</a></h3>
+              <p class="product-card__desc">Cuboid slow-rise memory foam</p>
+              <div class="product-card__footer product-card__footer--shop">
+                <span class="price">₱89</span>
+                <div class="product-card__btns">
+                  <a class="btn btn--outline btn--sm" href="product.html?slug=cheese">View Item</a>
+                  <button class="btn btn--pink btn--sm add-to-cart" data-name="Cheese Cube Squishy" data-price="89" data-image="assets/images/product-cheese.svg">+ Cart</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card" data-category="animal" data-name="cat paw squishy">
+            <div class="product-card__media">
+              <img src="assets/images/product-catpaw.svg" alt="Cat Paw Squishy — pink paw pads, ultra soft" width="400" height="300" loading="lazy">
+              <span class="badge badge--pink">So Cute</span>
+            </div>
+            <div class="product-card__body">
+              <h3><a href="product.html?slug=catpaw">Cat Paw Squishy</a></h3>
+              <p class="product-card__desc">Pink paw pads, ultra soft</p>
+              <div class="product-card__footer product-card__footer--shop">
+                <span class="price">₱89</span>
+                <div class="product-card__btns">
+                  <a class="btn btn--outline btn--sm" href="product.html?slug=catpaw">View Item</a>
+                  <button class="btn btn--pink btn--sm add-to-cart" data-name="Cat Paw Squishy" data-price="89" data-image="assets/images/product-catpaw.svg">+ Cart</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card" data-category="food" data-name="pastel toast squishy">
+            <div class="product-card__media">
+              <img src="assets/images/product-toast.svg" alt="Pastel Toast Squishy — pastel square toast, 4 colors" width="400" height="300" loading="lazy">
+              <span class="badge badge--peach">Trending</span>
+            </div>
+            <div class="product-card__body">
+              <h3><a href="product.html?slug=toast">Pastel Toast Squishy</a></h3>
+              <p class="product-card__desc">Pastel square toast, 4 colors</p>
+              <div class="product-card__footer product-card__footer--shop">
+                <span class="price">₱89</span>
+                <div class="product-card__btns">
+                  <a class="btn btn--outline btn--sm" href="product.html?slug=toast">View Item</a>
+                  <button class="btn btn--pink btn--sm add-to-cart" data-name="Pastel Toast Squishy" data-price="89" data-image="assets/images/product-toast.svg">+ Cart</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card" data-category="food" data-name="butter stick squishy">
+            <div class="product-card__media">
+              <img src="assets/images/product-butter.svg" alt="Butter Stick Squishy — salted butter block, pink and yellow" width="400" height="300" loading="lazy">
+              <span class="badge badge--purple">New Drop</span>
+            </div>
+            <div class="product-card__body">
+              <h3><a href="product.html?slug=butter">Butter Stick Squishy</a></h3>
+              <p class="product-card__desc">Salted butter block, pink and yellow</p>
+              <div class="product-card__footer product-card__footer--shop">
+                <span class="price">₱89</span>
+                <div class="product-card__btns">
+                  <a class="btn btn--outline btn--sm" href="product.html?slug=butter">View Item</a>
+                  <button class="btn btn--pink btn--sm add-to-cart" data-name="Butter Stick Squishy" data-price="89" data-image="assets/images/product-butter.svg">+ Cart</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card" data-category="food" data-name="peanut squishy">
+            <div class="product-card__media">
+              <img src="assets/images/product-peanut.svg" alt="Peanut Squishy — textured shell, mega squeezable" width="400" height="300" loading="lazy">
+              <span class="badge badge--mint">Bestseller</span>
+            </div>
+            <div class="product-card__body">
+              <h3><a href="product.html?slug=peanut">Peanut Squishy</a></h3>
+              <p class="product-card__desc">Textured shell, mega squeezable</p>
+              <div class="product-card__footer product-card__footer--shop">
+                <span class="price">₱89</span>
+                <div class="product-card__btns">
+                  <a class="btn btn--outline btn--sm" href="product.html?slug=peanut">View Item</a>
+                  <button class="btn btn--pink btn--sm add-to-cart" data-name="Peanut Squishy" data-price="89" data-image="assets/images/product-peanut.svg">+ Cart</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <p class="shop-empty" id="shopEmpty" hidden>No squishies match your search. Try a different keyword or filter.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer" id="about">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <a href="index.html" class="logo logo--footer">
+          <img src="assets/images/logo-mark.svg" alt="" class="logo__mark" width="32" height="32">
+          <span class="logo__text">Squishies</span>
+        </a>
+        <p>Soft, slow-rising, and impossibly cute. Made to squeeze the stress away — one satisfying squish at a time.</p>
+        <p class="footer__by">By Team SISO · Philippines</p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Quick Links</h4>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
+      </div>
+
+      <div class="footer__col">
+        <h4>Get in Touch</h4>
+        <a href="mailto:siso@gmail.com" class="footer__email">siso@gmail.com</a>
+        <p class="footer__note">Orders dispatched within 1–3 business days.<br>Philippines-wide delivery available.</p>
+      </div>
+    </div>
+
+    <div class="container footer__bottom">
+      <p>© 2026 Squishies by Team SISO. All rights reserved.</p>
+      <p>Ultra-soft. Slow-rising. Always cute.</p>
+    </div>
+  </footer>
+
+  <!-- ============ CART DRAWER ============ -->
+  <div class="cart-overlay" id="cartOverlay" hidden></div>
+
+  <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Your cart" aria-hidden="true">
+    <header class="cart-drawer__header">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 8h12l-1 12H7L6 8Z" stroke="#FF6B95" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="#FF6B95" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Your Cart
+      </h2>
+      <button class="cart-drawer__close" id="cartCloseBtn" aria-label="Close cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="#2D1B3D" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <div class="cart-drawer__items" id="cartItems">
+      <!-- Cart line items are rendered here by js/cart.js -->
+    </div>
+
+    <footer class="cart-drawer__footer" id="cartFooter">
+      <div class="cart-drawer__subtotal">
+        <span>Subtotal</span>
+        <span id="cartSubtotal">₱0</span>
+      </div>
+      <p class="cart-drawer__shipping">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M2 7h11v9H2z" stroke="#4EAE8C" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M13 10h4l4 3.5V16h-8z" stroke="#4EAE8C" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="6" cy="18" r="1.8" stroke="#4EAE8C" stroke-width="1.6"/>
+          <circle cx="17" cy="18" r="1.8" stroke="#4EAE8C" stroke-width="1.6"/>
+        </svg>
+        Free shipping on orders ₱500 and above
+      </p>
+      <button class="btn btn--pink cart-drawer__checkout" id="checkoutBtn">Checkout →</button>
+      <button class="cart-drawer__continue" id="continueShoppingBtn">Continue Shopping</button>
+    </footer>
+  </aside>
+
+  <!-- Toast for cart notifications -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/cart.js"></script>
+  <script src="js/shop.js"></script>
+</body>
+</html>
