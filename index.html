@@ -27,13 +27,13 @@
 
       <nav class="main-nav" id="mainNav">
         <a href="#top">Home</a>
-        <a href="#shop">Shop</a>
-        <a href="#about">About</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
       </nav>
 
       <div class="header__actions">
-        <a href="#shop" class="btn btn--pink btn--sm">Shop Now</a>
-        <button class="cart-btn" id="cartBtn" aria-label="View cart, 0 items">
+        <a href="shop.html" class="btn btn--pink btn--sm">Shop Now</a>
+        <button class="cart-btn" id="cartBtn" aria-label="View cart, 0 items" aria-haspopup="dialog">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M6 6h15l-1.5 9h-12L5 3H2" stroke="#2D1B3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="9" cy="20" r="1.5" fill="#2D1B3D"/>
@@ -65,7 +65,7 @@
           <p class="hero__desc">
             Cute, ultra-soft, slow-rising Squishies made for your study breaks, desk moments, and everyday smiles.
           </p>
-          <a href="#shop" class="btn btn--pink btn--lg">Pick Your Squish →</a>
+          <a href="shop.html" class="btn btn--pink btn--lg">Pick Your Squish →</a>
 
           <ul class="hero__badges">
             <li>Ages 3+</li>
@@ -107,11 +107,11 @@
               <span class="badge badge--pink">Fan Fave</span>
             </div>
             <div class="product-card__body">
-              <h3>Steamed Dumpling Squishy</h3>
+              <h3><a href="product.html?slug=dumpling">Steamed Dumpling Squishy</a></h3>
               <p class="product-card__desc">Pastel bao with a happy face</p>
               <div class="product-card__footer">
                 <span class="price">₱89</span>
-                <button class="btn btn--pink btn--sm add-to-cart" data-name="Steamed Dumpling Squishy" data-price="89">+ Add to Cart</button>
+                <button class="btn btn--pink btn--sm add-to-cart" data-name="Steamed Dumpling Squishy" data-price="89" data-image="assets/images/product-dumpling.svg">+ Add to Cart</button>
               </div>
             </div>
           </article>
@@ -122,11 +122,11 @@
               <span class="badge badge--pink">So Cute</span>
             </div>
             <div class="product-card__body">
-              <h3>Cat Paw Squishy</h3>
+              <h3><a href="product.html?slug=catpaw">Cat Paw Squishy</a></h3>
               <p class="product-card__desc">Pink paw pads, ultra soft</p>
               <div class="product-card__footer">
                 <span class="price">₱89</span>
-                <button class="btn btn--pink btn--sm add-to-cart" data-name="Cat Paw Squishy" data-price="89">+ Add to Cart</button>
+                <button class="btn btn--pink btn--sm add-to-cart" data-name="Cat Paw Squishy" data-price="89" data-image="assets/images/product-catpaw.svg">+ Add to Cart</button>
               </div>
             </div>
           </article>
@@ -137,11 +137,11 @@
               <span class="badge badge--mint">Bestseller</span>
             </div>
             <div class="product-card__body">
-              <h3>Peanut Squishy</h3>
+              <h3><a href="product.html?slug=peanut">Peanut Squishy</a></h3>
               <p class="product-card__desc">Textured shell, mega squeezable</p>
               <div class="product-card__footer">
                 <span class="price">₱89</span>
-                <button class="btn btn--pink btn--sm add-to-cart" data-name="Peanut Squishy" data-price="89">+ Add to Cart</button>
+                <button class="btn btn--pink btn--sm add-to-cart" data-name="Peanut Squishy" data-price="89" data-image="assets/images/product-peanut.svg">+ Add to Cart</button>
               </div>
             </div>
           </article>
@@ -149,7 +149,7 @@
         </div>
 
         <div class="section-cta">
-          <a href="#shop" class="btn btn--outline">View All Squishies →</a>
+          <a href="shop.html" class="btn btn--outline">View All Squishies →</a>
         </div>
       </div>
     </section>
@@ -176,7 +176,7 @@
                 <li>Sticker included</li>
               </ul>
             </div>
-            <button class="btn btn--lavender promo-card__btn add-to-cart" data-name="Solo Squish" data-price="89">Get One</button>
+            <button class="btn btn--lavender promo-card__btn add-to-cart" data-name="Solo Squish" data-price="89" data-image="assets/images/product-dumpling.svg">Get One</button>
           </article>
 
           <article class="promo-card">
@@ -192,7 +192,7 @@
                 <li>2 bonus stickers</li>
               </ul>
             </div>
-            <button class="btn btn--pink promo-card__btn add-to-cart" data-name="Stress-Free Trio" data-price="249">Get the Trio</button>
+            <button class="btn btn--pink promo-card__btn add-to-cart" data-name="Stress-Free Trio" data-price="249" data-image="assets/images/product-catpaw.svg">Get the Trio</button>
           </article>
 
           <article class="promo-card promo-card--featured">
@@ -210,7 +210,7 @@
                 <li>Mystery bonus item</li>
               </ul>
             </div>
-            <button class="btn btn--dark promo-card__btn add-to-cart" data-name="Collector's Box" data-price="459">Build My Collection</button>
+            <button class="btn btn--dark promo-card__btn add-to-cart" data-name="Collector's Box" data-price="459" data-image="assets/images/hero-collage.svg">Build My Collection</button>
           </article>
 
           <article class="promo-card">
@@ -226,7 +226,7 @@
                 <li>Priority dispatch</li>
               </ul>
             </div>
-            <button class="btn btn--peach promo-card__btn add-to-cart" data-name="Wholesale / Party Pack" data-price="1400">Order in Bulk</button>
+            <button class="btn btn--peach promo-card__btn add-to-cart" data-name="Wholesale / Party Pack" data-price="1400" data-image="assets/images/product-peanut.svg">Order in Bulk</button>
           </article>
 
         </div>
@@ -248,8 +248,8 @@
 
       <div class="footer__col">
         <h4>Quick Links</h4>
-        <a href="#shop">Shop</a>
-        <a href="#about">About</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
       </div>
 
       <div class="footer__col">
@@ -265,9 +265,49 @@
     </div>
   </footer>
 
+  <!-- ============ CART DRAWER ============ -->
+  <div class="cart-overlay" id="cartOverlay" hidden></div>
+
+  <aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Your cart" aria-hidden="true">
+    <header class="cart-drawer__header">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 8h12l-1 12H7L6 8Z" stroke="#FF6B95" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="#FF6B95" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Your Cart
+      </h2>
+      <button class="cart-drawer__close" id="cartCloseBtn" aria-label="Close cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="#2D1B3D" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <div class="cart-drawer__items" id="cartItems">
+      <!-- Cart line items are rendered here by js/cart.js -->
+    </div>
+
+    <footer class="cart-drawer__footer" id="cartFooter">
+      <div class="cart-drawer__subtotal">
+        <span>Subtotal</span>
+        <span id="cartSubtotal">₱0</span>
+      </div>
+      <p class="cart-drawer__shipping">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M2 7h11v9H2z" stroke="#4EAE8C" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M13 10h4l4 3.5V16h-8z" stroke="#4EAE8C" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="6" cy="18" r="1.8" stroke="#4EAE8C" stroke-width="1.6"/>
+          <circle cx="17" cy="18" r="1.8" stroke="#4EAE8C" stroke-width="1.6"/>
+        </svg>
+        Free shipping on orders ₱500 and above
+      </p>
+      <button class="btn btn--pink cart-drawer__checkout" id="checkoutBtn">Checkout →</button>
+      <button class="cart-drawer__continue" id="continueShoppingBtn">Continue Shopping</button>
+    </footer>
+  </aside>
+
   <!-- Toast for cart notifications -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="js/main.js"></script>
+  <script src="js/cart.js"></script>
 </body>
 </html>

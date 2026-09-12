@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     cart.count += 1;
     updateCartUI();
-    showToast(`${name} added to cart 🧸`);
+    showToast(`${name} added to cart.`);
   }
 
   addToCartButtons.forEach((btn) => {

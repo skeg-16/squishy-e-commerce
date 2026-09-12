@@ -1,0 +1,481 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "slug": "dumpling",
+      "name": "Steamed Dumpling Squishy",
+      "badge": "Fan Fave",
+      "badgeClass": "badge--pink",
+      "rating": 4.8,
+      "reviews": 188,
+      "price": 89,
+      "image": "assets/images/product-dumpling.svg",
+      "description": "Our plumpest, most satisfying squishy yet. Modeled after a perfectly steamed bao — round, soft-faced, slow-rising, and impossible to put down.",
+      "stockQuantity": 94,
+      "specs": {
+        "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+        "Texture": "Ultra-Soft, slow-rising",
+        "Rise time": "40 seconds from a full squeeze",
+        "Dimensions": "Approx. 3 × 3 × 2.5 in (varies slightly by design)",
+        "Weight": "45–55 g",
+        "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+        "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+      }
+    },
+    {
+      "id": 2,
+      "slug": "cheese",
+      "name": "Cheese Cube Squishy",
+      "badge": "New Drop",
+      "badgeClass": "badge--purple",
+      "rating": 4.7,
+      "reviews": 96,
+      "price": 89,
+      "image": "assets/images/product-cheese.svg",
+      "description": "A cuboid slow-rise squishy with just the right amount of give. Dotted with soft dimples for extra texture while you squeeze.",
+      "stockQuantity": 80,
+      "specs": {
+        "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+        "Texture": "Soft, slow-rising, lightly textured",
+        "Rise time": "35 seconds from a full squeeze",
+        "Dimensions": "Approx. 3 × 3 × 3 in (varies slightly by design)",
+        "Weight": "50–60 g",
+        "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+        "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+      }
+    },
+    {
+      "id": 3,
+      "slug": "catpaw",
+      "name": "Cat Paw Squishy",
+      "badge": "So Cute",
+      "badgeClass": "badge--pink",
+      "rating": 4.9,
+      "reviews": 214,
+      "price": 89,
+      "image": "assets/images/product-catpaw.svg",
+      "description": "Pastel paw pads in ultra-soft memory foam. Small, pocket-friendly, and endlessly squeezable — a desk favorite for a reason.",
+      "stockQuantity": 118,
+      "specs": {
+        "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+        "Texture": "Pillowy-soft, slow-rising",
+        "Rise time": "30 seconds from a full squeeze",
+        "Dimensions": "Approx. 2.5 × 2 × 1.5 in (varies slightly by design)",
+        "Weight": "25–35 g",
+        "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+        "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+      }
+    },
+    {
+      "id": 4,
+      "slug": "toast",
+      "name": "Pastel Toast Squishy",
+      "badge": "Trending",
+      "badgeClass": "badge--peach",
+      "rating": 4.6,
+      "reviews": 74,
+      "price": 89,
+      "image": "assets/images/product-toast.svg",
+      "description": "Soft square toast in four pastel colorways. Stack them, collect them, or line your desk with a slice of everyday comfort.",
+      "stockQuantity": 59,
+      "specs": {
+        "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+        "Texture": "Ultra-soft, slow-rising",
+        "Rise time": "40 seconds from a full squeeze",
+        "Dimensions": "Approx. 3.5 × 3.5 × 1.5 in (varies slightly by design)",
+        "Weight": "40–50 g",
+        "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+        "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+      }
+    },
+    {
+      "id": 5,
+      "slug": "butter",
+      "name": "Butter Stick Squishy",
+      "badge": "New Drop",
+      "badgeClass": "badge--purple",
+      "rating": 4.7,
+      "reviews": 58,
+      "price": 89,
+      "image": "assets/images/product-butter.svg",
+      "description": "A salted-butter-block lookalike in pink and yellow. Extra-long shape makes it satisfying to squeeze from end to end.",
+      "stockQuantity": 45,
+      "specs": {
+        "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+        "Texture": "Firm-soft, slow-rising",
+        "Rise time": "45 seconds from a full squeeze",
+        "Dimensions": "Approx. 4 × 2 × 1.5 in (varies slightly by design)",
+        "Weight": "50–60 g",
+        "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+        "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+      }
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "orderNumber": "SQ-20260912-1974",
+      "customerName": "Mary Ruth",
+      "customerEmail": "mary@example.com",
+      "customerPhone": "09171234567",
+      "shippingAddress": "123 Squishy Way, Manila123 Squishy Way, Manila",
+      "paymentMethod": "GCash",
+      "subtotal": 356,
+      "shippingFee": 60,
+      "total": 416,
+      "status": "Confirmed",
+      "createdAt": "2026-09-12T04:58:02.382Z"
+    },
+    {
+      "id": 2,
+      "orderNumber": "SQ-20260912-9877",
+      "customerName": "Mary Ruth Batac",
+      "customerEmail": "mary@example.com",
+      "customerPhone": "09171234567",
+      "shippingAddress": "456 Pastel Ave, Quezon City",
+      "paymentMethod": "gcash",
+      "subtotal": 89,
+      "shippingFee": 60,
+      "total": 149,
+      "status": "Paid & Processing",
+      "paymentStatus": "Paid",
+      "paymentReference": "PAY-GCASH-832756",
+      "paidAt": "2026-09-12T05:10:12.902Z",
+      "createdAt": "2026-09-12T05:09:59.566Z"
+    },
+    {
+      "id": 3,
+      "orderNumber": "SQ-20260912-3758",
+      "customerName": "Mary Ruth",
+      "customerEmail": "mary@example.com",
+      "customerPhone": "09171234567",
+      "shippingAddress": "123 Squishy Way, Manila123 Squishy Way, Manila",
+      "paymentMethod": "cod",
+      "subtotal": 267,
+      "shippingFee": 60,
+      "total": 327,
+      "status": "Confirmed",
+      "paymentStatus": "Pending COD",
+      "paymentReference": null,
+      "paidAt": null,
+      "createdAt": "2026-09-12T05:16:55.555Z"
+    },
+    {
+      "id": 4,
+      "orderNumber": "SQ-20260912-4152",
+      "customerName": "Mary Ruth",
+      "customerEmail": "mary@example.com",
+      "customerPhone": "09171234567",
+      "shippingAddress": "123 Squishy Way, Manila123 Squishy Way, Manila",
+      "paymentMethod": "gcash",
+      "subtotal": 89,
+      "shippingFee": 60,
+      "total": 149,
+      "status": "Confirmed",
+      "paymentStatus": "Unpaid",
+      "paymentReference": null,
+      "paidAt": null,
+      "createdAt": "2026-09-12T05:17:35.191Z"
+    },
+    {
+      "id": 5,
+      "orderNumber": "SQ-20260912-2833",
+      "customerName": "Mary Ruth",
+      "customerEmail": "mary@example.com",
+      "customerPhone": "09171234567",
+      "shippingAddress": "123 Squishy Way, Manila123 Squishy Way, Manila",
+      "paymentMethod": "cod",
+      "subtotal": 89,
+      "shippingFee": 60,
+      "total": 149,
+      "status": "Confirmed",
+      "paymentStatus": "Pending COD",
+      "paymentReference": null,
+      "paidAt": null,
+      "createdAt": "2026-09-12T05:18:46.780Z"
+    },
+    {
+      "id": 6,
+      "orderNumber": "SQ-20260912-4010",
+      "customerName": "Mary Ruth Batac",
+      "customerEmail": "mary@example.com",
+      "customerPhone": "09171234567",
+      "shippingAddress": "789 Sampaguita St",
+      "region": "visayas",
+      "city": "Cebu City",
+      "barangay": "Luz",
+      "postalCode": "6000",
+      "paymentMethod": "gcash",
+      "subtotal": 89,
+      "shippingFee": 110,
+      "total": 199,
+      "status": "Cancelled",
+      "trackingNumber": "SPXPH686369233",
+      "paymentStatus": "Paid",
+      "paymentReference": "PAY-GCASH-359746",
+      "paidAt": "2026-09-12T05:41:42.765Z",
+      "createdAt": "2026-09-12T05:41:26.369Z",
+      "cancellationReason": "Change of mind",
+      "cancelledAt": "2026-09-12T05:42:22.451Z"
+    },
+    {
+      "id": 7,
+      "orderNumber": "SQ-20260912-6177",
+      "customerName": "Maria Santos",
+      "customerEmail": "maria.santos@gmail.com",
+      "customerPhone": "09171234567",
+      "shippingAddress": "123 Rizal Street",
+      "region": "metro-manila",
+      "city": "Makati City",
+      "barangay": "San Lorenzo",
+      "postalCode": "1223",
+      "paymentMethod": "gcash",
+      "subtotal": 178,
+      "shippingFee": 60,
+      "total": 238,
+      "status": "To Ship",
+      "trackingNumber": "SPXPH328288970",
+      "paymentStatus": "Paid",
+      "paymentReference": "PAY-GCASH-244087",
+      "paidAt": "2026-09-12T05:52:23.324Z",
+      "createdAt": "2026-09-12T05:52:08.288Z"
+    },
+    {
+      "id": 8,
+      "orderNumber": "SQ-20260912-1144",
+      "customerName": "Juan Dela Cruz",
+      "customerEmail": "juan@example.com",
+      "customerPhone": "09171234567",
+      "shippingAddress": "123 Rizal Ave",
+      "region": "metro-manila",
+      "city": "Manila",
+      "barangay": "Barangay 123",
+      "postalCode": "1000",
+      "paymentMethod": "gcash",
+      "voucherCode": "WELCOME10",
+      "voucherDiscount": 27,
+      "subtotal": 267,
+      "shippingFee": 60,
+      "total": 300,
+      "status": "To Ship",
+      "trackingNumber": "SPXPH898637558",
+      "paymentStatus": "Paid",
+      "paymentReference": "PAY-GCASH-509321",
+      "paidAt": "2026-09-12T06:52:43.582Z",
+      "createdAt": "2026-09-12T06:51:38.638Z"
+    }
+  ],
+  "orderItems": [
+    {
+      "id": 1,
+      "orderId": 1,
+      "productSlug": "dumpling",
+      "productName": "Steamed Dumpling Squishy",
+      "price": 89,
+      "quantity": 3,
+      "subtotal": 267
+    },
+    {
+      "id": 2,
+      "orderId": 1,
+      "productSlug": "toast",
+      "productName": "Pastel Toast Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 3,
+      "orderId": 2,
+      "productSlug": "dumpling",
+      "productName": "Steamed Dumpling Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 4,
+      "orderId": 3,
+      "productSlug": "custom",
+      "productName": "Peanut Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 5,
+      "orderId": 3,
+      "productSlug": "cheese",
+      "productName": "Cheese Cube Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 6,
+      "orderId": 3,
+      "productSlug": "catpaw",
+      "productName": "Cat Paw Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 7,
+      "orderId": 4,
+      "productSlug": "cheese",
+      "productName": "Cheese Cube Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 8,
+      "orderId": 5,
+      "productSlug": "cheese",
+      "productName": "Cheese Cube Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 9,
+      "orderId": 6,
+      "productSlug": "dumpling",
+      "productName": "Steamed Dumpling Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 10,
+      "orderId": 7,
+      "productSlug": "cheese",
+      "productName": "Cheese Cube Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 11,
+      "orderId": 7,
+      "productSlug": "dumpling",
+      "productName": "Steamed Dumpling Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 12,
+      "orderId": 8,
+      "productSlug": "dumpling",
+      "productName": "Steamed Dumpling Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 13,
+      "orderId": 8,
+      "productSlug": "cheese",
+      "productName": "Cheese Cube Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    },
+    {
+      "id": 14,
+      "orderId": 8,
+      "productSlug": "catpaw",
+      "productName": "Cat Paw Squishy",
+      "price": 89,
+      "quantity": 1,
+      "subtotal": 89
+    }
+  ],
+  "vouchers": [
+    {
+      "code": "WELCOME10",
+      "type": "percentage",
+      "value": 10,
+      "minSpend": 150,
+      "description": "10% off subtotal for new customers (Min spend ₱150)"
+    },
+    {
+      "code": "FREESHIP",
+      "type": "free_shipping",
+      "value": 60,
+      "minSpend": 0,
+      "description": "Free shipping voucher"
+    },
+    {
+      "code": "SQUISHY50",
+      "type": "fixed_amount",
+      "value": 50,
+      "minSpend": 300,
+      "description": "₱50 flat discount (Min spend ₱300)"
+    }
+  ],
+  "reservations": [
+    {
+      "id": 1,
+      "orderNumber": "SQ-20260912-1144",
+      "productSlug": "dumpling",
+      "quantity": 1,
+      "expiresAt": "2026-09-12T07:06:38.637Z",
+      "status": "confirmed"
+    },
+    {
+      "id": 2,
+      "orderNumber": "SQ-20260912-1144",
+      "productSlug": "cheese",
+      "quantity": 1,
+      "expiresAt": "2026-09-12T07:06:38.637Z",
+      "status": "confirmed"
+    },
+    {
+      "id": 3,
+      "orderNumber": "SQ-20260912-1144",
+      "productSlug": "catpaw",
+      "quantity": 1,
+      "expiresAt": "2026-09-12T07:06:38.637Z",
+      "status": "confirmed"
+    }
+  ],
+  "trackingLogs": [
+    {
+      "trackingNumber": "SPXPH898637558",
+      "status": "Order Placed",
+      "location": "Seller Warehouse (Manila Hub)",
+      "description": "Order details received and package prepared for pickup.",
+      "timestamp": "2026-09-12T06:51:38.638Z"
+    },
+    {
+      "trackingNumber": "SPXPH898637558",
+      "status": "Handed to Courier",
+      "location": "SPX Express Sorting Center",
+      "description": "Parcel transferred to SPX Express logistics network.",
+      "timestamp": "2026-09-12T07:21:38.638Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "orderNumber": "SQ-DEMO-001",
+      "productSlug": "dumpling",
+      "reviewerName": "Mary R.",
+      "rating": 5,
+      "comment": "Extremely soft and slow rising. Smells pleasant and well-packaged.",
+      "createdAt": "2026-09-10T06:40:22.652Z"
+    },
+    {
+      "id": 2,
+      "orderNumber": "SQ-DEMO-002",
+      "productSlug": "catpaw",
+      "reviewerName": "Alyssa G.",
+      "rating": 5,
+      "comment": "Super cute desk companion. Great quality memory foam.",
+      "createdAt": "2026-09-08T06:40:22.653Z"
+    }
+  ]
+}
