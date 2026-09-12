@@ -32,7 +32,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'Squishies API Backend', timestamp: new Date().toISOString() });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Squishies Backend API running at http://localhost:${PORT}`);
-});
+// Start Server if run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Squishies Backend API running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
