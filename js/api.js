@@ -1,179 +1,44 @@
-/* ==========================================================================
-   SQUISHIES — api.js
-   Centralized API service for communicating with the backend server.
-   ========================================================================== */
-
+/* Same-origin API client. A network error is never a successful transaction. */
 const SquishiesAPI = (() => {
-  const API_BASE_URL = 'http://localhost:5000/api';
-
-  async function fetchProducts() {
+  let sessionPromise;
+  async function request(path, { method = 'GET', body, key } = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     try {
-      const res = await fetch(`${API_BASE_URL}/products`);
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      const json = await res.json();
-      return json.success ? json.data : null;
-    } catch (err) {
-      console.warn('Backend API unavailable, falling back to local dataset:', err.message);
-      return null;
-    }
-  }
-
-  async function fetchProductBySlug(slug) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/products/${encodeURIComponent(slug)}`);
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      const json = await res.json();
-      return json.success ? json.data : null;
-    } catch (err) {
-      console.warn(`Backend API unavailable for ${slug}, falling back to local dataset:`, err.message);
-      return null;
-    }
-  }
-
-  async function placeOrder(orderPayload) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderPayload)
+      const response = await fetch(`/api${path}`, {
+        method, credentials: 'same-origin', signal: controller.signal,
+        headers: { ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...(key ? { 'Idempotency-Key': key } : {}) },
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {})
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || `HTTP error ${res.status}`);
-      return json;
-    } catch (err) {
-      console.warn('Backend order submission error:', err.message);
-      throw err;
-    }
+      let result;
+      try { result = await response.json(); } catch { throw Object.assign(new Error('The server returned an unreadable response. Please retry.'), { status: response.status, code: 'UNREADABLE_RESPONSE' }); }
+      if (!response.ok || !result.success) {
+        if (response.status === 401) sessionPromise = null;
+        throw Object.assign(new Error(result.error || 'Request failed.'), { status: response.status, code: result.code, fields: result.fields });
+      }
+      return result.data;
+    } catch (error) {
+      if (error.status) throw error;
+      throw Object.assign(new Error('Unable to reach the store. Your request is unconfirmed. Please retry.'), { status: 0, code: 'NETWORK_ERROR' });
+    } finally { clearTimeout(timeout); }
   }
-
-  async function cancelOrder(orderNumber, reason) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/orders/${encodeURIComponent(orderNumber)}/cancel`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || `HTTP error ${res.status}`);
-      return json;
-    } catch (err) {
-      console.warn('Backend order cancellation error:', err.message);
-      throw err;
-    }
+  function session() {
+    if (!sessionPromise) sessionPromise = request('/session', { method: 'POST', body: {} }).catch(error => { sessionPromise = null; throw error; });
+    return sessionPromise;
   }
-
-  async function createCheckoutSession(orderNumber, paymentMethod, amount) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/payments/create-checkout-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderNumber, paymentMethod, amount })
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || `HTTP error ${res.status}`);
-      return json;
-    } catch (err) {
-      console.warn('Failed to create payment session:', err.message);
-      throw err;
-    }
-  }
-
-  async function confirmPayment(orderNumber, paymentMethod, accountOrCard) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/payments/confirm`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderNumber, paymentMethod, accountOrCard })
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || `HTTP error ${res.status}`);
-      return json;
-    } catch (err) {
-      console.warn('Payment confirmation failed:', err.message);
-      throw err;
-    }
-  }
-
-  // Voucher API
-  async function applyVoucher(code, subtotal, shippingFee) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/vouchers/apply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, subtotal, shippingFee })
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || `HTTP error ${res.status}`);
-      return json;
-    } catch (err) {
-      console.warn('Voucher validation failed:', err.message);
-      throw err;
-    }
-  }
-
-  async function fetchAvailableVouchers() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/vouchers/available`);
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      const json = await res.json();
-      return json.success ? json.data : [];
-    } catch (err) {
-      return [];
-    }
-  }
-
-  // Logistics & Live Tracking API
-  async function fetchTrackingLogs(trackingNumber) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/tracking/${encodeURIComponent(trackingNumber)}`);
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      const json = await res.json();
-      return json.success ? json.data : null;
-    } catch (err) {
-      console.warn('Tracking fetch failed:', err.message);
-      return null;
-    }
-  }
-
-  // Verified Buyer Reviews API
-  async function fetchProductReviews(productSlug) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/reviews/${encodeURIComponent(productSlug)}`);
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      const json = await res.json();
-      return json.success ? json.data : null;
-    } catch (err) {
-      return null;
-    }
-  }
-
-  async function submitReview(reviewPayload) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/reviews`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reviewPayload)
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || `HTTP error ${res.status}`);
-      return json;
-    } catch (err) {
-      console.warn('Review submission failed:', err.message);
-      throw err;
-    }
-  }
-
+  async function protectedRequest(path, options) { await session(); return request(path, options); }
   return {
-    fetchProducts,
-    fetchProductBySlug,
-    placeOrder,
-    cancelOrder,
-    createCheckoutSession,
-    confirmPayment,
-    applyVoucher,
-    fetchAvailableVouchers,
-    fetchTrackingLogs,
-    fetchProductReviews,
-    submitReview
+    session,
+    fetchProducts: () => request('/products'),
+    fetchProductBySlug: slug => request(`/products/${encodeURIComponent(slug)}`),
+    quote: body => protectedRequest('/checkout/quote', { method: 'POST', body }),
+    placeOrder: (body, key) => protectedRequest('/orders', { method: 'POST', body, key }),
+    getOrder: number => protectedRequest(`/orders/${encodeURIComponent(number)}`),
+    cancelOrder: (number, reason) => protectedRequest(`/orders/${encodeURIComponent(number)}/cancel`, { method: 'POST', body: { reason } }),
+    createPaymentSession: (orderNumber, key) => protectedRequest('/payments/sessions', { method: 'POST', body: { orderNumber }, key }),
+    simulatePayment: (id, outcome) => protectedRequest(`/payments/sessions/${encodeURIComponent(id)}/simulate`, { method: 'POST', body: { outcome } }),
+    fetchTrackingLogs: number => protectedRequest(`/tracking/${encodeURIComponent(number)}`),
+    fetchProductReviews: slug => request(`/reviews/${encodeURIComponent(slug)}`),
+    submitReview: body => protectedRequest('/reviews', { method: 'POST', body })
   };
 })();

@@ -51,7 +51,7 @@
   <main>
     <div class="container checkout-page">
 
-      <!-- Populated by js/checkout.js: form + summary, or an empty-cart message -->
+      <!-- Populated by js/shopee-checkout.js: form + summary, or an empty-cart message -->
       <div id="checkoutContent"></div>
 
       <!-- Template used when the cart has items -->
@@ -120,7 +120,7 @@
                 </div>
               </div>
               <div class="delivery-estimate-badge" id="deliveryEstimateBadge">
-                Estimated Delivery: <strong>Mon, Sep 15 – Tue, Sep 16</strong>
+                Delivery estimate will appear after totals load.
               </div>
             </div>
 
@@ -144,7 +144,7 @@
                 </span>
                 <span class="payment-option__body">
                   <strong>GCash</strong>
-                  <span>Send via GCash</span>
+                  <span>School demo — no money transferred</span>
                 </span>
                 <input type="radio" name="paymentMethod" value="gcash">
               </label>
@@ -155,9 +155,14 @@
                 </span>
                 <span class="payment-option__body">
                   <strong>Credit / Debit Card</strong>
-                  <span>Visa, Mastercard accepted</span>
+                  <span>School demo — no money transferred</span>
                 </span>
                 <input type="radio" name="paymentMethod" value="card">
+              </label>
+              <label class="payment-option" data-method="maya">
+                <span class="payment-option__icon" aria-hidden="true">M</span>
+                <span class="payment-option__body"><strong>Maya</strong><span>School demo — no money transferred</span></span>
+                <input type="radio" name="paymentMethod" value="maya">
               </label>
             </div>
           </div>
@@ -165,7 +170,7 @@
           <!-- Right: order summary -->
           <div class="checkout-card">
             <h2>Order Summary</h2>
-            <div id="orderSummaryItems"><!-- populated by js/checkout.js --></div>
+            <div id="orderSummaryItems"><!-- populated by js/shopee-checkout.js --></div>
 
             <div class="order-summary__rows">
               <div class="order-summary__row">
@@ -186,7 +191,7 @@
               <div class="voucher-box" style="margin: 16px 0;">
                 <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Voucher / Promo Code</label>
                 <div style="display: flex; gap: 8px;">
-                  <input type="text" id="ckVoucherCode" placeholder="WELCOME10 / FREESHIP" style="flex: 1; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; text-transform: uppercase;">
+                  <input type="text" id="ckVoucherCode" aria-label="Voucher or promo code" placeholder="WELCOME10 / FREESHIP" style="flex: 1; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13.5px; text-transform: uppercase;">
                   <button type="button" id="applyVoucherBtn" class="btn btn--outline" style="padding: 8px 16px; font-size: 13.5px;">Apply</button>
                 </div>
                 <span class="field-error" id="err-ckVoucherCode"></span>
@@ -198,7 +203,8 @@
               </div>
             </div>
 
-            <button class="btn btn--pink checkout-page__place-order" id="placeOrderBtn">Place Order</button>
+            <p id="checkoutError" class="field-error" role="alert"></p>
+            <button class="btn btn--pink checkout-page__place-order" id="placeOrderBtn" disabled>Loading totals…</button>
             <a href="shop.html" class="checkout-page__continue">← Continue Shopping</a>
           </div>
         </div>
@@ -288,8 +294,8 @@
   <!-- Toast for cart notifications -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="js/cart.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
   <script src="js/payment.js"></script>
   <script src="js/shopee-checkout.js"></script>
 </body>

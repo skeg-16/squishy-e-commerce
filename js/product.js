@@ -1,182 +1,60 @@
-/* ==========================================================================
-   SQUISHIES — product.js
-   Renders the product detail page from PRODUCTS[slug] (see js/products.js)
-   and wires up the quantity stepper, add-to-cart, buy-now, and verified reviews.
-   Depends on: js/products.js, js/cart.js, js/api.js
-   ========================================================================== */
-
 document.addEventListener('DOMContentLoaded', async () => {
-  const params = new URLSearchParams(window.location.search);
-  const slug = params.get('slug') || 'dumpling';
-  let product = PRODUCTS[slug] || PRODUCTS.dumpling;
-
-  // Try fetching dynamic product data from API
-  if (typeof getProductBySlugAsync !== 'undefined') {
-    const apiP = await getProductBySlugAsync(slug);
-    if (apiP) product = apiP;
+  const slug = new URLSearchParams(location.search).get('slug') || 'dumpling';
+  const add = document.getElementById('pdpAddToCart'), buy = document.getElementById('pdpBuyNow');
+  add.disabled = buy.disabled = true;
+  let product;
+  try { product = await SquishiesAPI.fetchProductBySlug(slug); }
+  catch (error) {
+    document.getElementById('productName').textContent = error.status === 404 ? 'Product not found' : 'Product temporarily unavailable';
+    document.getElementById('productDesc').textContent = error.message;
+    document.querySelector('.stock-pill').textContent = 'Please return to the shop or refresh to retry.';
+    return;
   }
-
-  /* ------------------------------------------------------------------ *
-   * Render product content
-   * ------------------------------------------------------------------ */
-  const pageTitle = document.getElementById('pageTitle');
-  if (pageTitle) pageTitle.textContent = `${product.name} — Squishies`;
-
-  const crumbName = document.getElementById('crumbName');
-  if (crumbName) crumbName.textContent = product.name;
-
-  const badgeEl = document.getElementById('productBadge');
-  if (badgeEl) {
-    badgeEl.textContent = product.badge;
-    badgeEl.classList.add(product.badgeClass);
+  Squishies.syncProducts([product]);
+  document.title = `${product.name} — Squishies`;
+  for (const [id, text] of Object.entries({ crumbName: product.name, productName: product.name, productPrice: Squishies.formatPeso(product.price), productDesc: product.description || '', productBadge: product.badge || 'Squishies' })) document.getElementById(id).textContent = text;
+  const image = document.getElementById('productImage'); image.src = product.image; image.alt = product.name;
+  const badge = document.getElementById('productBadge'); if (/^badge--[a-z]+$/.test(product.badgeClass || '')) badge.classList.add(product.badgeClass);
+  const setRating = (rating, count) => {
+    document.querySelector('#productRating .stars').textContent = '★'.repeat(Math.round(rating)).padEnd(5, '☆');
+    document.getElementById('ratingText').textContent = count ? `${rating} · ${count} verified review${count === 1 ? '' : 's'}` : 'No reviews yet';
+  };
+  setRating(product.rating, product.reviewsCount);
+  document.querySelector('.stock-pill').textContent = product.stockQuantity ? `✓ ${product.stockQuantity} available · school demo inventory` : 'Out of stock';
+  const specs = document.getElementById('specsList'); specs.replaceChildren();
+  for (const [label, value] of Object.entries(product.specs || {})) {
+    const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = label; dd.textContent = value; specs.append(dt, dd);
   }
-
-  const pName = document.getElementById('productName');
-  if (pName) pName.textContent = product.name;
-
-  const pImg = document.getElementById('productImage');
-  if (pImg) {
-    pImg.src = product.image;
-    pImg.alt = product.name;
+  const faqs = document.getElementById('faqList');
+  for (const faq of PRODUCT_FAQS) {
+    const item = document.createElement('div'); item.className = 'faq-item';
+    item.innerHTML = '<button class="faq-item__question" aria-expanded="false"><span></span><span class="faq-item__icon" aria-hidden="true">+</span></button><div class="faq-item__answer"><p></p></div>';
+    item.querySelector('.faq-item__question span').textContent = faq.question; item.querySelector('p').textContent = faq.answer;
+    const button = item.querySelector('button'); button.onclick = () => {
+      const open = item.classList.toggle('is-open'); button.setAttribute('aria-expanded', String(open));
+      item.querySelector('.faq-item__icon').textContent = open ? '−' : '+';
+      const answer = item.querySelector('.faq-item__answer'); answer.style.maxHeight = open ? `${answer.scrollHeight}px` : null;
+    };
+    faqs.append(item);
   }
-
-  const pPrice = document.getElementById('productPrice');
-  if (pPrice) pPrice.textContent = Squishies.formatPeso(product.price);
-
-  const pDesc = document.getElementById('productDesc');
-  if (pDesc) pDesc.textContent = product.description;
-
-  const fullStars = Math.round(product.rating);
-  const starsEl = document.querySelector('#productRating .stars');
-  if (starsEl) starsEl.textContent = '★★★★★'.slice(0, fullStars).padEnd(5, '☆');
-
-  const ratingText = document.getElementById('ratingText');
-  if (ratingText) ratingText.textContent = `${product.rating} · ${product.reviews || product.reviewsCount || 0} verified reviews`;
-
-  // Specifications
-  const specsList = document.getElementById('specsList');
-  if (specsList && product.specs) {
-    specsList.innerHTML = '';
-    Object.entries(product.specs).forEach(([label, value]) => {
-      const dt = document.createElement('dt');
-      dt.textContent = label;
-      const dd = document.createElement('dd');
-      dd.textContent = value;
-      specsList.appendChild(dt);
-      specsList.appendChild(dd);
-    });
-  }
-
-  // FAQ accordion
-  const faqList = document.getElementById('faqList');
-  if (faqList && typeof PRODUCT_FAQS !== 'undefined') {
-    faqList.innerHTML = '';
-    PRODUCT_FAQS.forEach((faq) => {
-      const item = document.createElement('div');
-      item.className = 'faq-item';
-      item.innerHTML = `
-        <button class="faq-item__question" aria-expanded="false">
-          <span>${faq.question}</span>
-          <span class="faq-item__icon">+</span>
-        </button>
-        <div class="faq-item__answer"><p>${faq.answer}</p></div>`;
-
-      const questionBtn = item.querySelector('.faq-item__question');
-      const answerEl = item.querySelector('.faq-item__answer');
-
-      questionBtn.addEventListener('click', () => {
-        const isOpen = item.classList.toggle('is-open');
-        questionBtn.setAttribute('aria-expanded', String(isOpen));
-        item.querySelector('.faq-item__icon').textContent = isOpen ? '−' : '+';
-        answerEl.style.maxHeight = isOpen ? answerEl.scrollHeight + 'px' : null;
-      });
-
-      faqList.appendChild(item);
-    });
-  }
-
-  // Verified Buyer Reviews
-  async function loadVerifiedReviews() {
-    if (typeof SquishiesAPI === 'undefined') return;
-    const reviewData = await SquishiesAPI.fetchProductReviews(slug);
-    if (!reviewData || !reviewData.reviews) return;
-
-    let reviewContainer = document.getElementById('verifiedReviewsContainer');
-    if (!reviewContainer) {
-      const parent = document.querySelector('.product-page__details') || document.body;
-      const box = document.createElement('div');
-      box.id = 'verifiedReviewsContainer';
-      box.className = 'pdp-section';
-      box.style.marginTop = '32px';
-      box.innerHTML = `
-        <h3>Verified Buyer Reviews (${reviewData.reviewsCount})</h3>
-        <div id="reviewList" style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;"></div>
-      `;
-      parent.appendChild(box);
-      reviewContainer = document.getElementById('reviewList');
+  let quantity = 1;
+  const quantityText = document.getElementById('pdpQtyValue');
+  document.getElementById('pdpQtyMinus').onclick = () => { quantity = Math.max(1, quantity - 1); quantityText.textContent = quantity; };
+  document.getElementById('pdpQtyPlus').onclick = () => { quantity = Math.min(99, product.stockQuantity, quantity + 1); quantityText.textContent = quantity; };
+  add.disabled = buy.disabled = product.stockQuantity < 1;
+  add.onclick = () => Squishies.addToCart(product, quantity);
+  buy.onclick = () => { if (Squishies.addToCart(product, quantity)) location.href = 'checkout.html'; };
+  const section = document.createElement('section'); section.className = 'product-page__specs'; section.id = 'verifiedReviewsContainer';
+  const heading = document.createElement('h2'); heading.textContent = 'Verified Buyer Reviews'; section.append(heading);
+  document.querySelector('.product-page').append(section);
+  try {
+    const data = await SquishiesAPI.fetchProductReviews(slug); setRating(data.averageRating, data.reviewsCount);
+    if (!data.reviews.length) { const empty = document.createElement('p'); empty.textContent = 'Be the first to review after a completed demo delivery.'; section.append(empty); }
+    for (const review of data.reviews) {
+      const article = document.createElement('article'); article.className = 'checkout-card';
+      const title = document.createElement('strong'), stars = document.createElement('p'), comment = document.createElement('p');
+      title.textContent = `${review.reviewerName} · Verified Purchase`; stars.textContent = `${'★'.repeat(review.rating)} (${review.rating}/5)`; comment.textContent = review.comment;
+      article.append(title, stars, comment); section.append(article);
     }
-
-    if (reviewContainer && reviewData.reviews) {
-      reviewContainer.innerHTML = '';
-      reviewData.reviews.forEach((r) => {
-        const rEl = document.createElement('div');
-        rEl.style.background = '#f8fafc';
-        rEl.style.border = '1px solid #e2e8f0';
-        rEl.style.borderRadius = '10px';
-        rEl.style.padding = '12px 16px';
-        rEl.style.fontSize = '13.5px';
-        rEl.innerHTML = `
-          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <strong style="color: #1e293b;">${r.reviewerName} <span style="font-size: 11px; color: #059669; background: #d1fae5; padding: 2px 6px; border-radius: 4px;">Verified Purchase</span></strong>
-            <span style="color: #f59e0b;">${'★'.repeat(r.rating)}</span>
-          </div>
-          <p style="color: #475569; margin: 0;">${r.comment}</p>
-        `;
-        reviewContainer.appendChild(rEl);
-      });
-    }
-  }
-
-  loadVerifiedReviews();
-
-  /* ------------------------------------------------------------------ *
-   * Quantity stepper
-   * ------------------------------------------------------------------ */
-  let qty = 1;
-  const qtyValueEl = document.getElementById('pdpQtyValue');
-
-  const minusBtn = document.getElementById('pdpQtyMinus');
-  if (minusBtn) {
-    minusBtn.addEventListener('click', () => {
-      qty = Math.max(1, qty - 1);
-      if (qtyValueEl) qtyValueEl.textContent = qty;
-    });
-  }
-
-  const plusBtn = document.getElementById('pdpQtyPlus');
-  if (plusBtn) {
-    plusBtn.addEventListener('click', () => {
-      qty += 1;
-      if (qtyValueEl) qtyValueEl.textContent = qty;
-    });
-  }
-
-  /* ------------------------------------------------------------------ *
-   * Add to Cart / Buy it now
-   * ------------------------------------------------------------------ */
-  const addBtn = document.getElementById('pdpAddToCart');
-  if (addBtn) {
-    addBtn.addEventListener('click', () => {
-      Squishies.addToCart(product.name, product.price, product.image, qty);
-      Squishies.showToast(`${product.name} added to cart.`);
-    });
-  }
-
-  const buyBtn = document.getElementById('pdpBuyNow');
-  if (buyBtn) {
-    buyBtn.addEventListener('click', () => {
-      Squishies.addToCart(product.name, product.price, product.image, qty);
-      window.location.href = 'checkout.html';
-    });
-  }
+  } catch { const error = document.createElement('p'); error.textContent = 'Reviews could not load. Please refresh to retry.'; section.append(error); }
 });

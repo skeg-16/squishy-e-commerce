@@ -1,0 +1,18 @@
+{
+  "name": "squishies-store", "version": "2.0.0", "private": true,
+  "description": "Squishies school-demo storefront and transactional PostgreSQL commerce API",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env server/server.js",
+    "start": "node --env-file-if-exists=.env server/server.js",
+    "build": "node scripts/build.js",
+    "db:migrate": "node --env-file-if-exists=.env scripts/database.js migrate",
+    "db:seed": "node --env-file-if-exists=.env scripts/database.js seed",
+    "demo:advance": "node --env-file-if-exists=.env scripts/demo.js",
+    "demo:local": "node scripts/local-demo.js",
+    "test": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/*.test.js",
+    "test:browser": "node --env-file-if-exists=.env scripts/browser-check.js"
+  },
+  "dependencies": { "express": "^4.22.3", "helmet": "^8.1.0", "pg": "^8.23.0", "zod": "^4.3.6" },
+  "devDependencies": { "embedded-postgres": "18.4.0-beta.17", "playwright": "^1.58.2", "supertest": "^7.2.2" }
+}

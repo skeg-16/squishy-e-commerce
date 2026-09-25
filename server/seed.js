@@ -1,121 +1,27 @@
-const db = require('./db');
-
-const initialProducts = [
-  {
-    id: 1,
-    slug: 'dumpling',
-    name: 'Steamed Dumpling Squishy',
-    badge: 'Fan Fave',
-    badgeClass: 'badge--pink',
-    rating: 4.8,
-    reviews: 188,
-    price: 89,
-    image: 'assets/images/product-dumpling.svg',
-    description: "Our plumpest, most satisfying squishy yet. Modeled after a perfectly steamed bao — round, soft-faced, slow-rising, and impossible to put down.",
-    stockQuantity: 100,
-    specs: {
-      'Material': 'Premium Thermoplastic Rubber (TPR) and memory foam',
-      'Texture': 'Ultra-Soft, slow-rising',
-      'Rise time': '40 seconds from a full squeeze',
-      'Dimensions': 'Approx. 3 × 3 × 2.5 in (varies slightly by design)',
-      'Weight': '45–55 g',
-      'Packaging': 'Individually wrapped in an eco-friendly matte zip pouch with care instructions',
-      'Safety': 'Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible.',
-    }
-  },
-  {
-    id: 2,
-    slug: 'cheese',
-    name: 'Cheese Cube Squishy',
-    badge: 'New Drop',
-    badgeClass: 'badge--purple',
-    rating: 4.7,
-    reviews: 96,
-    price: 89,
-    image: 'assets/images/product-cheese.svg',
-    description: "A cuboid slow-rise squishy with just the right amount of give. Dotted with soft dimples for extra texture while you squeeze.",
-    stockQuantity: 85,
-    specs: {
-      'Material': 'Premium Thermoplastic Rubber (TPR) and memory foam',
-      'Texture': 'Soft, slow-rising, lightly textured',
-      'Rise time': '35 seconds from a full squeeze',
-      'Dimensions': 'Approx. 3 × 3 × 3 in (varies slightly by design)',
-      'Weight': '50–60 g',
-      'Packaging': 'Individually wrapped in an eco-friendly matte zip pouch with care instructions',
-      'Safety': 'Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible.',
-    }
-  },
-  {
-    id: 3,
-    slug: 'catpaw',
-    name: 'Cat Paw Squishy',
-    badge: 'So Cute',
-    badgeClass: 'badge--pink',
-    rating: 4.9,
-    reviews: 214,
-    price: 89,
-    image: 'assets/images/product-catpaw.svg',
-    description: "Pastel paw pads in ultra-soft memory foam. Small, pocket-friendly, and endlessly squeezable — a desk favorite for a reason.",
-    stockQuantity: 120,
-    specs: {
-      'Material': 'Premium Thermoplastic Rubber (TPR) and memory foam',
-      'Texture': 'Pillowy-soft, slow-rising',
-      'Rise time': '30 seconds from a full squeeze',
-      'Dimensions': 'Approx. 2.5 × 2 × 1.5 in (varies slightly by design)',
-      'Weight': '25–35 g',
-      'Packaging': 'Individually wrapped in an eco-friendly matte zip pouch with care instructions',
-      'Safety': 'Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible.',
-    }
-  },
-  {
-    id: 4,
-    slug: 'toast',
-    name: 'Pastel Toast Squishy',
-    badge: 'Trending',
-    badgeClass: 'badge--peach',
-    rating: 4.6,
-    reviews: 74,
-    price: 89,
-    image: 'assets/images/product-toast.svg',
-    description: "Soft square toast in four pastel colorways. Stack them, collect them, or line your desk with a slice of everyday comfort.",
-    stockQuantity: 60,
-    specs: {
-      'Material': 'Premium Thermoplastic Rubber (TPR) and memory foam',
-      'Texture': 'Ultra-soft, slow-rising',
-      'Rise time': '40 seconds from a full squeeze',
-      'Dimensions': 'Approx. 3.5 × 3.5 × 1.5 in (varies slightly by design)',
-      'Weight': '40–50 g',
-      'Packaging': 'Individually wrapped in an eco-friendly matte zip pouch with care instructions',
-      'Safety': 'Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible.',
-    }
-  },
-  {
-    id: 5,
-    slug: 'butter',
-    name: 'Butter Stick Squishy',
-    badge: 'New Drop',
-    badgeClass: 'badge--purple',
-    rating: 4.7,
-    reviews: 58,
-    price: 89,
-    image: 'assets/images/product-butter.svg',
-    description: "A salted-butter-block lookalike in pink and yellow. Extra-long shape makes it satisfying to squeeze from end to end.",
-    stockQuantity: 45,
-    specs: {
-      'Material': 'Premium Thermoplastic Rubber (TPR) and memory foam',
-      'Texture': 'Firm-soft, slow-rising',
-      'Rise time': '45 seconds from a full squeeze',
-      'Dimensions': 'Approx. 4 × 2 × 1.5 in (varies slightly by design)',
-      'Weight': '50–60 g',
-      'Packaging': 'Individually wrapped in an eco-friendly matte zip pouch with care instructions',
-      'Safety': 'Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible.',
-    }
-  }
+const singles = require('./catalog.json');
+const { transaction } = require('./db');
+const bundles = [
+  { slug: 'solo-squish', name: 'Solo Squish', priceMinor: 8900, components: { dumpling: 1 }, image: 'assets/images/product-dumpling.svg' },
+  { slug: 'stress-free-trio', name: 'Stress-Free Trio', priceMinor: 24900, components: { dumpling: 1, catpaw: 1, peanut: 1 }, image: 'assets/images/product-catpaw.svg' },
+  { slug: 'collectors-box', name: "Collector's Box", priceMinor: 45900, components: { dumpling: 1, catpaw: 1, peanut: 1, cheese: 1, toast: 1, butter: 1 }, image: 'assets/images/hero-collage.svg' },
+  { slug: 'party-pack', name: 'Wholesale / Party Pack', priceMinor: 140000, components: { dumpling: 4, catpaw: 4, peanut: 3, cheese: 3, toast: 3, butter: 3 }, image: 'assets/images/product-peanut.svg' }
 ];
-
-function seed() {
-  db.seedProducts(initialProducts);
-  console.log(`Successfully seeded ${initialProducts.length} products into JSON database.`);
+async function seed(pool) {
+  return transaction(pool, async q => {
+    // Repeatable and non-destructive: seeding never replenishes sold stock or erases orders.
+    for (const product of [...singles, ...bundles]) {
+      const { slug, name, priceMinor, stock = 0, kind = 'bundle', components, ...content } = product;
+      await q.query('INSERT INTO products(slug,name,kind,price_minor,stock,content) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(slug) DO NOTHING', [slug, name, kind, priceMinor, stock, content]);
+      if (components) for (const [component, quantity] of Object.entries(components)) {
+        await q.query('INSERT INTO bundle_components(bundle_slug,product_slug,quantity) VALUES($1,$2,$3) ON CONFLICT DO NOTHING', [slug, component, quantity]);
+      }
+    }
+    const vouchers = [
+      ['WELCOME10', 'percentage', 10, 15000, '10% welcome discount on merchandise (minimum ₱150)'],
+      ['FREESHIP', 'free_shipping', 0, 0, 'Waive the shipping fee once'],
+      ['SQUISHY50', 'fixed_amount', 5000, 30000, '₱50 off merchandise (minimum ₱300)']
+    ];
+    for (const v of vouchers) await q.query('INSERT INTO vouchers(code,type,value,min_spend_minor,description) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING', v);
+  });
 }
-
-seed();
+module.exports = { seed, bundles };

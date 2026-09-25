@@ -16,3 +16,10 @@ Thumbs.db
 # SQLite databases / temporary runtime storage
 *.sqlite
 *.db
+.env.*
+!.env.example
+.vercel/
+public/
+.local/
+test-results/
+playwright-report/
