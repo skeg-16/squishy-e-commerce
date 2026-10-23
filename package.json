@@ -19,12 +19,15 @@
     "test:browser": "node --env-file-if-exists=.env scripts/browser-check.js"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
     "express": "^4.22.3",
     "helmet": "^8.1.0",
     "pg": "^8.23.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.4",
+    "three": "^0.186.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {

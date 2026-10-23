@@ -6,6 +6,7 @@ import Shop from './pages/Shop';
 import Product from './pages/Product';
 import About from './pages/About';
 import Checkout from './pages/Checkout';
+import ScrollToTop from './components/ScrollToTop';
 
 function Placeholder({ title }) {
   return (
@@ -18,16 +19,19 @@ function Placeholder({ title }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<SiteLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/index.html" element={<Navigate to="/" replace />} />
-        <Route path="/shop.html" element={<Shop />} />
-        <Route path="/product.html" element={<Product />} />
-        <Route path="/checkout.html" element={<Checkout />} />
-        <Route path="/about.html" element={<About />} />
-        <Route path="*" element={<Placeholder title="Page Not Found" />} />
-      </Route>
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<SiteLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/index.html" element={<Navigate to="/" replace />} />
+          <Route path="/shop.html" element={<Shop />} />
+          <Route path="/product.html" element={<Product />} />
+          <Route path="/checkout.html" element={<Checkout />} />
+          <Route path="/about.html" element={<About />} />
+          <Route path="*" element={<Placeholder title="Page Not Found" />} />
+        </Route>
+      </Routes>
+    </>
   );
 }

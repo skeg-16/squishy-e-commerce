@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { PRODUCT_MODELS } from '../data/productModels';
+
+const ProductViewer3D = lazy(() => import('../components/ProductViewer3D'));
 
 const PRODUCT_FAQS = [
   {
@@ -142,6 +145,13 @@ export default function Product() {
       ? product.badgeClass
       : '';
 
+  const productWithModel = product
+    ? {
+        ...product,
+        modelUrl: PRODUCT_MODELS[product.slug],
+      }
+    : null;
+
   return (
     <main>
       <div className="container product-page">
@@ -158,15 +168,24 @@ export default function Product() {
 
         <div className="product-page__main">
           <div className="product-page__image">
-            {product ? (
+            {!productWithModel ? (
+              <div role="status">Loading product…</div>
+            ) : productWithModel.modelUrl ? (
+              <div>
+                <Suspense fallback={<div>Loading 3D viewer…</div>}>
+                  <ProductViewer3D
+                    url={productWithModel.modelUrl}
+                    alt={productWithModel.name}
+                  />
+                </Suspense>
+              </div>
+            ) : (
               <img
-                src={product.image}
-                alt={product.name}
+                src={productWithModel.image}
+                alt={productWithModel.name}
                 width="420"
                 height="420"
               />
-            ) : (
-              <div role="status">Loading product…</div>
             )}
           </div>
 
