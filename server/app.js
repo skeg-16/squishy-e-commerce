@@ -21,6 +21,11 @@ function createApp({ pool, demoMode = false, origins = ['http://localhost:3000']
   app.use('/api', (req, res, next) => {
     req.requestId = randomUUID();
     res.set('X-Request-ID', req.requestId).set('Cache-Control', 'no-store');
+    console.log('Origin debug:', {
+  allowedOrigins: origins,
+  receivedOrigin: req.get('origin'),
+  fetchSite: req.get('sec-fetch-site'),
+});
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       if (!origins.includes(req.get('origin')) || req.get('sec-fetch-site') === 'cross-site') return next(new AppError(403, 'ORIGIN_REJECTED', 'Request origin is not allowed.'));
       if (!req.is('application/json')) return next(new AppError(415, 'JSON_REQUIRED', 'Send application/json.'));

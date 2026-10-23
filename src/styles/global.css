@@ -1,0 +1,26 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap");
+@import "../../css/style.css";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body, "Nunito", sans-serif);
+  color: var(--color-navy, #2d1b3d);
+  background: var(--color-cream, #fdf3ec);
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+}
