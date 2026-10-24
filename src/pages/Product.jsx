@@ -174,6 +174,7 @@ export default function Product() {
               <div>
                 <Suspense fallback={<div>Loading 3D viewer…</div>}>
                   <ProductViewer3D
+                    key={productWithModel.modelUrl}
                     url={productWithModel.modelUrl}
                     alt={productWithModel.name}
                   />

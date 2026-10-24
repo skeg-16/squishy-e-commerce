@@ -25,9 +25,13 @@ export default function App() {
         <Route element={<SiteLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />
+          <Route path="/shop" element={<Shop />} />
           <Route path="/shop.html" element={<Shop />} />
+          <Route path="/product" element={<Product />} />
           <Route path="/product.html" element={<Product />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/checkout.html" element={<Checkout />} />
+          <Route path="/about" element={<About />} />
           <Route path="/about.html" element={<About />} />
           <Route path="*" element={<Placeholder title="Page Not Found" />} />
         </Route>

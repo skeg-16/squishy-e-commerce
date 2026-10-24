@@ -1,6 +1,6 @@
 import { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, useGLTF, Html, useProgress } from '@react-three/drei';
+import { OrbitControls, Environment, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
 const TARGET_SIZE = 2; // the model's largest dimension gets scaled to this
@@ -32,11 +32,6 @@ function Model({ url }) {
   );
 }
 
-function Loader() {
-  const { progress } = useProgress();
-  return <Html center>{Math.round(progress)}%</Html>;
-}
-
 export default function ProductViewer3D({ url, alt }) {
   return (
     <div
@@ -49,7 +44,7 @@ export default function ProductViewer3D({ url, alt }) {
         <directionalLight position={[5, 5, 5]} intensity={1} />
         <Environment preset="city" />
 
-        <Suspense fallback={<Loader />}>
+        <Suspense fallback={null}>
           <Model url={url} />
         </Suspense>
 
