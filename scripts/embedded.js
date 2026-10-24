@@ -18,7 +18,8 @@ async function embedded({ directory, port, password, persistent = false } = {}) 
   password ||= randomBytes(24).toString('hex');
   const db = new EmbeddedPostgres({ databaseDir: path.join(base, 'data'), user: 'postgres', password,
     port, persistent: true, authMethod: 'scram-sha-256',
-    postgresFlags: ['-c', 'listen_addresses=127.0.0.1', '-c', `unix_socket_directories=${base}`],
+    initdbFlags: ['--encoding=UTF8', '--locale=C'],
+    postgresFlags: ['-c', 'listen_addresses=127.0.0.1', ...(process.platform !== 'win32' ? ['-c', `unix_socket_directories=${base}`] : [])],
     onLog: () => {}, onError: () => {} });
   let initialized = false;
   try { await access(path.join(base, 'data/PG_VERSION')); initialized = true; } catch { /* New cluster. */ }
