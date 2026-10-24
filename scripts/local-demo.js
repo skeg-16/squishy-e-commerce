@@ -19,7 +19,7 @@ const { seed } = require('../server/seed');
   await fs.writeFile(path.join(directory, 'demo.env'), `DATABASE_URL=${database.url}\nDEMO_MODE=true\n`, { mode: 0o600 });
   require('./build').build();
   const port = Number(process.env.PORT || 3000);
-  const app = createApp({ pool, demoMode: true, origins: [`http://localhost:${port}`, `http://127.0.0.1:${port}`], serveStatic: true });
+  const app = createApp({ pool, demoMode: true, origins: ['http://localhost:5173', 'http://127.0.0.1:5173', `http://localhost:${port}`, `http://127.0.0.1:${port}`], serveStatic: true });
   const server = app.listen(port, () => console.log(`Local school demo: http://localhost:${port}\nPostgreSQL data persists in .local/. Press Ctrl+C to stop.`));
   let stopping = false;
   const stop = async () => {
