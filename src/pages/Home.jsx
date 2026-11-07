@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
 
 const featuredProducts = [
   {
@@ -98,15 +99,6 @@ const promoSets = [
   },
 ];
 
-const fallbackImages = {
-  ...Object.fromEntries(
-    featuredProducts.map((product) => [product.slug, product.image])
-  ),
-  ...Object.fromEntries(
-    promoSets.map((product) => [product.slug, product.image])
-  ),
-};
-
 function formatPeso(value) {
   return `₱${Number(value || 0).toLocaleString('en-PH', {
     maximumFractionDigits: 2,
@@ -129,10 +121,7 @@ function getCatalogArray(result) {
 }
 
 export default function Home() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-
+  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
   const { addToCart, syncProducts, showToast } = useCart();
 
   useEffect(() => {
@@ -143,21 +132,13 @@ export default function Home() {
         const result = await SquishiesAPI.fetchProducts();
         const catalog = getCatalogArray(result);
 
-        if (cancelled) return;
+        if (cancelled || catalog.length === 0) return;
 
         setProducts(catalog);
         syncProducts(catalog);
-        setLoadError(false);
       } catch (error) {
         if (cancelled) return;
-
-        console.error('Failed to load Squishies catalog:', error);
-        setLoadError(true);
-        showToast(
-          'The store could not load live inventory. Please refresh to try again.'
-        );
-      } finally {
-        if (!cancelled) setLoading(false);
+        console.warn('Using fallback Squishies catalog:', error.message);
       }
     }
 
@@ -166,7 +147,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [syncProducts, showToast]);
+  }, [syncProducts]);
 
   const productsBySlug = new Map(
     products.map((product) => [product.slug, product])
@@ -192,17 +173,11 @@ export default function Home() {
   }
 
   function isUnavailable(product) {
-    return (
-      loading ||
-      loadError ||
-      !product ||
-      product.stockQuantity <= 0
-    );
+    return !product || product.stockQuantity <= 0;
   }
 
   function getAddButtonText(product, normalText) {
-    if (loading && !product) return 'Loading…';
-    if (!product || loadError) return 'Unavailable';
+    if (!product) return 'Unavailable';
     if (product.stockQuantity <= 0) return 'Out of stock';
     return normalText;
   }
@@ -348,6 +323,7 @@ export default function Home() {
                       <button
                         className="btn btn--pink btn--sm add-to-cart"
                         type="button"
+                        data-slug={featured.slug}
                         disabled={isUnavailable(product)}
                         onClick={() => handleAddToCart(featured.slug)}
                       >
@@ -375,13 +351,6 @@ export default function Home() {
             <h2>Promo Sets</h2>
             <p>More squish, more savings. Pick the set that fits you.</p>
           </div>
-
-          {loadError && (
-            <p role="status">
-              Live bundle inventory is unavailable. Please refresh to try
-              again.
-            </p>
-          )}
 
           <div className="promo-grid">
             {promoSets.map((bundle) => {
@@ -435,6 +404,7 @@ export default function Home() {
                   <button
                     className={`btn ${bundle.buttonClass} promo-card__btn add-to-cart`}
                     type="button"
+                    data-slug={bundle.slug}
                     disabled={isUnavailable(product)}
                     onClick={() => handleAddToCart(bundle.slug)}
                   >

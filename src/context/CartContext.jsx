@@ -1,4 +1,3 @@
-
 import {
   createContext,
   useCallback,
@@ -7,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
 
 const CartContext = createContext(null);
 
@@ -110,7 +110,9 @@ export function CartProvider({ children }) {
   const [toast, setToast] = useState('');
   const [locked, setLocked] = useState(false);
 
-  const catalog = useRef(new Map());
+  const catalog = useRef(
+    new Map(FALLBACK_PRODUCTS.map((product) => [product.slug, product]))
+  );
   const toastTimer = useRef(null);
 
   useEffect(() => {

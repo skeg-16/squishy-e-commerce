@@ -1,4 +1,3 @@
-
 @import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap");
 @import "../../css/style.css";
 
@@ -23,4 +22,33 @@ button, input, select, textarea {
 
 img {
   max-width: 100%;
+}
+
+.product-page__image {
+  position: relative;
+  background: radial-gradient(circle at 50% 42%, #fffdf9 0%, #f7ece2 100%);
+  border: 1.5px solid var(--color-border, #f0e3da);
+}
+
+.viewer-3d-stage {
+  cursor: grab;
+}
+
+.viewer-3d-stage:active {
+  cursor: grabbing;
+}
+
+.viewer-3d-hint {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--color-border, #f0e3da);
+  color: var(--color-navy-soft, #5a4d68);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
 }

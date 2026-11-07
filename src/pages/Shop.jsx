@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
 
 const shopProducts = [
   {
@@ -79,9 +80,7 @@ function getCatalogArray(result) {
 }
 
 export default function Shop() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
 
@@ -95,21 +94,13 @@ export default function Shop() {
         const result = await SquishiesAPI.fetchProducts();
         const catalog = getCatalogArray(result);
 
-        if (cancelled) return;
+        if (cancelled || catalog.length === 0) return;
 
         setProducts(catalog);
         syncProducts(catalog);
-        setLoadError(false);
       } catch (error) {
         if (cancelled) return;
-
-        console.error('Failed to load Squishies catalog:', error);
-        setLoadError(true);
-        showToast(
-          'The store could not load live inventory. Please refresh to try again.'
-        );
-      } finally {
-        if (!cancelled) setLoading(false);
+        console.warn('Using fallback Squishies catalog:', error.message);
       }
     }
 
@@ -118,7 +109,7 @@ export default function Shop() {
     return () => {
       cancelled = true;
     };
-  }, [syncProducts, showToast]);
+  }, [syncProducts]);
 
   const productsBySlug = useMemo(
     () => new Map(products.map((product) => [product.slug, product])),
@@ -143,11 +134,6 @@ export default function Shop() {
   }, [search, category]);
 
   function handleAddToCart(slug) {
-    if (loading || loadError) {
-      showToast('Live inventory is unavailable. Please try again.');
-      return;
-    }
-
     const product = productsBySlug.get(slug);
 
     if (!product) {
@@ -243,16 +229,11 @@ export default function Shop() {
           <div className="product-grid product-grid--shop" id="shopGrid">
             {visibleProducts.map((item) => {
               const product = productsBySlug.get(item.slug);
-              const unavailable =
-                loading ||
-                loadError ||
-                !product ||
-                product.stockQuantity <= 0;
+              const unavailable = !product || product.stockQuantity <= 0;
 
               let buttonText = '+ Cart';
 
-              if (loading) buttonText = 'Loading…';
-              else if (loadError || !product) buttonText = 'Unavailable';
+              if (!product) buttonText = 'Unavailable';
               else if (product.stockQuantity <= 0) {
                 buttonText = 'Out of stock';
               }
@@ -290,9 +271,7 @@ export default function Shop() {
 
                     <div className="product-card__footer product-card__footer--shop">
                       <span className="price">
-                        {product && !loadError
-                          ? formatPeso(product.price)
-                          : '—'}
+                        {product ? formatPeso(product.price) : '—'}
                       </span>
 
                       <div className="product-card__btns">

@@ -1,11 +1,16 @@
-
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 export default function Header({ onOpenCart }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { totalCount } = useCart();
+  const { pathname } = useLocation();
+
+  const isHome = pathname === '/' || pathname === '/index.html';
+  const isShop =
+    pathname.startsWith('/shop') || pathname.startsWith('/product');
+  const isAbout = pathname.startsWith('/about');
 
   function closeMenu() {
     setMenuOpen(false);
@@ -29,9 +34,27 @@ export default function Header({ onOpenCart }) {
           className={`main-nav${menuOpen ? ' is-open' : ''}`}
           id="mainNav"
         >
-          <Link to="/" onClick={closeMenu}>Home</Link>
-          <Link to="/shop.html" onClick={closeMenu}>Shop</Link>
-          <Link to="/about.html" onClick={closeMenu}>About</Link>
+          <Link
+            to="/"
+            aria-current={isHome ? 'page' : undefined}
+            onClick={closeMenu}
+          >
+            Home
+          </Link>
+          <Link
+            to="/shop.html"
+            aria-current={isShop ? 'page' : undefined}
+            onClick={closeMenu}
+          >
+            Shop
+          </Link>
+          <Link
+            to="/about.html"
+            aria-current={isAbout ? 'page' : undefined}
+            onClick={closeMenu}
+          >
+            About
+          </Link>
         </nav>
 
         <div className="header__actions">

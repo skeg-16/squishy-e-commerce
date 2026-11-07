@@ -3,8 +3,19 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { PRODUCT_MODELS } from '../data/productModels';
+import { FALLBACK_PRODUCTS_BY_SLUG } from '../data/catalogFallback';
 
 const ProductViewer3D = lazy(() => import('../components/ProductViewer3D'));
+
+const SPEC_ORDER = [
+  'Material',
+  'Texture',
+  'Rise time',
+  'Dimensions',
+  'Weight',
+  'Packaging',
+  'Safety',
+];
 
 const PRODUCT_FAQS = [
   {
@@ -25,14 +36,21 @@ function getErrorMessage(error) {
     : 'Product temporarily unavailable';
 }
 
+function normalizeImagePath(image) {
+  if (!image) return '';
+  if (/^(https?:\/\/|\/)/i.test(image)) return image;
+  return `/${image.replace(/^\.?\//, '')}`;
+}
+
 export default function Product() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const slug = searchParams.get('slug') || 'dumpling';
+  const fallbackProduct = FALLBACK_PRODUCTS_BY_SLUG.get(slug) || null;
 
-  const { syncProducts, addToCart, formatPeso, showToast } = useCart();
+  const { syncProducts, addToCart, formatPeso } = useCart();
 
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState(fallbackProduct);
   const [loadError, setLoadError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [openFaqs, setOpenFaqs] = useState([]);
@@ -41,13 +59,18 @@ export default function Product() {
 
   useEffect(() => {
     let cancelled = false;
+    const initialFallback = FALLBACK_PRODUCTS_BY_SLUG.get(slug) || null;
 
-    setProduct(null);
+    setProduct(initialFallback);
     setLoadError(null);
     setReviews(null);
     setReviewsError(false);
     setQuantity(1);
     setOpenFaqs([]);
+
+    if (initialFallback) {
+      document.title = `${initialFallback.name} — Squishies`;
+    }
 
     async function loadProduct() {
       try {
@@ -69,6 +92,18 @@ export default function Product() {
       } catch (error) {
         if (cancelled) return;
 
+        if (initialFallback && error.status !== 404) {
+          setProduct(initialFallback);
+          syncProducts([initialFallback]);
+          setReviews({
+            productSlug: slug,
+            averageRating: initialFallback.rating || 0,
+            reviewsCount: initialFallback.reviewsCount || 0,
+            reviews: [],
+          });
+          return;
+        }
+
         setLoadError({
           title: getErrorMessage(error),
           message: error.message,
@@ -81,7 +116,7 @@ export default function Product() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, syncProducts]);
 
   const stock = Number(product?.stockQuantity ?? 0);
   const available = Boolean(product && stock > 0);
@@ -148,9 +183,20 @@ export default function Product() {
   const productWithModel = product
     ? {
         ...product,
+        image: normalizeImagePath(product.image),
         modelUrl: PRODUCT_MODELS[product.slug],
       }
     : null;
+
+  const orderedSpecs = Object.entries(product?.specs || {}).sort(
+    ([a], [b]) => {
+      const indexA = SPEC_ORDER.indexOf(a);
+      const indexB = SPEC_ORDER.indexOf(b);
+      return (
+        (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB)
+      );
+    }
+  );
 
   return (
     <main>
@@ -171,12 +217,22 @@ export default function Product() {
             {!productWithModel ? (
               <div role="status">Loading product…</div>
             ) : productWithModel.modelUrl ? (
-              <div>
-                <Suspense fallback={<div>Loading 3D viewer…</div>}>
+              <div style={{ width: '100%', height: '100%' }}>
+                <Suspense
+                  fallback={
+                    <img
+                      src={productWithModel.image}
+                      alt={productWithModel.name}
+                      width="420"
+                      height="420"
+                    />
+                  }
+                >
                   <ProductViewer3D
                     key={productWithModel.modelUrl}
                     url={productWithModel.modelUrl}
                     alt={productWithModel.name}
+                    fallbackImage={productWithModel.image}
                   />
                 </Suspense>
               </div>
@@ -257,6 +313,7 @@ export default function Product() {
 
               <button
                 className="btn btn--pink btn--lg"
+                id="pdpAddToCart"
                 type="button"
                 disabled={!available}
                 onClick={handleAddToCart}
@@ -267,6 +324,7 @@ export default function Product() {
 
             <button
               className="btn btn--dark btn--lg product-page__buy-now"
+              id="pdpBuyNow"
               type="button"
               disabled={!available}
               onClick={handleBuyNow}
@@ -279,7 +337,7 @@ export default function Product() {
         <div className="product-page__specs">
           <h2>Specifications</h2>
           <dl className="specs-list">
-            {Object.entries(product?.specs || {}).map(([label, value]) => (
+            {orderedSpecs.map(([label, value]) => (
               <div key={label} className="specs-list__row">
                 <dt>{label}</dt>
                 <dd>{value}</dd>
