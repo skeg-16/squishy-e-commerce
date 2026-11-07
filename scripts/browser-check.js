@@ -16,7 +16,7 @@ const { build } = require('./build');
     const port = 3037, base = `http://localhost:${port}`;
     server = createApp({ pool, demoMode: true, origins: [base], rateLimit: 10000, serveStatic: true }).listen(port);
     await new Promise(resolve => server.once('listening', resolve));
-    browser = await chromium.launch();
+    browser = await chromium.launch().catch(() => chromium.launch({ channel: 'chrome' }));
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const page = await context.newPage();
     const errors = []; page.on('pageerror', error => errors.push(error.message));

@@ -212,3 +212,4 @@ export const FALLBACK_PRODUCTS = [
 export const FALLBACK_PRODUCTS_BY_SLUG = new Map(
   FALLBACK_PRODUCTS.map((product) => [product.slug, product])
 );
+

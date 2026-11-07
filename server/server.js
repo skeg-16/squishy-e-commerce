@@ -1,9 +1,17 @@
 const fs = require('node:fs/promises');
+const net = require('node:net');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
 const { createPool } = require('./db');
 const { createApp } = require('./app');
 let app;
+function isPortOpen(port, host = '127.0.0.1') {
+  return new Promise(resolve => {
+    const socket = net.createConnection({ port, host });
+    socket.once('connect', () => { socket.destroy(); resolve(true); });
+    socket.once('error', () => { socket.destroy(); resolve(false); });
+  });
+}
 function getApp() {
   if (!app) {
     const port = process.env.PORT || '3000';
@@ -45,13 +53,20 @@ if (require.main === module) {
       await bootstrapPool.end();
     }
     require('../scripts/build').build();
-    const port = process.env.PORT || 3000;
-    const server = getApp().listen(port, () => console.log(`Squishies: http://localhost:${port}`));
+    const port = Number(process.env.PORT || 3000);
+    let server = null;
+    if (await isPortOpen(port)) {
+      console.log(`Squishies: http://localhost:${port}`);
+    } else {
+      server = getApp().listen(port, () => console.log(`Squishies: http://localhost:${port}`));
+    }
+    const keepAlive = setInterval(() => {}, 60000);
     let stopping = false;
     const stop = async () => {
       if (stopping) return;
       stopping = true;
-      await new Promise(resolve => server.close(resolve));
+      clearInterval(keepAlive);
+      if (server) await new Promise(resolve => server.close(resolve));
       if (database) await database.stop();
     };
     process.on('SIGINT', () => stop().then(() => process.exit()));

@@ -50,3 +50,4 @@
 - **`Product` (`src/pages/Product.jsx`)**: Breadcrumb bar, interactive 3D GLTF model stage (`ProductViewer3D`) with SVG fallback, rating summary, stock pill, quantity stepper, `Add to Cart` / `Buy it now` CTAs, specifications table, FAQ accordion, and verified buyer reviews.
 - **`ProductViewer3D` (`src/components/ProductViewer3D.jsx`)**: Three.js / React Three Fiber canvas with normalized bounding-box centering, local studio environment lighting (`RoomEnvironment`), auto-rotating `OrbitControls`, and WebGL error fallback.
 - **`Checkout` (`src/pages/Checkout.jsx`)**: Regional shipping selector, voucher code applicator (`WELCOME10`, `FREESHIP`, `SQUISHY50`), payment method selector (`COD`, `GCash`, `Maya`, `Card`), payment simulation modal, order status tracker, and verified review submission.
+

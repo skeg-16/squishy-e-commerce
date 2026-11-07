@@ -1,4 +1,5 @@
 const fs = require('node:fs/promises');
+const net = require('node:net');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
 const { embedded } = require('./embedded');
@@ -6,6 +7,13 @@ const { createPool } = require('../server/db');
 const { createApp } = require('../server/app');
 const { migrate } = require('./database');
 const { seed } = require('../server/seed');
+function isPortOpen(port, host = '127.0.0.1') {
+  return new Promise(resolve => {
+    const socket = net.createConnection({ port, host });
+    socket.once('connect', () => { socket.destroy(); resolve(true); });
+    socket.once('error', () => { socket.destroy(); resolve(false); });
+  });
+}
 (async () => {
   const directory = path.join(__dirname, '../.local');
   await fs.mkdir(directory, { recursive: true });
@@ -19,12 +27,20 @@ const { seed } = require('../server/seed');
   await fs.writeFile(path.join(directory, 'demo.env'), `DATABASE_URL=${database.url}\nDEMO_MODE=true\n`, { mode: 0o600 });
   require('./build').build();
   const port = Number(process.env.PORT || 3000);
-  const app = createApp({ pool, demoMode: true, origins: ['http://localhost:5173', 'http://127.0.0.1:5173', `http://localhost:${port}`, `http://127.0.0.1:${port}`], serveStatic: true });
-  const server = app.listen(port, () => console.log(`Local school demo: http://localhost:${port}\nPostgreSQL data persists in .local/. Press Ctrl+C to stop.`));
+  let server = null;
+  if (await isPortOpen(port)) {
+    console.log(`Local school demo: http://localhost:${port}\nPostgreSQL data persists in .local/. Press Ctrl+C to stop.`);
+  } else {
+    const app = createApp({ pool, demoMode: true, origins: ['http://localhost:5173', 'http://127.0.0.1:5173', `http://localhost:${port}`, `http://127.0.0.1:${port}`], serveStatic: true });
+    server = app.listen(port, () => console.log(`Local school demo: http://localhost:${port}\nPostgreSQL data persists in .local/. Press Ctrl+C to stop.`));
+  }
+  const keepAlive = setInterval(() => {}, 60000);
   let stopping = false;
   const stop = async () => {
     if (stopping) return; stopping = true;
-    await new Promise(resolve => server.close(resolve)); await pool.end(); await database.stop();
+    clearInterval(keepAlive);
+    if (server) await new Promise(resolve => server.close(resolve));
+    await pool.end(); await database.stop();
   };
   process.on('SIGINT', () => stop().then(() => process.exit()));
   process.on('SIGTERM', () => stop().then(() => process.exit()));
