@@ -5,10 +5,11 @@ const { randomBytes, randomUUID, createHash } = require('node:crypto');
 const { createCommerce } = require('./commerce');
 const { AppError, fail } = require('./errors');
 const { parse } = require('./validation');
+const { createAdminRouter } = require('./admin');
 const asyncRoute = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const digest = value => createHash('sha256').update(value).digest('hex');
 
-function createApp({ pool, demoMode = false, origins = ['http://localhost:3000'], secureCookies = false, rateLimit = 120, logger = console, serveStatic = false }) {
+function createApp({ pool, demoMode = false, origins = ['http://localhost:3000'], secureCookies = false, rateLimit = 120, logger = console, serveStatic = false, adminPassword = '', adminSecret = '' }) {
   const app = express();
   const commerce = createCommerce(pool, { demoMode });
   app.disable('x-powered-by');
@@ -81,6 +82,7 @@ function createApp({ pool, demoMode = false, origins = ['http://localhost:3000']
   app.get('/api/tracking/:number', guest, send(req => commerce.tracking(req.guestId, req.params.number)));
   app.get('/api/reviews/:slug', send(req => commerce.reviews(req.params.slug)));
   app.post('/api/reviews', guest, send(req => commerce.addReview(req.guestId, parse('review', req.body)), 201));
+  app.use('/api/admin', createAdminRouter({ pool, commerce, password: adminPassword, secret: adminSecret, secureCookies }));
   app.use('/api', (req, res, next) => next(new AppError(404, 'NOT_FOUND', 'API endpoint not found.')));
   if (serveStatic) app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny' }));
   app.use((error, req, res, next) => {

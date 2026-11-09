@@ -17,7 +17,7 @@ async function embedded({ directory, port, password, persistent = false } = {}) 
   port ||= await freePort();
   password ||= randomBytes(24).toString('hex');
   const db = new EmbeddedPostgres({ databaseDir: path.join(base, 'data'), user: 'postgres', password,
-    port, persistent: true, authMethod: 'scram-sha-256',
+    port, persistent: true, authMethod: 'scram-sha-256', initdbFlags: ['--encoding=UTF8', '--locale=C'],
     postgresFlags: ['-c', 'listen_addresses=127.0.0.1', '-c', `unix_socket_directories=${base}`],
     onLog: () => {}, onError: () => {} });
   let initialized = false;

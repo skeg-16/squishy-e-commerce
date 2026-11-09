@@ -9,7 +9,8 @@ function getApp() {
     if (!origins.length) throw new Error('APP_ORIGIN must be configured.');
     const pool = createPool();
     app = createApp({ pool, demoMode: process.env.DEMO_MODE === 'true', origins,
-      secureCookies: Boolean(process.env.VERCEL) || origins.every(o => o.startsWith('https://')), serveStatic: !process.env.VERCEL });
+      secureCookies: Boolean(process.env.VERCEL) || origins.every(o => o.startsWith('https://')), serveStatic: !process.env.VERCEL,
+      adminPassword: process.env.ADMIN_PASSWORD || '', adminSecret: process.env.ADMIN_SESSION_SECRET || '' });
   }
   return app;
 }

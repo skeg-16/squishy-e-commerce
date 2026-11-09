@@ -18,9 +18,11 @@ const { seed } = require('../server/seed');
   await migrate(pool); await seed(pool);
   await fs.writeFile(path.join(directory, 'demo.env'), `DATABASE_URL=${database.url}\nDEMO_MODE=true\n`, { mode: 0o600 });
   require('./build').build();
+  // Local-only convenience: a known default password when ADMIN_PASSWORD is not set.
+  const adminPassword = process.env.ADMIN_PASSWORD || 'squishy-admin';
   const port = Number(process.env.PORT || 3000);
-  const app = createApp({ pool, demoMode: true, origins: [`http://localhost:${port}`, `http://127.0.0.1:${port}`], serveStatic: true });
-  const server = app.listen(port, () => console.log(`Local school demo: http://localhost:${port}\nPostgreSQL data persists in .local/. Press Ctrl+C to stop.`));
+  const app = createApp({ pool, demoMode: true, origins: [`http://localhost:${port}`, `http://127.0.0.1:${port}`], serveStatic: true, adminPassword, adminSecret: process.env.ADMIN_SESSION_SECRET || '' });
+  const server = app.listen(port, () => console.log(`Local school demo: http://localhost:${port}\nAdmin: http://localhost:${port}/admin.html (password: ${adminPassword})\nPostgreSQL data persists in .local/. Press Ctrl+C to stop.`));
   let stopping = false;
   const stop = async () => {
     if (stopping) return; stopping = true;

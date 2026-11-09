@@ -294,6 +294,44 @@ function createCommerce(pool, { demoMode = false } = {}) {
       return serialize(q, updated);
     });
   }
-  return { getProducts, quote, createOrder, getOrder, cancel, createPayment, simulate, tracking, reviews, addReview, advanceDemo, expireReservations };
+  // Store-side order handling (called only from the authenticated admin router).
+  async function adminOrder(number) {
+    await expireReservations();
+    return transaction(pool, async q => {
+      const { rows: [order] } = await q.query('SELECT * FROM orders WHERE order_number=$1', [number]);
+      if (!order) fail(404, 'NOT_FOUND', 'Order not found.');
+      return serialize(q, order);
+    });
+  }
+
+  async function adminUpdate(number, action, reason) {
+    await expireReservations();
+    return transaction(pool, async q => {
+      const { rows: [found] } = await q.query('SELECT * FROM orders WHERE order_number=$1 FOR UPDATE', [number]);
+      if (!found) fail(404, 'NOT_FOUND', 'Order not found.');
+      const order = await reconcile(q, found);
+      if (action === 'cancel') {
+        if (order.status === 'Cancelled') return serialize(q, order);
+        if (!['To Pay', 'To Ship'].includes(order.status)) fail(409, 'INVALID_STATE', 'Only orders awaiting payment or shipment can be cancelled.');
+        await release(q, order.id);
+        const { rows: [updated] } = await q.query(`UPDATE orders SET status='Cancelled',cancellation_reason=$2,
+          payment_status=CASE WHEN payment_status='Paid' THEN 'Refunded' ELSE payment_status END WHERE id=$1 RETURNING *`, [order.id, reason || 'Cancelled by the store']);
+        await q.query("UPDATE payment_attempts SET status='cancelled' WHERE order_id=$1 AND status='pending'", [order.id]);
+        await event(q, order.id, 'Cancelled', order.payment_status === 'Paid' ? 'Order cancelled by the store; refund recorded and inventory restored.' : 'Order cancelled by the store; inventory restored.');
+        return serialize(q, updated);
+      }
+      const [from, to] = action === 'ship' ? ['To Ship', 'Shipped'] : ['Shipped', 'Completed'];
+      if (order.status === to) return serialize(q, order);
+      if (order.status !== from) fail(409, 'INVALID_STATE', `Only ${from} orders can be marked ${to}.`);
+      const { rows: [updated] } = await q.query(`UPDATE orders SET status=$2,
+        payment_status=CASE WHEN $2='Completed' AND payment_method='cod' THEN 'Paid' ELSE payment_status END,
+        paid_at=CASE WHEN $2='Completed' AND payment_method='cod' THEN clock_timestamp() ELSE paid_at END
+        WHERE id=$1 RETURNING *`, [order.id, to]);
+      await event(q, order.id, to, to === 'Shipped' ? 'Order shipped by the store.' : 'Order delivered; COD payment collected where applicable.');
+      return serialize(q, updated);
+    });
+  }
+
+  return { adminOrder, adminUpdate, getProducts, quote, createOrder, getOrder, cancel, createPayment, simulate, tracking, reviews, addReview, advanceDemo, expireReservations };
 }
 module.exports = { createCommerce, REGIONS, hash };

@@ -13,7 +13,7 @@ npm ci
 npm run demo:local
 ```
 
-Open http://localhost:3000. The command starts real PostgreSQL on loopback port 55432, applies migrations, seeds the catalog, builds the unchanged page structure, and starts Express. Data persists in the ignored `.local/` directory between restarts. Ctrl+C stops both processes. Seeding never resets sold stock or deletes orders.
+Open http://localhost:3000 (admin dashboard: http://localhost:3000/admin.html, see [docs/admin.md](docs/admin.md)). The command starts real PostgreSQL on loopback port 55432, applies migrations, seeds the catalog, builds the unchanged page structure, and starts Express. Data persists in the ignored `.local/` directory between restarts. Ctrl+C stops both processes. Seeding never resets sold stock or deletes orders.
 
 The embedded PostgreSQL binary is a development dependency, not a production database or a Vercel dependency. If your machine cannot run it, use a PostgreSQL connection with the setup below.
 
@@ -56,7 +56,8 @@ The deploy needs a Vercel project, a cloud PostgreSQL database, and environment 
 
 - [API contracts and examples](docs/api.md)
 - [Database relationships and lifecycle rules](docs/architecture.md)
+- [Admin dashboard setup and usage](docs/admin.md)
 - [Presentation walkthrough and repeatable fixtures](docs/demo.md)
 - [Deployment, verification, and rollback](docs/deployment.md)
 
-No customer registration or admin interface is included. Guest orders belong to a random browser session in a 30-day HttpOnly cookie. Clearing that cookie or changing browsers removes access; order numbers alone do not grant access.
+No customer registration is included. Guest orders belong to a random browser session in a 30-day HttpOnly cookie. Clearing that cookie or changing browsers removes access; order numbers alone do not grant access.

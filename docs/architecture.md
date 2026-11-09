@@ -77,12 +77,13 @@ Lifecycle operations lock the order before its product rows. The expiration swee
 | Demo CLI ships | Shipped | Unchanged | Committed |
 | Demo CLI completes | Completed | Paid | Committed; COD collection simulated |
 
-Only the local demo CLI advances shipping and delivery. No public admin/fulfillment endpoint exists. Each successful transition appends an event in the same transaction. Tracking reads these events; it never invents a future courier checkpoint.
+Only the local demo CLI and the password-protected admin dashboard (`/api/admin`, see [admin.md](admin.md)) advance shipping and delivery. No public fulfillment endpoint exists. Each successful transition appends an event in the same transaction. Tracking reads these events; it never invents a future courier checkpoint.
 
 Guest sessions are database-backed with random 256-bit bearer cookies stored only as hashes server-side. Order identifiers are random references, not credentials. Sessions expire after 30 days and cannot be recovered across browsers in this version.
 
 ## Source boundaries
 
+- `server/admin.js`: authenticated admin API (products, stock, vouchers, orders, reviews). `admin.html`, `js/admin.js`, `css/admin.css`: admin UI.
 - `server/app.js`: HTTP routes, session/origin checks, shared rate limiter, error responses.
 - `server/commerce.js`: pricing, inventory transactions, payments, order lifecycle, and reviews.
 - `server/db.js`, migrations, and seed: PostgreSQL access and repeatable catalog initialization.
@@ -94,4 +95,4 @@ The integration retains existing component classes and design tokens. Small CSS 
 
 ## Intentionally limited
 
-This project demonstrates reliable commerce rules; it does not implement real payment settlement, courier APIs, email delivery, customer accounts, an admin dashboard, tax accounting, or production dispute/refund handling. No claim of enterprise certification or production payment readiness is made.
+This project demonstrates reliable commerce rules; it does not implement real payment settlement, courier APIs, email delivery, customer accounts, multi-user admin roles (the dashboard uses one shared password), tax accounting, or production dispute/refund handling. No claim of enterprise certification or production payment readiness is made.
