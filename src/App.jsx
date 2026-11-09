@@ -7,6 +7,7 @@ import Product from './pages/Product';
 import About from './pages/About';
 import Checkout from './pages/Checkout';
 import ScrollToTop from './components/ScrollToTop';
+import AdminPage from './pages/admin/AdminPage';
 
 function Placeholder({ title }) {
   return (
@@ -21,7 +22,13 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+
       <Routes>
+        {/* Admin page — separate from the storefront layout */}
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin.html" element={<AdminPage />} />
+
+        {/* Storefront pages */}
         <Route element={<SiteLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />
