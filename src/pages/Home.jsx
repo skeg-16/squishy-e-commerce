@@ -183,6 +183,7 @@ export default function Home() {
   }
 
   return (
+    <div className="home-jelly">
     <>
       {/* ============ HERO ============ */}
       <section className="hero" id="hero">
@@ -417,5 +418,6 @@ export default function Home() {
         </div>
       </section>
     </>
+    </div>
   );
 }

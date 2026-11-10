@@ -6,7 +6,7 @@ export default function About() {
   }, []);
 
   return (
-    <main>
+    <main className="about-jelly">
       {/* ABOUT HERO */}
       <section className="about-hero">
         <div

@@ -3,6 +3,9 @@ import { Outlet } from 'react-router-dom';
 import Header from '../components/Header';
 import CartDrawer from '../components/CartDrawer';
 import { useCart } from '../context/CartContext';
+import SparkleTrail from '../components/SparkleTrail';
+import '../styles/sparkle-trail.css';
+import '../styles/jelly.css';
 
 export default function SiteLayout() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -13,6 +16,7 @@ export default function SiteLayout() {
 
   return (
     <>
+      <SparkleTrail />
       <Header onOpenCart={openCart} />
 
       <main>

@@ -153,8 +153,8 @@ export default function Product() {
 
   if (loadError) {
     return (
-      <main>
-        <div className="container product-page">
+      <main className="product-jelly">
+        <div className="container product-page product-page--jelly">
           <div className="product-page__top">
             <nav className="breadcrumb" aria-label="Breadcrumb">
               <Link to="/">Home</Link> / <Link to="/shop.html">Shop</Link>
@@ -199,9 +199,9 @@ export default function Product() {
   );
 
   return (
-    <main>
-      <div className="container product-page">
-        <div className="product-page__top">
+    <main className="product-jelly">
+      <div className="container product-page product-page--jelly">
+        <div className="product-page__top"> 
           <nav className="breadcrumb" aria-label="Breadcrumb">
             <Link to="/">Home</Link> / <Link to="/shop.html">Shop</Link> /{' '}
             <span>{product?.name || 'Product'}</span>

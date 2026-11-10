@@ -1,0 +1,49 @@
+
+.sparkle-trail {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cursor-sparkle {
+  position: absolute;
+  font-size: var(--sparkle-size);
+  color: #fff5fb;
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 0.9),
+    0 0 12px rgba(255, 192, 222, 0.8);
+  line-height: 1;
+  pointer-events: none;
+  animation: sparkle-float 650ms ease-out forwards;
+}
+
+@keyframes sparkle-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(20deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate(
+        calc(-50% + var(--sparkle-drift)),
+        calc(-50% - 28px)
+      )
+      scale(0.1)
+      rotate(var(--sparkle-rotation));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkle-trail {
+    display: none;
+  }
+}

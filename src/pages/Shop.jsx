@@ -150,7 +150,7 @@ export default function Shop() {
   }
 
   return (
-    <>
+    <div className="shop-jelly">
       <section className="shop-hero">
         <div className="container">
           <div className="section-head">
@@ -307,6 +307,6 @@ export default function Shop() {
           )}
         </div>
       </section>
-    </>
+    </div>
   );
 }

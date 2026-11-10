@@ -726,7 +726,7 @@ export default function Checkout() {
 
   if (orderNumber && !order) {
     return (
-      <main>
+      <main className="checkout-jelly">
         <div className="container checkout-page">
           <p>{error || 'Loading your order…'}</p>
           {error && (
@@ -741,7 +741,7 @@ export default function Checkout() {
 
   if (order) {
     return (
-      <main>
+      <main className="checkout-jelly">
         <div className="container checkout-page">
           {error && <p className="field-error" role="alert">{error}</p>}
           <OrderReceipt
@@ -814,7 +814,7 @@ export default function Checkout() {
 
   if (!(cart || []).length && !pending) {
     return (
-      <main>
+      <main className="checkout-jelly">
         <div className="container checkout-page">
           <div className="checkout-empty">
             <h2>Your cart is empty</h2>
@@ -829,7 +829,7 @@ export default function Checkout() {
   }
 
   return (
-    <main>
+    <main className="checkout-jelly">
       <div className="container checkout-page">
         <div className="checkout-page__head">
           <h1>Checkout</h1>

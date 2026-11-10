@@ -17,7 +17,7 @@ export default function Header({ onOpenCart }) {
   }
 
   return (
-    <header className="site-header" id="top">
+    <header className="site-header product-jelly-header" id="top">
       <div className="container header__inner">
         <Link to="/" className="logo" onClick={closeMenu}>
           <img
