@@ -8,6 +8,7 @@ import About from './pages/About';
 import Checkout from './pages/Checkout';
 import ScrollToTop from './components/ScrollToTop';
 import AdminPage from './pages/admin/AdminPage';
+import Account from './pages/Account';
 
 function Placeholder({ title }) {
   return (
@@ -40,6 +41,8 @@ export default function App() {
           <Route path="/checkout.html" element={<Checkout />} />
           <Route path="/about" element={<About />} />
           <Route path="/about.html" element={<About />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/account.html" element={<Account />} />
           <Route path="*" element={<Placeholder title="Page Not Found" />} />
         </Route>
       </Routes>

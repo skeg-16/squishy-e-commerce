@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import Header from '../components/Header';
 import CartDrawer from '../components/CartDrawer';
 import { useCart } from '../context/CartContext';
@@ -46,8 +46,9 @@ export default function SiteLayout() {
 
           <div className="footer__col">
             <h4>Quick Links</h4>
-            <a href="/shop.html">Shop</a>
-            <a href="/about.html">About</a>
+            <Link to="/shop.html">Shop</Link>
+            <Link to="/about.html">About</Link>
+            <Link to="/account">Account</Link>
           </div>
 
           <div className="footer__col">

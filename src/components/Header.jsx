@@ -90,6 +90,10 @@ export default function Header({ onOpenCart }) {
             <span className="cart-btn__count">{totalCount}</span>
           </button>
 
+          <Link to="/account" className="btn btn--pink btn--sm account-btn">
+            Log-in
+          </Link>
+
           <button
             className={`menu-toggle${menuOpen ? ' is-active' : ''}`}
             id="menuToggle"
