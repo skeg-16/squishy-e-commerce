@@ -612,6 +612,20 @@ export default function Checkout() {
     setError('');
   }
 
+  function applyQuickVoucher(code) {
+    setVoucherText(code);
+    setAppliedVoucher(code.trim().toUpperCase());
+    setVoucherDirty(false);
+    setError('');
+  }
+
+  function clearAppliedVoucher() {
+    setVoucherText('');
+    setAppliedVoucher('');
+    setVoucherDirty(false);
+    setError('');
+  }
+
   function handleVoucherChange(event) {
     setVoucherText(event.target.value);
     setVoucherDirty(true);
@@ -816,11 +830,31 @@ export default function Checkout() {
     return (
       <main className="checkout-jelly">
         <div className="container checkout-page">
-          <div className="checkout-empty">
-            <h2>Your cart is empty</h2>
-            <p>Add a squishy or two before checking out.</p>
-            <Link to="/shop.html" className="btn btn--pink">
-              Browse Squishies →
+          <div className="checkout-empty squishy-checkout-empty">
+            <div className="cart-empty-squishy-avatar" aria-hidden="true">
+              <svg width="84" height="76" viewBox="0 0 100 90" fill="none">
+                <path
+                  d="M50 18 C30 18, 12 36, 12 56 C12 74, 30 84, 50 84 C70 84, 88 74, 88 56 C88 36, 70 18, 50 18 Z"
+                  fill="url(#ckEmptyBunGrad)"
+                />
+                <path d="M50 10 C46 10, 42 14, 45 19 C48 22, 52 22, 55 19 C58 14, 54 10, 50 10 Z" fill="#ffc8db" />
+                <circle cx="36" cy="52" r="3.5" fill="#3c1e40" />
+                <circle cx="64" cy="52" r="3.5" fill="#3c1e40" />
+                <ellipse cx="30" cy="59" rx="4.5" ry="2.5" fill="#ff9ecb" opacity="0.8" />
+                <ellipse cx="70" cy="59" rx="4.5" ry="2.5" fill="#ff9ecb" opacity="0.8" />
+                <path d="M46 60 Q50 64 54 60" stroke="#3c1e40" strokeWidth="2" strokeLinecap="round" />
+                <defs>
+                  <linearGradient id="ckEmptyBunGrad" x1="50" y1="18" x2="50" y2="84" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#ffffff" />
+                    <stop offset="1" stopColor="#ffe6f0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <h2>Your Squishy Bag is Empty</h2>
+            <p>Select your favorite slow-rising friends before heading to checkout!</p>
+            <Link to="/shop.html" className="checkout-empty-cta">
+              Explore 20 Squishies Catalog →
             </Link>
           </div>
         </div>
@@ -828,27 +862,120 @@ export default function Checkout() {
     );
   }
 
+  const QUICK_VOUCHERS = [
+    { code: 'WELCOME10', label: '10% OFF', note: 'Min ₱150' },
+    { code: 'FREESHIP', label: 'FREE SHIPPING', note: 'All orders' },
+    { code: 'SQUISHY50', label: '₱50 OFF', note: 'Min ₱300' },
+  ];
+
+  const PAYMENT_METHODS_DATA = [
+    {
+      value: 'cod',
+      title: 'Cash on Delivery (COD)',
+      badge: 'Zero Upfront Cash',
+      desc: 'Pay cash directly upon parcel arrival after inspecting package.',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" strokeWidth="1.8" />
+          <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M6 8h.01M18 16h.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      value: 'gcash',
+      title: 'GCash',
+      badge: 'Instant QR / E-Wallet',
+      desc: 'Philippine mobile wallet simulation with instant confirmation.',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" strokeWidth="1.8" />
+          <circle cx="12" cy="18" r="1.2" fill="currentColor" />
+          <path d="M9 5h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      value: 'maya',
+      title: 'Maya',
+      badge: 'Fast Transfer',
+      desc: 'Maya app or dynamic QR checkout (School Demo simulator).',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      value: 'card',
+      title: 'Credit / Debit Card',
+      badge: 'Visa • Mastercard • JCB',
+      desc: '256-bit encrypted simulated card gateway (School Demo).',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="2" y="5" width="20" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M2 10h20M6 15h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <main className="checkout-jelly">
       <div className="container checkout-page">
+        {/* Visual Stepper Header */}
+        <div className="checkout-stepper-wrap">
+          <div className="checkout-stepper-step is-complete">
+            <span className="stepper-dot">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className="stepper-label">Cart Bag</span>
+          </div>
+          <span className="stepper-line is-active" />
+          <div className="checkout-stepper-step is-active">
+            <span className="stepper-dot">2</span>
+            <span className="stepper-label">Delivery & Payment</span>
+          </div>
+          <span className="stepper-line" />
+          <div className="checkout-stepper-step">
+            <span className="stepper-dot">3</span>
+            <span className="stepper-label">Tracked Parcel</span>
+          </div>
+        </div>
+
         <div className="checkout-page__head">
-          <h1>Checkout</h1>
-          <p>Almost there — just a few details and your squishies are on the way!</p>
+          <span className="checkout-badge-pill">Express Sensory Checkout</span>
+          <h1>Finalize Your Squishy Drop</h1>
+          <p>Complete your shipping and payment details — safe packaging & slow-rising delight guaranteed.</p>
         </div>
 
         {pending && (
-          <p role="status">
-            A previous checkout request was unconfirmed. Retry it to recover the saved
-            order without creating a duplicate.
-          </p>
+          <div className="checkout-pending-notice" role="status">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span>A previous checkout request was unconfirmed. Submitting now will recover your reserved items without duplicate billing.</span>
+          </div>
         )}
-        {error && <p className="field-error" role="alert">{error}</p>}
+        {error && <p className="field-error checkout-global-error" role="alert">{error}</p>}
 
         <form onSubmit={placeOrder}>
           <div className="checkout-page__layout">
-            <div>
-              <div className="checkout-card">
-                <h2>Contact Information</h2>
+            <div className="checkout-main-col">
+              {/* Card 1: Contact Information */}
+              <div className="checkout-card squishy-glass-card">
+                <div className="checkout-card__header">
+                  <span className="checkout-card__step-orb">1</span>
+                  <div>
+                    <h2>Contact Information</h2>
+                    <p className="checkout-card__subtitle">We will send your tracking updates and parcel receipt here.</p>
+                  </div>
+                </div>
+
                 <Field
                   label="Email Address"
                   name="customerEmail"
@@ -862,34 +989,45 @@ export default function Checkout() {
                 />
               </div>
 
-              <div className="checkout-card">
-                <h2>Shipping Address</h2>
+              {/* Card 2: Shipping Destination */}
+              <div className="checkout-card squishy-glass-card">
+                <div className="checkout-card__header">
+                  <span className="checkout-card__step-orb">2</span>
+                  <div>
+                    <h2>Delivery Destination</h2>
+                    <p className="checkout-card__subtitle">Where should our courier deliver your bubble-wrapped squishies?</p>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <Field
+                    label="Recipient Full Name"
+                    name="customerName"
+                    placeholder="Juana Dela Cruz"
+                    autoComplete="name"
+                    value={fields.customerName}
+                    onChange={updateField}
+                    error={fieldErrors.customerName}
+                    disabled={Boolean(pending) || submitting}
+                  />
+                  <Field
+                    label="Mobile Phone Number"
+                    name="customerPhone"
+                    type="tel"
+                    placeholder="09171234567"
+                    autoComplete="tel"
+                    maxLength={11}
+                    value={fields.customerPhone}
+                    onChange={updateField}
+                    error={fieldErrors.customerPhone}
+                    disabled={Boolean(pending) || submitting}
+                  />
+                </div>
+
                 <Field
-                  label="Full Name"
-                  name="customerName"
-                  placeholder="Juana Dela Cruz"
-                  autoComplete="name"
-                  value={fields.customerName}
-                  onChange={updateField}
-                  error={fieldErrors.customerName}
-                  disabled={Boolean(pending) || submitting}
-                />
-                <Field
-                  label="Mobile Phone Number"
-                  name="customerPhone"
-                  type="tel"
-                  placeholder="09171234567"
-                  autoComplete="tel"
-                  maxLength={11}
-                  value={fields.customerPhone}
-                  onChange={updateField}
-                  error={fieldErrors.customerPhone}
-                  disabled={Boolean(pending) || submitting}
-                />
-                <Field
-                  label="Street Address / House No."
+                  label="Street Address / House No. / Building"
                   name="shippingAddress"
-                  placeholder="Unit / House No., Building, Street Name"
+                  placeholder="Unit / House No., Building Name, Street"
                   autoComplete="street-address"
                   value={fields.shippingAddress}
                   onChange={updateField}
@@ -899,28 +1037,33 @@ export default function Checkout() {
 
                 <div className="form-row">
                   <div className="form-field">
-                    <label htmlFor="ckRegion">Region / Delivery Zone <span className="required-star">*</span></label>
-                    <select
-                      id="ckRegion"
-                      className="form-select"
-                      value={region}
-                      onChange={(event) => setRegion(event.target.value)}
-                      required
-                      disabled={Boolean(pending) || submitting}
-                    >
-                      {REGIONS.map((item) => (
-                        <option key={item.value} value={item.value}>{item.label}</option>
-                      ))}
-                    </select>
+                    <label htmlFor="ckRegion">
+                      Delivery Region & Transit Zone <span className="required-star">*</span>
+                    </label>
+                    <div className="form-select-wrap">
+                      <select
+                        id="ckRegion"
+                        className="form-select"
+                        value={region}
+                        onChange={(event) => setRegion(event.target.value)}
+                        required
+                        disabled={Boolean(pending) || submitting}
+                      >
+                        {REGIONS.map((item) => (
+                          <option key={item.value} value={item.value}>{item.label}</option>
+                        ))}
+                      </select>
+                    </div>
                     <ErrorMessage>{fieldErrors.region}</ErrorMessage>
                   </div>
+
                   <div className="form-field">
                     <label htmlFor="ckCity">City / Municipality <span className="required-star">*</span></label>
                     <input
                       id="ckCity"
                       name="city"
                       autoComplete="address-level2"
-                      placeholder="City / Municipality"
+                      placeholder="e.g. Quezon City / Cebu City"
                       required
                       value={fields.city}
                       onChange={updateField}
@@ -965,148 +1108,277 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                <div className="delivery-estimate-badge">
-                  {quote
-                    ? `Estimated delivery: ${quote.delivery.minDays}–${quote.delivery.maxDays} days (${quote.delivery.label}; school demo estimate).`
-                    : 'Delivery estimate will appear after totals load.'}
+                {/* Delivery Estimate Box */}
+                <div className="delivery-estimate-badge squishy-delivery-badge">
+                  <div className="delivery-badge-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <rect x="1" y="3" width="15" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
+                      <path d="M16 8h4l3 3v5h-7V8z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                      <circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="18.5" cy="18.5" r="2.5" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  </div>
+                  <div className="delivery-badge-content">
+                    <strong>
+                      {quote
+                        ? `Estimated Delivery: ${quote.delivery.minDays}–${quote.delivery.maxDays} Business Days`
+                        : 'Calculating Dispatch Timeline…'}
+                    </strong>
+                    <p>
+                      {quote
+                        ? `${quote.delivery.label} — Carefully packed with anti-drop bubble cushions.`
+                        : 'Select your region above to view verified transit time.'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="checkout-card">
-                <h2>Payment Method</h2>
-                {[
-                  ['cod', 'Cash on Delivery', 'Pay when your order arrives'],
-                  ['gcash', 'GCash', 'School demo — no money transferred'],
-                  ['card', 'Credit / Debit Card', 'School demo — no money transferred'],
-                  ['maya', 'Maya', 'School demo — no money transferred'],
-                ].map(([value, label, description]) => {
-                  const available = !quote || quote.paymentMethods?.includes(value);
-                  return (
-                    <label
-                      key={value}
-                      className={`payment-option${paymentMethod === value ? ' is-selected' : ''}`}
-                      data-method={value}
-                    >
-                      <span className="payment-option__body">
-                        <strong>{label}</strong>
-                        <span>{description}</span>
-                      </span>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value={value}
-                        checked={paymentMethod === value}
-                        onChange={() => setPaymentMethod(value)}
-                        disabled={!available || Boolean(pending) || submitting}
-                      />
-                    </label>
-                  );
-                })}
+              {/* Card 3: Payment Method */}
+              <div className="checkout-card squishy-glass-card">
+                <div className="checkout-card__header">
+                  <span className="checkout-card__step-orb">3</span>
+                  <div>
+                    <h2>Choose Payment Method</h2>
+                    <p className="checkout-card__subtitle">All payment options are verified, fast, and secure.</p>
+                  </div>
+                </div>
+
+                <div className="payment-options-grid">
+                  {PAYMENT_METHODS_DATA.map((opt) => {
+                    const available = !quote || quote.paymentMethods?.includes(opt.value);
+                    const isSelected = paymentMethod === opt.value;
+                    return (
+                      <label
+                        key={opt.value}
+                        className={`payment-option squishy-payment-tile${isSelected ? ' is-selected' : ''}${!available ? ' is-disabled' : ''}`}
+                        data-method={opt.value}
+                      >
+                        <div className="payment-tile-left">
+                          <div className="payment-tile-icon-wrap" aria-hidden="true">
+                            {opt.icon}
+                          </div>
+                          <div className="payment-option__body">
+                            <div className="payment-title-row">
+                              <strong>{opt.title}</strong>
+                              <span className="payment-badge-pill">{opt.badge}</span>
+                            </div>
+                            <span className="payment-desc-text">{opt.desc}</span>
+                          </div>
+                        </div>
+
+                        <div className="payment-radio-indicator">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value={opt.value}
+                            checked={isSelected}
+                            onChange={() => setPaymentMethod(opt.value)}
+                            disabled={!available || Boolean(pending) || submitting}
+                          />
+                          <span className="custom-radio-orb" aria-hidden="true" />
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            <div className="checkout-card">
-              <h2>Order Summary</h2>
+            {/* Sticky Order Summary Column */}
+            <div className="checkout-side-col">
+              <div className="checkout-card squishy-glass-card checkout-summary-card">
+                <div className="summary-header-row">
+                  <h2>Order Summary</h2>
+                  <span className="summary-item-count">
+                    {(quote?.items || []).reduce((acc, it) => acc + (it.quantity || 1), 0)} items
+                  </span>
+                </div>
 
-              <div id="orderSummaryItems">
-                {(quote?.items || []).map((item, index) => (
-                  <div className="order-summary__item" key={`${item.slug || item.name}-${index}`}>
-                    <img src={item.image} alt="" width="52" height="52" />
-                    <div className="order-summary__item-info">
-                      <h4>{item.name}</h4>
-                      <span>Qty: {item.quantity}</span>
+                <div id="orderSummaryItems" className="order-summary-list">
+                  {(quote?.items || []).map((item, index) => (
+                    <div className="order-summary__item squishy-summary-item" key={`${item.slug || item.name}-${index}`}>
+                      <div className="summary-thumb-cushion">
+                        <img src={item.image} alt="" width="52" height="52" loading="lazy" />
+                        <span className="summary-qty-badge">{item.quantity}</span>
+                      </div>
+                      <div className="order-summary__item-info">
+                        <h4>{item.name}</h4>
+                        <span className="summary-unit-calc">
+                          {formatPeso(item.unitPrice || (item.subtotal / (item.quantity || 1)))} × {item.quantity}
+                        </span>
+                      </div>
+                      <span className="order-summary__item-price">{formatPeso(item.subtotal)}</span>
                     </div>
-                    <span className="order-summary__item-price">{formatPeso(item.subtotal)}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="order-summary__rows">
-                <div className="order-summary__row">
-                  <span>Subtotal</span>
-                  <span>{quote ? formatPeso(quote.subtotal) : '—'}</span>
-                </div>
-                <div className="order-summary__row">
-                  <span>Shipping</span>
-                  <span>{quote ? (quote.shippingFee ? formatPeso(quote.shippingFee) : 'Free') : '—'}</span>
+                  ))}
                 </div>
 
-                {quote?.voucherDiscount > 0 && (
-                  <div className="order-summary__row" style={{ color: '#059669', fontWeight: 600 }}>
-                    <span>Voucher Discount</span>
-                    <span>−{formatPeso(quote.voucherDiscount)}</span>
+                {/* Voucher Section with Clickable Quick Pills */}
+                <div className="voucher-box squishy-voucher-box">
+                  <div className="voucher-header">
+                    <label htmlFor="ckVoucherCode">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <line x1="7" y1="7" x2="7.01" y2="7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                      <span>Voucher / Promo Code</span>
+                    </label>
+
+                    {appliedVoucher && (
+                      <button
+                        type="button"
+                        className="voucher-remove-link"
+                        onClick={clearAppliedVoucher}
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
-                )}
 
-                <p className="order-summary__note">
-                  {quote
-                    ? quote.shippingDiscount
-                      ? `Shipping voucher saved ${formatPeso(quote.shippingDiscount)}; already included above.`
-                      : quote.subtotal >= 500
-                        ? 'Your order qualifies for free shipping.'
-                        : `Add ${formatPeso(500 - quote.subtotal)} more for free shipping.`
-                    : ''}
-                </p>
+                  {/* One-click quick vouchers */}
+                  <div className="quick-vouchers-strip" aria-label="Available promotional vouchers">
+                    {QUICK_VOUCHERS.map((v) => {
+                      const isActive = appliedVoucher === v.code;
+                      return (
+                        <button
+                          key={v.code}
+                          type="button"
+                          className={`quick-voucher-pill${isActive ? ' is-applied' : ''}`}
+                          onClick={() => applyQuickVoucher(v.code)}
+                          disabled={Boolean(pending) || submitting || quoteLoading}
+                          title={`${v.label} (${v.note})`}
+                        >
+                          <span className="v-code">{v.code}</span>
+                          <span className="v-label">{v.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                <div className="voucher-box" style={{ margin: '16px 0' }}>
-                  <label
-                    htmlFor="ckVoucherCode"
-                    style={{ fontSize: 13, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}
-                  >
-                    Voucher / Promo Code
-                  </label>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div className="voucher-input-group">
                     <input
                       id="ckVoucherCode"
                       type="text"
                       aria-label="Voucher or promo code"
-                      placeholder="WELCOME10 / FREESHIP"
+                      placeholder="Enter promo code"
                       value={voucherText}
                       onChange={handleVoucherChange}
-                      style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: 13.5, textTransform: 'uppercase' }}
                       disabled={Boolean(pending) || submitting}
                     />
                     <button
                       type="button"
                       id="applyVoucherBtn"
-                      className="btn btn--outline"
-                      style={{ padding: '8px 16px', fontSize: 13.5 }}
+                      className="voucher-apply-btn"
                       onClick={applyVoucher}
-                      disabled={Boolean(pending) || submitting || quoteLoading}
+                      disabled={Boolean(pending) || submitting || quoteLoading || !voucherText.trim()}
                     >
                       Apply
                     </button>
                   </div>
+
                   <ErrorMessage>{fieldErrors.voucherCode}</ErrorMessage>
                   {appliedVoucher && quote && (
-                    <p role="status">Voucher applied: {appliedVoucher}</p>
+                    <div className="voucher-applied-success" role="status">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span>Voucher active: <strong>{appliedVoucher}</strong></span>
+                    </div>
                   )}
                 </div>
 
-                <div className="order-summary__row order-summary__row--total">
-                  <span>Total</span>
-                  <span>{quote ? formatPeso(quote.total) : '—'}</span>
+                {/* Order Summary Pricing Breakdown */}
+                <div className="order-summary__rows">
+                  <div className="order-summary__row">
+                    <span>Merchandise Subtotal</span>
+                    <span>{quote ? formatPeso(quote.subtotal) : '—'}</span>
+                  </div>
+
+                  <div className="order-summary__row">
+                    <span>Delivery Shipping</span>
+                    <span className={quote && !quote.shippingFee ? 'summary-free-pill' : ''}>
+                      {quote ? (quote.shippingFee ? formatPeso(quote.shippingFee) : 'FREE') : '—'}
+                    </span>
+                  </div>
+
+                  {quote?.voucherDiscount > 0 && (
+                    <div className="order-summary__row summary-discount-row">
+                      <span>Voucher Savings ({appliedVoucher})</span>
+                      <span className="discount-amount">−{formatPeso(quote.voucherDiscount)}</span>
+                    </div>
+                  )}
+
+                  {quote && (
+                    <p className="order-summary__note">
+                      {quote.shippingDiscount
+                        ? `Shipping voucher saved ${formatPeso(quote.shippingDiscount)} on delivery.`
+                        : quote.subtotal >= 500
+                          ? '🎉 You unlocked Free Nationwide Shipping!'
+                          : `Add ${formatPeso(500 - quote.subtotal)} more to qualify for Free Shipping.`}
+                    </p>
+                  )}
+
+                  <div className="order-summary__row order-summary__row--total">
+                    <div className="total-label-wrap">
+                      <span>Total Amount</span>
+                      <small>Taxes & handling included</small>
+                    </div>
+                    <strong className="final-total-display">
+                      {quote ? formatPeso(quote.total) : '—'}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Primary Action Button */}
+                <button
+                  className="checkout-place-order-btn"
+                  type="submit"
+                  disabled={submitting || quoteLoading || (!quote && !pending)}
+                >
+                  <span>
+                    {submitting
+                      ? 'Securing Your Squishies…'
+                      : pending
+                        ? 'Retry Unconfirmed Order'
+                        : quoteLoading
+                          ? 'Calculating Totals…'
+                          : quote
+                            ? `Confirm Order • ${formatPeso(quote.total)}`
+                            : 'Refresh Totals'}
+                  </span>
+                  {!submitting && !quoteLoading && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
+
+                <Link to="/shop.html" className="checkout-page__continue">
+                  ← Back to Shop Catalog
+                </Link>
+
+                {/* Sensory Buyer Protection Ribbon */}
+                <div className="checkout-trust-guarantee">
+                  <div className="trust-point">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                    <span>100% Non-Toxic TPR</span>
+                  </div>
+                  <div className="trust-point">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                      <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    <span>30–45s Slow-Rebound</span>
+                  </div>
+                  <div className="trust-point">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                    <span>Anti-Drop Bubble Pack</span>
+                  </div>
                 </div>
               </div>
-
-              <button
-                className="btn btn--pink checkout-page__place-order"
-                type="submit"
-                disabled={submitting || quoteLoading || (!quote && !pending)}
-              >
-                {submitting
-                  ? 'Processing Order…'
-                  : pending
-                    ? 'Retry unconfirmed order'
-                    : quoteLoading
-                      ? 'Loading totals…'
-                      : quote
-                        ? 'Place Order'
-                        : 'Refresh totals'}
-              </button>
-              <Link to="/shop.html" className="checkout-page__continue">
-                ← Continue Shopping
-              </Link>
             </div>
           </div>
         </form>
