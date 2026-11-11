@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
+import { PRODUCT_MODELS } from '../data/productModels';
+
+const ProductViewer3D = lazy(() => import('../components/ProductViewer3D'));
 
 const HERO_CHARS = [
   {
@@ -119,29 +122,67 @@ const featuredProducts = [
   {
     slug: 'dumpling',
     name: 'Steamed Dumpling Squishy',
-    description: 'Pastel bao with a happy face',
+    description: 'Plump pastel bao with handmade pleats and a slow, pillowy rise.',
     image: '/assets/images/product-dumpling.svg',
     alt: 'Steamed Dumpling Squishy — pastel bao with a happy face',
     badge: 'Fan Fave',
     badgeClass: 'badge--pink',
+    riseTime: '4.2s Rise',
+    softness: 99,
+    feel: 'Velvet Bao TPR',
+    shelf: 'faves',
   },
   {
     slug: 'catpaw',
     name: 'Cat Paw Squishy',
-    description: 'Pink paw pads, ultra soft',
+    description: 'Four jelly pink toe-beans and a cloud-soft memory-foam palm pad.',
     image: '/assets/images/product-catpaw.svg',
     alt: 'Cat Paw Squishy — pink paw pads, ultra soft',
     badge: 'So Cute',
     badgeClass: 'badge--pink',
+    riseTime: '3.8s Rise',
+    softness: 98,
+    feel: 'Mochi Jelly Pad',
+    shelf: 'faves',
   },
   {
     slug: 'peanut',
     name: 'Peanut Squishy',
-    description: 'Textured shell, mega squeezable',
+    description: 'Ergonomic figure-eight shell designed for one-hand desk fidgeting.',
     image: '/assets/images/product-peanut.svg',
     alt: 'Peanut Squishy — textured shell, mega squeezable',
     badge: 'Bestseller',
     badgeClass: 'badge--mint',
+    riseTime: '4.5s Rise',
+    softness: 96,
+    feel: 'Textured Shell Foam',
+    shelf: 'faves',
+  },
+  {
+    slug: 'toast',
+    name: 'Pastel Toast Squishy',
+    description: 'Thick-cut milk bread slice with a sweet-cream glaze and bouncy crust.',
+    image: '/assets/images/product-toast.svg',
+    alt: 'Pastel Toast Squishy — pastel square toast, 4 colors',
+    badge: 'Trending',
+    badgeClass: 'badge--pink',
+    riseTime: '4.0s Rise',
+    softness: 97,
+    feel: 'Airy Brioche Foam',
+    shelf: 'bakery',
+  },
+  {
+    slug: 'butter',
+    name: 'Butter Stick Squishy',
+    description: 'Salted sweet-cream butter block that melts right into your palm.',
+    image: '/assets/images/product-butter.svg',
+    alt: 'Butter Stick Squishy — salted butter block, pink and yellow',
+    badge: 'New Drop',
+    badgeClass: 'badge--mint',
+    riseTime: '4.4s Rise',
+    softness: 99,
+    feel: 'Smooth Cream TPR',
+    shelf: 'bakery',
   },
 ];
 
@@ -149,64 +190,100 @@ const promoSets = [
   {
     slug: 'solo-squish',
     name: 'Solo Squish',
-    meta: '1 Squishy',
-    description: 'A classic first squish: one smiling Dumpling.',
+    meta: '1 Squishy · Desk Starter',
+    vibe: 'desk',
+    unitPrice: '₱89 / squish',
+    perk: 'Includes Matte Gift Pouch',
+    accent: 'lavender',
+    description: 'A classic first squish: one smiling Dumpling ready for your study desk.',
     items: [
-      '1 Dumpling Squishy',
-      'Individual gift pouch',
-      'Sticker included',
+      '1 Steamed Dumpling Squishy',
+      'Individual frosted gift pouch',
+      'Holographic collector sticker',
     ],
-    button: 'Get One',
+    button: 'Get Solo Pack',
     buttonClass: 'btn--lavender',
-    image: '/assets/images/product-dumpling.svg',
+    previewImages: ['/assets/images/product-dumpling.svg'],
+    countLabel: '1×',
   },
   {
     slug: 'stress-free-trio',
     name: 'Stress-Free Trio',
-    meta: '3 Squishies',
-    description: 'One for desk, one for bag, one for gifting.',
+    meta: '3 Squishies · Bestie Gift Set',
+    vibe: 'trio',
+    unitPrice: '₱83 / squish',
+    perk: 'Ribbon Gift Box Included',
+    accent: 'pink',
+    description: 'One for your desk, one for your bag, and one to make a friend smile.',
     items: [
       'Dumpling, Cat Paw & Peanut',
-      'Ribbon-tied gift box',
-      '2 bonus stickers',
+      'Ribbon-tied keepsake gift box',
+      '2 bonus die-cut stickers',
     ],
     button: 'Get the Trio',
     buttonClass: 'btn--pink',
-    image: '/assets/images/product-catpaw.svg',
+    previewImages: [
+      '/assets/images/product-dumpling.svg',
+      '/assets/images/product-catpaw.svg',
+      '/assets/images/product-peanut.svg',
+    ],
+    countLabel: '3×',
     savings: 'Save ₱18',
     oldPrice: 267,
   },
   {
     slug: 'collectors-box',
     name: "Collector's Box",
-    meta: '6 Different Designs',
-    description: 'The full experience. Six unique designs, curated for you.',
+    meta: '6 Different Designs · Full Lineup',
+    vibe: 'collector',
+    unitPrice: '₱76.50 / squish',
+    perk: '+ Mystery Bonus Item Inside',
+    accent: 'purple',
+    description: 'The complete Squishies experience. All six signature designs curated in one box.',
     items: [
-      '6 unique Squishies',
-      'Keepsake collector box',
-      'Full sticker sheet',
-      'Mystery bonus item',
+      'All 6 unique Squishies designs',
+      'Magnetic keepsake collector box',
+      'Full kawaii sticker sheet',
+      '1 surprise mystery mini charm',
     ],
     button: 'Build My Collection',
     buttonClass: 'btn--dark',
-    image: '/assets/images/hero-collage.svg',
+    previewImages: [
+      '/assets/images/product-dumpling.svg',
+      '/assets/images/product-catpaw.svg',
+      '/assets/images/product-butter.svg',
+      '/assets/images/product-toast.svg',
+    ],
+    countLabel: '6×',
     featured: true,
-    savings: 'Free Sticker Sheet',
+    savings: 'Save ₱75 + Freebies',
+    oldPrice: 534,
   },
   {
     slug: 'party-pack',
     name: 'Wholesale / Party Pack',
-    meta: '20 Squishies',
-    description: 'Events, giveaways, or reselling. Bulk pricing, full variety.',
+    meta: '20 Squishies · Lowest Unit Price',
+    vibe: 'party',
+    unitPrice: '₱70 / squish',
+    perk: 'Save ₱380 · Priority Dispatch',
+    accent: 'peach',
+    description: 'Made for classroom giveaways, barkada gifts, or starting your own mini booth.',
     items: [
       '4 Dumplings, 4 Cat Paws & 3 each of the other designs',
-      'Bulk poly bag packaging',
-      'Custom note option',
-      'Priority dispatch',
+      '20 individual zip gift pouches',
+      'Custom gift note cards included',
+      'Express priority dispatch',
     ],
-    button: 'Order in Bulk',
+    button: 'Order Party Pack',
     buttonClass: 'btn--peach',
-    image: '/assets/images/product-peanut.svg',
+    previewImages: [
+      '/assets/images/product-peanut.svg',
+      '/assets/images/product-cheese.svg',
+      '/assets/images/product-dumpling.svg',
+    ],
+    countLabel: '20×',
+    savings: 'Save ₱380',
+    oldPrice: 1780,
   },
 ];
 
@@ -233,6 +310,9 @@ function getCatalogArray(result) {
 
 export default function Home() {
   const [products, setProducts] = useState(FALLBACK_PRODUCTS);
+  const [activeShelf, setActiveShelf] = useState('faves');
+  const [squishPulses, setSquishPulses] = useState({});
+  const [activePromoVibe, setActivePromoVibe] = useState('all');
   const { addToCart, syncProducts, showToast } = useCart();
   const heroRef = useRef(null);
   const canvasRef = useRef(null);
@@ -1163,39 +1243,113 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ============ MOST SQUEEZED (PRODUCTS) ============ */}
+      {/* ============ MOST SQUEEZED (3D INTERACTIVE SHOWROOM) ============ */}
       <section className="products" id="shop">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow eyebrow--pink">
-              ★ Customer Favorites
+              ★ Interactive 3D Showroom
             </span>
             <h2>Most Squeezed</h2>
-            <p>The ones our customers keep coming back for.</p>
+            <p>
+              Spin, inspect, and squish our real 3D models right from the shelf.
+            </p>
+
+            <div
+              className="shelf-tabs"
+              role="tablist"
+              aria-label="3D Product Lineup"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeShelf === 'faves'}
+                className={`shelf-tab${activeShelf === 'faves' ? ' is-active' : ''}`}
+                onClick={() => setActiveShelf('faves')}
+              >
+                Fan Faves Trio (3D)
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeShelf === 'bakery'}
+                className={`shelf-tab${activeShelf === 'bakery' ? ' is-active' : ''}`}
+                onClick={() => setActiveShelf('bakery')}
+              >
+                Bakery &amp; Sweet Cream (3D)
+              </button>
+            </div>
           </div>
 
           <div className="product-grid">
-            {featuredProducts.map((featured) => {
+            {(activeShelf === 'faves'
+              ? featuredProducts.slice(0, 3)
+              : [featuredProducts[3], featuredProducts[4], featuredProducts[0]]
+            ).map((featured) => {
               const product = productsBySlug.get(featured.slug);
+              const modelUrl = PRODUCT_MODELS[featured.slug];
+              const pulseCount = squishPulses[featured.slug] || 0;
 
               return (
-                <article className="product-card" key={featured.slug}>
-                  <div className="product-card__media">
-                    <img
-                      src={getImage(product, featured.image)}
-                      alt={featured.alt}
-                      width="400"
-                      height="300"
-                      loading="lazy"
-                    />
-                    <span
-                      className={`badge ${featured.badgeClass}`}
-                    >
+                <article
+                  className="product-card product-card--3d"
+                  key={featured.slug}
+                >
+                  <div className="product-card__media product-card__media--3d">
+                    <div className="product-card__pedestal" aria-hidden="true" />
+                    {modelUrl ? (
+                      <Suspense
+                        fallback={
+                          <img
+                            src={getImage(product, featured.image)}
+                            alt={featured.alt}
+                            width="400"
+                            height="300"
+                            loading="lazy"
+                          />
+                        }
+                      >
+                        <ProductViewer3D
+                          url={modelUrl}
+                          alt={featured.alt}
+                          fallbackImage={getImage(product, featured.image)}
+                          compact
+                          pulseSignal={pulseCount}
+                        />
+                      </Suspense>
+                    ) : (
+                      <img
+                        src={getImage(product, featured.image)}
+                        alt={featured.alt}
+                        width="400"
+                        height="300"
+                        loading="lazy"
+                      />
+                    )}
+                    <span className={`badge ${featured.badgeClass}`}>
                       {featured.badge}
                     </span>
+                    <button
+                      type="button"
+                      className="squish-3d-btn"
+                      onClick={() =>
+                        setSquishPulses((prev) => ({
+                          ...prev,
+                          [featured.slug]: (prev[featured.slug] || 0) + 1,
+                        }))
+                      }
+                      aria-label={`Squish ${featured.name} in 3D`}
+                    >
+                      Squish 3D
+                    </button>
                   </div>
 
                   <div className="product-card__body">
+                    <div className="product-card__specs-row">
+                      <span className="spec-chip">{featured.riseTime}</span>
+                      <span className="spec-chip">{featured.feel}</span>
+                    </div>
+
                     <h3>
                       <Link
                         to={`/product.html?slug=${encodeURIComponent(featured.slug)}`}
@@ -1204,14 +1358,31 @@ export default function Home() {
                       </Link>
                     </h3>
 
-                    <p className="product-card__desc">
-                      {featured.description}
-                    </p>
+                    <p className="product-card__desc">{featured.description}</p>
+
+                    <div className="softness-meter" aria-label={`Softness rating ${featured.softness}%`}>
+                      <div className="softness-meter__label">
+                        <span>Squish Softness</span>
+                        <strong>{featured.softness}%</strong>
+                      </div>
+                      <div className="softness-meter__track">
+                        <div
+                          className="softness-meter__fill"
+                          style={{ width: `${featured.softness}%` }}
+                        />
+                      </div>
+                    </div>
 
                     <div className="product-card__footer">
-                      <span className="price">
-                        {getProductPrice(product)}
-                      </span>
+                      <div className="product-card__price-stack">
+                        <span className="price">{getProductPrice(product)}</span>
+                        <Link
+                          to={`/product.html?slug=${encodeURIComponent(featured.slug)}`}
+                          className="inspect-3d-link"
+                        >
+                          Open 3D Studio →
+                        </Link>
+                      </div>
 
                       <button
                         className="btn btn--pink btn--sm add-to-cart"
@@ -1237,21 +1408,58 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ PROMO SETS ============ */}
+      {/* ============ PROMO SETS (UNBOX & SAVE SHOWCASE) ============ */}
       <section className="promo" id="promo">
         <div className="container">
           <div className="section-head">
+            <span className="eyebrow eyebrow--pink">
+              ★ Curated Gift Boxes &amp; Bundles
+            </span>
             <h2>Promo Sets</h2>
-            <p>More squish, more savings. Pick the set that fits you.</p>
+            <p>
+              More squish, bigger savings. Pick a vibe below or unbox a curated
+              set.
+            </p>
+
+            <div
+              className="promo-vibe-bar"
+              role="group"
+              aria-label="Match your squish goal"
+            >
+              {[
+                { id: 'all', label: 'All Sets' },
+                { id: 'desk', label: 'Study Desk (1×)' },
+                { id: 'trio', label: 'Bestie Gift (3×)' },
+                { id: 'collector', label: 'Full Collector (6×)' },
+                { id: 'party', label: 'Party / Bulk (20×)' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`promo-vibe-pill${activePromoVibe === tab.id ? ' is-active' : ''}`}
+                  onClick={() => setActivePromoVibe(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="promo-grid">
             {promoSets.map((bundle) => {
               const product = productsBySlug.get(bundle.slug);
+              const isSpotlight =
+                activePromoVibe !== 'all' && activePromoVibe === bundle.vibe;
+              const isDimmed =
+                activePromoVibe !== 'all' && activePromoVibe !== bundle.vibe;
 
               return (
                 <article
-                  className={`promo-card${bundle.featured ? ' promo-card--featured' : ''}`}
+                  className={`promo-card promo-card--${bundle.accent}${
+                    bundle.featured ? ' promo-card--featured' : ''
+                  }${isSpotlight ? ' promo-card--spotlight' : ''}${
+                    isDimmed ? ' promo-card--dimmed' : ''
+                  }`}
                   key={bundle.slug}
                 >
                   {bundle.featured && (
@@ -1260,16 +1468,50 @@ export default function Home() {
                     </span>
                   )}
 
-                  <div className="promo-card__body">
-                    {bundle.savings && (
-                      <span className="badge badge--mint badge--floating">
-                        {bundle.savings}
-                      </span>
-                    )}
+                  {/* Visual Gift Box Stage */}
+                  <div className="promo-card__stage" aria-hidden="true">
+                    <div className="promo-card__stage-glow" />
+                    <span className="promo-card__count-orb">
+                      {bundle.countLabel}
+                    </span>
+                    <span className="promo-card__unit-pill">
+                      {bundle.unitPrice}
+                    </span>
 
-                    <h3>
-                      {getProductName(product, bundle.name)}
-                    </h3>
+                    <div
+                      className={`promo-card__fan promo-card__fan--${bundle.previewImages.length}`}
+                    >
+                      {bundle.previewImages.map((imgSrc, idx) => (
+                        <div
+                          className="promo-card__fan-item"
+                          key={`${bundle.slug}-img-${idx}`}
+                          style={{ '--fan-idx': idx }}
+                        >
+                          <img
+                            src={imgSrc}
+                            alt=""
+                            width="88"
+                            height="66"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="promo-card__body">
+                    <div className="promo-card__top-tags">
+                      <span className="promo-card__perk-tag">
+                        {bundle.perk}
+                      </span>
+                      {bundle.savings && (
+                        <span className="badge badge--mint badge--floating">
+                          {bundle.savings}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3>{getProductName(product, bundle.name)}</h3>
 
                     <p className="promo-card__meta">{bundle.meta}</p>
 
@@ -1283,9 +1525,7 @@ export default function Home() {
                       )}
                     </p>
 
-                    <p className="promo-card__desc">
-                      {bundle.description}
-                    </p>
+                    <p className="promo-card__desc">{bundle.description}</p>
 
                     <ul className="promo-card__list">
                       {bundle.items.map((item) => (

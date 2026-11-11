@@ -1,0 +1,22 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Butter stick squishy toys, salted butter block in pink and yellow">
+  <rect width="400" height="300" fill="#EDEAEA"/>
+  <ellipse cx="200" cy="252" rx="160" ry="18" fill="#DCD7D6"/>
+
+  <!-- pink stick -->
+  <g transform="translate(140,150) rotate(-4)">
+    <rect x="-56" y="-88" width="112" height="176" rx="10" fill="#FFC6D9"/>
+    <rect x="-56" y="-88" width="112" height="46" rx="10" fill="#FF97B8"/>
+    <text x="0" y="-58" font-family="Nunito, sans-serif" font-weight="800" font-size="13" fill="#FFFFFF" text-anchor="middle">BUTTER</text>
+    <text x="0" y="10" font-family="Nunito, sans-serif" font-weight="700" font-size="10" fill="#B5537A" text-anchor="middle">4oz</text>
+    <text x="0" y="26" font-family="Nunito, sans-serif" font-weight="600" font-size="8" fill="#C97396" text-anchor="middle">NET WT. (113 G)</text>
+  </g>
+
+  <!-- yellow stick -->
+  <g transform="translate(262,150) rotate(3)">
+    <rect x="-56" y="-88" width="112" height="176" rx="10" fill="#FFEBB0"/>
+    <rect x="-56" y="-88" width="112" height="46" rx="10" fill="#FFD34D"/>
+    <text x="0" y="-58" font-family="Nunito, sans-serif" font-weight="800" font-size="13" fill="#8A6B00" text-anchor="middle">BUTTER</text>
+    <text x="0" y="10" font-family="Nunito, sans-serif" font-weight="700" font-size="10" fill="#A98A2E" text-anchor="middle">4oz</text>
+    <text x="0" y="26" font-family="Nunito, sans-serif" font-weight="600" font-size="8" fill="#BBA254" text-anchor="middle">NET WT. (113 G)</text>
+  </g>
+</svg>
