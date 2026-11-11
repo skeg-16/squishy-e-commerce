@@ -3367,189 +3367,125 @@ main > .account-jelly {
 }
 
 /* =========================================
-   3D TACTILE CHAMBER
+   SISO QUALITY & ENGINEERING PLEDGE CARD
 ========================================= */
 
-.siso-chamber-card {
-  position: relative;
+.siso-pledge-card {
   background:
     radial-gradient(
       circle at 50% 28%,
-      rgba(255, 255, 255, 0.28),
+      rgba(255, 255, 255, 0.22),
       rgba(52, 22, 60, 0.48) 85%
     );
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   border-radius: 28px;
-  padding: 24px 26px;
+  padding: 30px;
   backdrop-filter: blur(22px) saturate(140%);
   -webkit-backdrop-filter: blur(22px) saturate(140%);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.48),
+    inset 0 1px 2px rgba(255, 255, 255, 0.45),
     0 22px 50px rgba(28, 8, 36, 0.35);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 20px;
+}
+
+.siso-pledge-card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 12px;
+}
+
+.siso-pledge-title {
+  margin: 4px 0 0;
+  font-family: Fredoka, var(--font-display);
+  font-size: 1.35rem;
+  color: #ffffff;
+}
+
+.siso-pledges-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
-.siso-chamber-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.siso-chamber-kicker {
-  display: block;
-  font-size: 0.74rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #ffd6ea;
-}
-
-.siso-chamber-title {
-  margin: 2px 0 0;
-  font-family: Fredoka, var(--font-display);
-  font-size: 1.15rem;
-  color: #ffffff;
-}
-
-.siso-pulse-badge {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 0.76rem;
-  font-weight: 800;
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.32);
-  border: 1px solid rgba(110, 231, 183, 0.45);
-}
-
-.siso-chamber-bubble {
-  position: absolute;
-  top: 68px;
-  right: 26px;
-  z-index: 10;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #3b173e;
-  font-family: Fredoka, var(--font-display);
-  font-size: 0.92rem;
-  font-weight: 700;
-  box-shadow: 0 10px 28px rgba(30, 10, 38, 0.35);
-  animation: sisoBubblePop 220ms cubic-bezier(0.2, 1.3, 0.4, 1);
-  pointer-events: none;
-}
-
-@keyframes sisoBubblePop {
-  0% { transform: scale(0.6) translateY(8px); opacity: 0; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
-}
-
-.siso-chamber-stage {
-  min-height: 270px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.siso-chamber-stage .viewer-3d-stage {
-  height: 280px !important;
-  aspect-ratio: auto !important;
-}
-
-.siso-chamber-loading {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #ffd8ec;
-}
-
-.siso-model-selector-wrap {
+.siso-pledge-item {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8px;
 }
 
-.siso-selector-label {
-  font-size: 0.76rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.siso-pledge-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 123, 172, 0.22);
+  border: 1px solid rgba(255, 158, 203, 0.4);
   color: #ffd6ea;
-}
-
-.siso-model-pill-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  align-items: center;
   justify-content: center;
 }
 
-.siso-model-pill {
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+.siso-pledge-body h4 {
+  margin: 0 0 4px;
   font-family: Fredoka, var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 160ms ease;
-}
-
-.siso-model-pill:hover {
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.siso-model-pill.is-active {
-  background: #ffffff;
-  color: #421c46;
-  border-color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-}
-
-.siso-chamber-footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.siso-squish-action-btn {
-  width: 100%;
-  padding: 12px 20px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ff7bac 0%, #e0327e 100%);
+  font-size: 1.02rem;
   color: #ffffff;
-  border: none;
-  font-family: Fredoka, var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(224, 50, 126, 0.4);
-  transition: transform 140ms ease, box-shadow 140ms ease;
 }
 
-.siso-squish-action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(224, 50, 126, 0.5);
-}
-
-.siso-chamber-counter {
-  font-size: 0.78rem;
-  font-weight: 700;
+.siso-pledge-body p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
   color: #ffebf6;
 }
 
-.siso-chamber-counter strong {
-  font-family: Fredoka, var(--font-display);
-  font-size: 0.95rem;
+.siso-pledge-card-footer {
+  margin-top: auto;
+}
+
+.siso-pledge-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(110, 231, 183, 0.38);
   color: #a7f3d0;
-  margin-left: 4px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.siso-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 8px #34d399;
+  display: inline-block;
+  margin-right: 6px;
+  animation: sisoDotPulse 2s ease infinite;
+}
+
+@keyframes sisoDotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.siso-heart-svg {
+  color: #ff7bac;
+  flex-shrink: 0;
+  transition: transform 120ms ease;
+}
+
+.siso-cheer-btn:hover .siso-heart-svg {
+  transform: scale(1.2);
 }
 
 /* =========================================
@@ -5533,6 +5469,127 @@ main > .account-jelly {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* =========================================
+   GENUINE SQUISHY PAGE LOADER
+========================================= */
+
+.squishy-loader-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(32, 12, 38, 0.74);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  transition: opacity 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+}
+
+.squishy-loader-backdrop.is-fading-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.squishy-loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+  padding: 32px 38px;
+  border-radius: 32px;
+  background: rgba(45, 18, 54, 0.65);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.45),
+    0 24px 60px rgba(18, 5, 24, 0.55);
+}
+
+.squishy-mascot-rig {
+  position: relative;
+  width: 140px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.squishy-mascot-svg {
+  width: 130px;
+  height: 110px;
+  transform-origin: center bottom;
+  animation: squishyPneumaticBounce 1.4s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+}
+
+@keyframes squishyPneumaticBounce {
+  0% {
+    transform: scale(1, 1) translateY(0);
+  }
+  28% {
+    transform: scale(1.18, 0.76) translateY(12px);
+  }
+  48% {
+    transform: scale(0.92, 1.12) translateY(-14px);
+  }
+  68% {
+    transform: scale(1.04, 0.96) translateY(2px);
+  }
+  85% {
+    transform: scale(0.98, 1.02) translateY(-2px);
+  }
+  100% {
+    transform: scale(1, 1) translateY(0);
+  }
+}
+
+.squishy-mascot-shadow {
+  width: 80px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(16, 4, 20, 0.5) 0%, transparent 75%);
+  margin-top: -6px;
+  animation: squishyShadowPulse 1.4s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+}
+
+@keyframes squishyShadowPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.65;
+  }
+  28% {
+    transform: scale(1.35);
+    opacity: 0.95;
+  }
+  48% {
+    transform: scale(0.68);
+    opacity: 0.3;
+  }
+}
+
+.squishy-loader-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.squishy-loader-title {
+  font-family: Fredoka, var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.squishy-loader-sub {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #ffd6ea;
 }
 
 

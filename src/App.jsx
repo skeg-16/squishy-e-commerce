@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import SiteLayout from './layouts/SiteLayout';
 import Home from './pages/Home';
 import ScrollToTop from './components/ScrollToTop';
+import SquishyPageLoader from './components/SquishyPageLoader';
 
 const Shop = lazy(() => import('./pages/Shop'));
 const Product = lazy(() => import('./pages/Product'));
@@ -20,25 +21,13 @@ function Placeholder({ title }) {
   );
 }
 
-function RouteFallback() {
-  return (
-    <div
-      className="route-loading-shell"
-      role="status"
-      aria-live="polite"
-    >
-      <span className="route-loading-orb" aria-hidden="true" />
-      <span>Loading Squishies…</span>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <>
       <ScrollToTop />
+      <SquishyPageLoader />
 
-      <Suspense fallback={<RouteFallback />}>
+      <Suspense fallback={<SquishyPageLoader isSuspense />}>
         <Routes>
           {/* Admin page — separate from the storefront layout */}
           <Route path="/admin" element={<AdminPage />} />

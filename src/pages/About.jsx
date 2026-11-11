@@ -1,8 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PRODUCT_MODELS } from '../data/productModels';
-
-const ProductViewer3D = lazy(() => import('../components/ProductViewer3D'));
 
 const SISO_TEAM = [
   {
@@ -58,6 +55,50 @@ const SISO_TEAM = [
     avatarColor: 'linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)',
     initials: 'DP',
     tag: 'Design & Brand',
+  },
+];
+
+const SISO_PLEDGES = [
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+    title: '100% Non-Toxic TPR',
+    desc: 'Hypoallergenic, BPA-free Thermoplastic Rubber and memory foam safe for ages 3+.',
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+    title: '30–45s Slow Rebound',
+    desc: 'Engineered micro-porous air cells release pressure smoothly and rise back gradually.',
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    title: 'Student-Led Agility',
+    desc: 'Fast design iterations, user ergonomics research, and dedicated sprint collaboration.',
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <line x1="12" y1="1" x2="12" y2="23" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    ),
+    title: 'Accessible Pricing',
+    desc: 'Premium stress relief starting at ₱89 so every student and professional can unwind.',
   },
 ];
 
@@ -129,27 +170,27 @@ const COMPANY_PILLARS = [
     badge: 'Study & Work',
     audiences: [
       {
-        icon: '🎓',
+        id: 'students',
         title: 'Students & Learners',
         desc: 'Quick stress relief and focus aid during long study sessions, lectures, and exam preparations.',
       },
       {
-        icon: '💻',
+        id: 'office',
         title: 'Office & Remote Workers',
         desc: 'Ergonomic desk accessories to reduce anxiety, combat fidgeting, and unwind during screen breaks.',
       },
       {
-        icon: '🧸',
+        id: 'collectors',
         title: 'Toy Collectors & Teens',
         desc: 'Enthusiasts actively participating in the aesthetic squishy and tactile fidget collecting trend.',
       },
       {
-        icon: '✨',
+        id: 'sensory',
         title: 'Sensory Processing Seekers',
         desc: 'Individuals benefiting from calming tactile stimulation, grounding routines, and soft-touch reassurance.',
       },
       {
-        icon: '📦',
+        id: 'resellers',
         title: 'Resellers & Small Shops',
         desc: 'Online sellers, gift shops, and party planners stocking viral, high-demand sensory trend items.',
       },
@@ -229,62 +270,23 @@ const COMPANY_PILLARS = [
   },
 ];
 
-const MODEL_CHOICES = [
-  { slug: 'dumpling', name: 'Dumpling', quote: 'Puff! Squeezed away the study stress!' },
-  { slug: 'cheese', name: 'Cheese Cube', quote: 'Melty slow-rise cheddar goodness!' },
-  { slug: 'catpaw', name: 'Cat Paw', quote: 'Purrfect toe-bean squish achieved!' },
-  { slug: 'toast', name: 'Pastel Toast', quote: 'Warm slow-rise toast vibes!' },
-  { slug: 'butter', name: 'Butter Stick', quote: 'Melting under your thumb so smoothly!' },
-  { slug: 'peanut', name: 'Peanut', quote: 'Crackly texture, mega satisfying!' },
-];
-
 export default function About() {
   const [activeTab, setActiveTab] = useState(0);
-  const [activeModel, setActiveModel] = useState('dumpling');
-  const [squishCount, setSquishCount] = useState(0);
-  const [speechBubble, setSpeechBubble] = useState('');
   const [cheers, setCheers] = useState({ 0: 12, 1: 15, 2: 9, 3: 18, 4: 11, 5: 14 });
-  const speechTimerRef = useRef(null);
 
   useEffect(() => {
     document.title = 'About SISO — Squishies Company & Collective';
-    return () => {
-      if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
-    };
   }, []);
 
-  function handleSquishModel(modelSlug) {
-    const chosen = MODEL_CHOICES.find((m) => m.slug === modelSlug) || MODEL_CHOICES[0];
-    setSquishCount((prev) => prev + 1);
-    setSpeechBubble(chosen.quote);
-
-    if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
-    speechTimerRef.current = setTimeout(() => {
-      setSpeechBubble('');
-    }, 2800);
-
-    try {
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(15);
-      }
-    } catch {}
-  }
-
-  function handleCheerMember(index, name) {
+  function handleCheerMember(index) {
     setCheers((prev) => ({
       ...prev,
       [index]: (prev[index] || 0) + 1,
     }));
-    setSpeechBubble(`Cheered for ${name}!`);
-
-    if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
-    speechTimerRef.current = setTimeout(() => {
-      setSpeechBubble('');
-    }, 2200);
 
     try {
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(20);
+        navigator.vibrate(18);
       }
     } catch {}
   }
@@ -296,7 +298,7 @@ export default function About() {
       {/* ================= HERO SECTION ================= */}
       <section className="siso-hero-block">
         <div className="siso-container">
-          <div className="siso-hero-grid">
+          <div className="siso-hero-grid siso-hero-grid--showcase">
             {/* Left: SISO Brand Profile */}
             <div className="siso-hero-card">
               <div className="siso-brand-badge-row">
@@ -309,7 +311,10 @@ export default function About() {
                   <span className="siso-brand-pill-title">SISO</span>
                   <span className="siso-brand-pill-sub">Official Company Profile</span>
                 </div>
-                <span className="siso-status-pill">● Student-Led Innovation</span>
+                <span className="siso-status-pill">
+                  <span className="siso-status-dot" aria-hidden="true" />
+                  Student-Led Innovation
+                </span>
               </div>
 
               <h1 className="siso-hero-title">
@@ -347,13 +352,10 @@ export default function About() {
 
               {/* Hero Call to Action */}
               <div className="siso-hero-actions">
-                <a
-                  href="mailto:siso@gmail.com"
-                  className="siso-primary-btn"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" strokeWidth="2" />
-                    <path d="M22 7l-10 7L2 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <a href="mailto:siso@gmail.com" className="siso-primary-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="M22 7l-10 7L2 7" />
                   </svg>
                   Email SISO: siso@gmail.com
                 </a>
@@ -363,77 +365,32 @@ export default function About() {
               </div>
             </div>
 
-            {/* Right: Interactive 3D Tactile Chamber */}
-            <div className="siso-chamber-card">
-              <div className="siso-chamber-top">
-                <div className="siso-chamber-title-box">
-                  <span className="siso-chamber-kicker">Interactive Tactile Lab</span>
-                  <h3 className="siso-chamber-title">3D Prototype Squeeze Studio</h3>
-                </div>
-                <span className="siso-pulse-badge">Live 3D</span>
+            {/* Right: SISO Engineering & Quality Pledge */}
+            <div className="siso-pledge-card">
+              <div className="siso-pledge-card-header">
+                <span className="siso-chamber-kicker">Core Principles</span>
+                <h3 className="siso-pledge-title">Our Quality &amp; Safety Pledge</h3>
               </div>
 
-              {/* Speech bubble on squish */}
-              {speechBubble && (
-                <div className="siso-chamber-bubble" role="status">
-                  {speechBubble}
-                </div>
-              )}
-
-              {/* 3D Model Stage */}
-              <div className="siso-chamber-stage">
-                <Suspense
-                  fallback={
-                    <div className="siso-chamber-loading">
-                      Loading tactile 3D model…
+              <div className="siso-pledges-grid">
+                {SISO_PLEDGES.map((item, idx) => (
+                  <div key={idx} className="siso-pledge-item">
+                    <div className="siso-pledge-icon">{item.icon}</div>
+                    <div className="siso-pledge-body">
+                      <h4>{item.title}</h4>
+                      <p>{item.desc}</p>
                     </div>
-                  }
-                >
-                  <ProductViewer3D
-                    key={activeModel}
-                    url={PRODUCT_MODELS[activeModel]}
-                    alt={`SISO 3D ${activeModel} Squishy`}
-                    compact
-                    hideHint
-                    scaleBoost={1.15}
-                    pulseSignal={squishCount}
-                    onSquish={() => handleSquishModel(activeModel)}
-                  />
-                </Suspense>
+                  </div>
+                ))}
               </div>
 
-              {/* Model Choice Selectors */}
-              <div className="siso-model-selector-wrap">
-                <span className="siso-selector-label">Select 3D Edition:</span>
-                <div className="siso-model-pill-row">
-                  {MODEL_CHOICES.map((m) => (
-                    <button
-                      key={m.slug}
-                      type="button"
-                      className={`siso-model-pill${activeModel === m.slug ? ' is-active' : ''}`}
-                      onClick={() => {
-                        setActiveModel(m.slug);
-                        handleSquishModel(m.slug);
-                      }}
-                    >
-                      {m.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action & Squeeze Tracker */}
-              <div className="siso-chamber-footer">
-                <button
-                  type="button"
-                  className="siso-squish-action-btn"
-                  onClick={() => handleSquishModel(activeModel)}
-                >
-                  ✨ Squeeze 3D {MODEL_CHOICES.find((m) => m.slug === activeModel)?.name}
-                </button>
-                <div className="siso-chamber-counter">
-                  <span>Interactive Squeezes Logged: </span>
-                  <strong>{squishCount}</strong>
+              <div className="siso-pledge-card-footer">
+                <div className="siso-pledge-chip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  <span>100% Certified Safe &amp; BPA-Free Standards</span>
                 </div>
               </div>
             </div>
@@ -445,7 +402,7 @@ export default function About() {
       <section className="siso-section siso-team-block">
         <div className="siso-container">
           <div className="siso-section-heading">
-            <span className="siso-section-eyebrow">● THE TALENT BEHIND SISO</span>
+            <span className="siso-section-eyebrow">The Talent Behind SISO</span>
             <h2 className="siso-section-title">The SISO Collective</h2>
             <p className="siso-section-subtitle">
               Meet the 6 dedicated team members driving product vision, agile coordination,
@@ -479,10 +436,12 @@ export default function About() {
                   <button
                     type="button"
                     className="siso-cheer-btn"
-                    onClick={() => handleCheerMember(index, member.name)}
+                    onClick={() => handleCheerMember(index)}
                     aria-label={`Send a cheer to ${member.name}`}
                   >
-                    <span className="siso-cheer-heart">💖</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="siso-heart-svg">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
                     <span className="siso-cheer-text">Cheer</span>
                     <span className="siso-cheer-count">{cheers[index] || 0}</span>
                   </button>
@@ -497,7 +456,7 @@ export default function About() {
       <section className="siso-section siso-dossier-block">
         <div className="siso-container">
           <div className="siso-section-heading">
-            <span className="siso-section-eyebrow">● OFFICIAL KNOWLEDGE BASE</span>
+            <span className="siso-section-eyebrow">Official Knowledge Base</span>
             <h2 className="siso-section-title">Product &amp; Company Dossier</h2>
             <p className="siso-section-subtitle">
               Explore official specifications, engineering standards, safety verifications,
@@ -578,7 +537,9 @@ export default function About() {
               <div className="siso-audience-cards-grid">
                 {currentPillar.audiences?.map((aud, i) => (
                   <div key={i} className="siso-audience-card">
-                    <div className="siso-audience-icon">{aud.icon}</div>
+                    <div className="siso-audience-indicator" aria-hidden="true">
+                      <span className="siso-dot-marker" />
+                    </div>
                     <h4>{aud.title}</h4>
                     <p>{aud.desc}</p>
                   </div>
@@ -630,7 +591,7 @@ export default function About() {
         <div className="siso-container">
           <div className="siso-contact-panel">
             <div className="siso-contact-left">
-              <span className="siso-section-eyebrow">● OFFICIAL CONTACT &amp; SUPPORT</span>
+              <span className="siso-section-eyebrow">Official Contact &amp; Support</span>
               <h2 className="siso-contact-headline">Ready to Collaborate with SISO?</h2>
               <p className="siso-contact-subtext">
                 For customer support, wholesale partnerships, event giveaways, or school packages,
