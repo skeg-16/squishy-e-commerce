@@ -1,8 +1,9 @@
-import { Component, Suspense, useEffect, useMemo, useRef } from 'react';
+import { Component, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { getPerfProfile } from '../utils/devicePerf';
 
 const TARGET_SIZE = 2.15; // the model's largest dimension gets scaled to this
 
@@ -154,14 +155,33 @@ export default function ProductViewer3D({
   pulseSignal = 0,
   onSquish,
 }) {
+  const perf = useMemo(() => getPerfProfile(), []);
+  const stageRef = useRef(null);
   const pressedRef = useRef(false);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(Boolean(entry?.isIntersecting));
+      },
+      { rootMargin: '120px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   const fallback = fallbackImage ? (
-    <img src={fallbackImage} alt={alt} width="420" height="420" />
+    <img src={fallbackImage} alt={alt} width="420" height="420" loading="lazy" />
   ) : null;
 
   return (
     <ViewerErrorBoundary fallback={fallback}>
       <div
+        ref={stageRef}
         role="img"
         aria-label={alt}
         className={`viewer-3d-stage${compact ? ' viewer-3d-stage--compact' : ''}`}
@@ -186,12 +206,16 @@ export default function ProductViewer3D({
           touchAction: 'pan-y',
         }}
       >
-        <Canvas dpr={[1, 2]} camera={{ fov: compact ? 36 : 40, position: [0, 0.2, 4.8] }}>
-          <ambientLight intensity={0.48} />
-          <hemisphereLight args={['#fff8f4', '#e8d5c4', 0.55]} />
-          <directionalLight position={[5, 5, 5]} intensity={0.88} />
-          <directionalLight position={[-4, 3, -3]} intensity={0.38} />
-          <StudioEnvironment />
+        <Canvas
+          frameloop={isVisible ? 'always' : 'never'}
+          dpr={[1, perf.maxDpr || 1.5]}
+          camera={{ fov: compact ? 36 : 40, position: [0, 0.2, 4.8] }}
+        >
+          <ambientLight intensity={compact || !perf.enableEnvMap ? 0.68 : 0.48} />
+          <hemisphereLight args={['#fff8f4', '#e8d5c4', 0.65]} />
+          <directionalLight position={[5, 5, 5]} intensity={0.95} />
+          <directionalLight position={[-4, 3, -3]} intensity={0.42} />
+          {!compact && perf.enableEnvMap ? <StudioEnvironment /> : null}
 
           <Suspense fallback={null}>
             <Model url={url} pressedRef={pressedRef} pulseSignal={pulseSignal} />
@@ -199,8 +223,8 @@ export default function ProductViewer3D({
 
           <OrbitControls
             target={[0, 0, 0]}
-            autoRotate
-            autoRotateSpeed={compact ? 2.1 : 1.5}
+            autoRotate={isVisible && !perf.prefersReducedMotion}
+            autoRotateSpeed={compact ? 1.8 : 1.5}
             enablePan={false}
             enableZoom={!compact}
             minDistance={3}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { adminApi, errorText } from '../../services/adminService';
+import PaginationBar from '../../components/PaginationBar';
 
 const STATUSES = [
   'To Pay',
@@ -269,6 +270,8 @@ function Orders({ request, refresh, openDialog, closeDialog, showToast }) {
   const [searchInput, setSearchInput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 8;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -464,12 +467,16 @@ function Orders({ request, refresh, openDialog, closeDialog, showToast }) {
         onSubmit={(event) => {
           event.preventDefault();
           setQuery(searchInput);
+          setPage(1);
         }}
       >
         <select
           aria-label="Filter by status"
           value={status}
-          onChange={(event) => setStatus(event.target.value)}
+          onChange={(event) => {
+            setStatus(event.target.value);
+            setPage(1);
+          }}
         >
           <option value="">All statuses</option>
           {STATUSES.map((item) => (
@@ -494,41 +501,56 @@ function Orders({ request, refresh, openDialog, closeDialog, showToast }) {
       {loading && <p className="ad-muted">Loading orders...</p>}
 
       {!loading && !error && (
-        <AdminTable
-          headings={[
-            'Order',
-            'Customer',
-            'Placed',
-            'Payment',
-            'Status',
-            'Total#',
-          ]}
-          rows={orders.map((order) => (
-            <tr key={order.orderNumber}>
-              <td>
-                <button
-                  className="ad-link"
-                  type="button"
-                  onClick={() => openOrder(order.orderNumber)}
-                >
-                  {order.orderNumber.slice(0, 11)}…
-                </button>
-              </td>
-              <td>
-                {order.customerName}
-                <span className="ad-sub">{order.customerEmail}</span>
-              </td>
-              <td>{when(order.createdAt)}</td>
-              <td>
-                {order.paymentMethod.toUpperCase()} ·{' '}
-                {order.paymentStatus}
-              </td>
-              <td><AdminPill>{order.status}</AdminPill></td>
-              <td className="num">{peso(order.total)}</td>
-            </tr>
-          ))}
-          emptyText="No orders match."
-        />
+        <>
+          <AdminTable
+            headings={[
+              'Order',
+              'Customer',
+              'Placed',
+              'Payment',
+              'Status',
+              'Total#',
+            ]}
+            rows={orders
+              .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+              .map((order) => (
+                <tr key={order.orderNumber}>
+                  <td>
+                    <button
+                      className="ad-link"
+                      type="button"
+                      onClick={() => openOrder(order.orderNumber)}
+                    >
+                      {order.orderNumber.slice(0, 11)}…
+                    </button>
+                  </td>
+                  <td>
+                    {order.customerName}
+                    <span className="ad-sub">{order.customerEmail}</span>
+                  </td>
+                  <td>{when(order.createdAt)}</td>
+                  <td>
+                    {order.paymentMethod.toUpperCase()} ·{' '}
+                    {order.paymentStatus}
+                  </td>
+                  <td><AdminPill>{order.status}</AdminPill></td>
+                  <td className="num">{peso(order.total)}</td>
+                </tr>
+              ))}
+            emptyText="No orders match."
+          />
+          {orders.length > 0 && (
+            <PaginationBar
+              page={page}
+              totalPages={Math.max(1, Math.ceil(orders.length / PAGE_SIZE))}
+              totalItems={orders.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={(nextPage) => setPage(nextPage)}
+              itemLabel="orders"
+              compact
+            />
+          )}
+        </>
       )}
     </>
   );
@@ -572,6 +594,8 @@ function Products({
   const [products, setProducts] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -629,26 +653,41 @@ function Products({
       {loading && <p className="ad-muted">Loading products...</p>}
 
       {!loading && !error && (
-        <AdminTable
-          headings={['', 'Product', 'Type', 'Price#', 'Available stock', 'Status', '']}
-          rows={products.map((product) => (
-            <ProductRow
-              key={product.slug}
-              product={product}
-              onSaveStock={saveStock}
-              onEdit={() => openProductForm({
-                products,
-                product,
-                request,
-                openDialog,
-                closeDialog,
-                showToast,
-                refresh,
-              })}
+        <>
+          <AdminTable
+            headings={['', 'Product', 'Type', 'Price#', 'Available stock', 'Status', '']}
+            rows={products
+              .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+              .map((product) => (
+                <ProductRow
+                  key={product.slug}
+                  product={product}
+                  onSaveStock={saveStock}
+                  onEdit={() => openProductForm({
+                    products,
+                    product,
+                    request,
+                    openDialog,
+                    closeDialog,
+                    showToast,
+                    refresh,
+                  })}
+                />
+              ))}
+            emptyText="No products yet."
+          />
+          {products.length > 0 && (
+            <PaginationBar
+              page={page}
+              totalPages={Math.max(1, Math.ceil(products.length / PAGE_SIZE))}
+              totalItems={products.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={(nextPage) => setPage(nextPage)}
+              itemLabel="products"
+              compact
             />
-          ))}
-          emptyText="No products yet."
-        />
+          )}
+        </>
       )}
     </>
   );
@@ -1390,6 +1429,8 @@ function Reviews({ request, refreshKey, showToast }) {
   const [reviews, setReviews] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 8;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1429,38 +1470,53 @@ function Reviews({ request, refreshKey, showToast }) {
       {loading && <p className="ad-muted">Loading reviews...</p>}
 
       {!loading && !error && (
-        <AdminTable
-          headings={['Product', 'Rating', 'Review', 'Date', '']}
-          rows={reviews.map((review) => (
-            <tr key={review.id}>
-              <td>
-                {review.productName}
-                <span className="ad-sub">
-                  {review.orderNumber.slice(0, 11)}…
-                </span>
-              </td>
-              <td>
-                {'★'.repeat(review.rating)}
-                {'☆'.repeat(5 - review.rating)}
-              </td>
-              <td>
-                <strong>{review.reviewerName}</strong>
-                <span className="ad-sub">{review.comment}</span>
-              </td>
-              <td>{when(review.createdAt)}</td>
-              <td className="actions">
-                <button
-                  className="btn btn--danger btn--sm"
-                  type="button"
-                  onClick={() => deleteReview(review)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-          emptyText="No reviews yet. Customers can review once an order is delivered."
-        />
+        <>
+          <AdminTable
+            headings={['Product', 'Rating', 'Review', 'Date', '']}
+            rows={reviews
+              .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+              .map((review) => (
+                <tr key={review.id}>
+                  <td>
+                    {review.productName}
+                    <span className="ad-sub">
+                      {review.orderNumber.slice(0, 11)}…
+                    </span>
+                  </td>
+                  <td>
+                    {'★'.repeat(review.rating)}
+                    {'☆'.repeat(5 - review.rating)}
+                  </td>
+                  <td>
+                    <strong>{review.reviewerName}</strong>
+                    <span className="ad-sub">{review.comment}</span>
+                  </td>
+                  <td>{when(review.createdAt)}</td>
+                  <td className="actions">
+                    <button
+                      className="btn btn--danger btn--sm"
+                      type="button"
+                      onClick={() => deleteReview(review)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            emptyText="No reviews yet. Customers can review once an order is delivered."
+          />
+          {reviews.length > 0 && (
+            <PaginationBar
+              page={page}
+              totalPages={Math.max(1, Math.ceil(reviews.length / PAGE_SIZE))}
+              totalItems={reviews.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={(nextPage) => setPage(nextPage)}
+              itemLabel="reviews"
+              compact
+            />
+          )}
+        </>
       )}
     </>
   );

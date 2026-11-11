@@ -42,7 +42,10 @@ function createCommerce(pool, { demoMode = false } = {}) {
     return updated;
   }
 
+  let lastExpireSweepAt = 0;
+
   async function expireReservations() {
+    lastExpireSweepAt = Date.now();
     const { rows } = await pool.query("SELECT id FROM orders WHERE status='To Pay' AND expires_at <= clock_timestamp() ORDER BY id");
     for (const { id } of rows) {
       await transaction(pool, async q => {
@@ -50,6 +53,12 @@ function createCommerce(pool, { demoMode = false } = {}) {
         if (order) await reconcile(q, order);
       });
     }
+  }
+
+  async function expireReservationsThrottled() {
+    const now = Date.now();
+    if (now - lastExpireSweepAt < 4000) return;
+    await expireReservations();
   }
 
   async function priceCart(q, request) {
@@ -99,8 +108,8 @@ function createCommerce(pool, { demoMode = false } = {}) {
     };
   }
 
-  async function getProducts(slug) {
-    await expireReservations();
+  async function getProducts(slug, options = {}) {
+    await expireReservationsThrottled();
     const { rows } = await pool.query(`SELECT p.*,
       CASE WHEN kind='single' THEN stock ELSE COALESCE((
         SELECT min(CASE WHEN c.active THEN floor(c.stock::numeric/b.quantity) ELSE 0 END)
@@ -110,8 +119,47 @@ function createCommerce(pool, { demoMode = false } = {}) {
       (SELECT round(avg(rating)::numeric,1) FROM reviews r WHERE r.product_slug=p.slug) AS rating
       FROM products p WHERE active=true AND ($1::text IS NULL OR slug=$1) ORDER BY slug`, [slug || null]);
     if (slug && !rows.length) fail(404, 'NOT_FOUND', 'Product not found.');
-    return rows.map(p => ({ ...p.content, slug: p.slug, name: p.name, kind: p.kind, price: p.price_minor / 100,
+    let mapped = rows.map(p => ({ ...p.content, slug: p.slug, name: p.name, kind: p.kind, price: p.price_minor / 100,
       stockQuantity: Number(p.available), rating: Number(p.rating || 0), reviews: p.review_count, reviewsCount: p.review_count }));
+
+    if (!slug && options && (options.page !== undefined || options.limit !== undefined || options.category || options.q || options.kind)) {
+      if (options.kind) {
+        mapped = mapped.filter(item => item.kind === options.kind);
+      }
+      if (options.category && options.category !== 'all') {
+        mapped = mapped.filter(item => (item.category || '').toLowerCase() === String(options.category).toLowerCase());
+      }
+      if (options.q) {
+        const q = String(options.q).trim().toLowerCase();
+        if (q) {
+          mapped = mapped.filter(item =>
+            `${item.name || ''} ${item.description || ''} ${item.slug || ''}`.toLowerCase().includes(q)
+          );
+        }
+      }
+      if (options.page !== undefined) {
+        const page = Math.max(1, Number.parseInt(options.page, 10) || 1);
+        const limit = Math.min(50, Math.max(1, Number.parseInt(options.limit, 10) || 6));
+        const total = mapped.length;
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        const start = (page - 1) * limit;
+        const items = mapped.slice(start, start + limit);
+        return {
+          items,
+          products: items,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          },
+        };
+      }
+    }
+
+    return mapped;
   }
 
   async function quote(guestId, request) {
@@ -259,10 +307,31 @@ function createCommerce(pool, { demoMode = false } = {}) {
     return { trackingNumber: number, courier: 'School demo (no courier integration)', checkpointCount: order.events.length, checkpoints: order.events };
   }
 
-  async function reviews(slug) {
+  async function reviews(slug, options = {}) {
     const products = await getProducts(slug);
-    const { rows } = await pool.query('SELECT id,reviewer_name AS "reviewerName",rating,comment,created_at AS "createdAt" FROM reviews WHERE product_slug=$1 ORDER BY created_at DESC LIMIT 100', [slug]);
-    return { productSlug: slug, averageRating: products[0].rating, reviewsCount: products[0].reviewsCount, reviews: rows };
+    const page = Math.max(1, Number.parseInt(options?.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(options?.limit, 10) || 100));
+    const offset = (page - 1) * limit;
+    const { rows } = await pool.query(
+      'SELECT id,reviewer_name AS "reviewerName",rating,comment,created_at AS "createdAt" FROM reviews WHERE product_slug=$1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',
+      [slug, limit, offset]
+    );
+    const total = Number(products[0].reviewsCount || 0);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    return {
+      productSlug: slug,
+      averageRating: products[0].rating,
+      reviewsCount: total,
+      reviews: rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
   async function addReview(guestId, input) {
     return transaction(pool, async q => {

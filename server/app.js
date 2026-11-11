@@ -40,11 +40,6 @@ function createApp({ pool, demoMode = false, origins = ['http://localhost:3000']
   app.use('/api', (req, res, next) => {
     req.requestId = randomUUID();
     res.set('X-Request-ID', req.requestId).set('Cache-Control', 'no-store');
-    console.log('Origin debug:', {
-  allowedOrigins: origins,
-  receivedOrigin: req.get('origin'),
-  fetchSite: req.get('sec-fetch-site'),
-});
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       if (!origins.includes(req.get('origin')) || req.get('sec-fetch-site') === 'cross-site') return next(new AppError(403, 'ORIGIN_REJECTED', 'Request origin is not allowed.'));
       if (!req.is('application/json')) return next(new AppError(415, 'JSON_REQUIRED', 'Send application/json.'));
@@ -90,12 +85,23 @@ function createApp({ pool, demoMode = false, origins = ['http://localhost:3000']
     next();
   });
   const send = (fn, status = 200) => asyncRoute(async (req, res) => res.status(status).json({ success: true, data: await fn(req) }));
-  app.get('/api/products', send(() => commerce.getProducts()));
-  app.get('/api/products/:slug', send(async req => (await commerce.getProducts(req.params.slug))[0]));
-  app.get('/api/vouchers/available', send(async () => {
+  const sendPublicCached = (fn, maxAgeSec = 15) => asyncRoute(async (req, res) => {
+    const data = await fn(req);
+    const payload = JSON.stringify({ success: true, data });
+    const etag = `W/"${digest(payload).slice(0, 24)}"`;
+    res.set('ETag', etag);
+    res.set('Cache-Control', `public, max-age=${maxAgeSec}, stale-while-revalidate=60`);
+    if (req.get('if-none-match') === etag) {
+      return res.status(304).end();
+    }
+    return res.status(200).type('application/json').send(payload);
+  });
+  app.get('/api/products', sendPublicCached(req => commerce.getProducts(null, req.query)));
+  app.get('/api/products/:slug', sendPublicCached(async req => (await commerce.getProducts(req.params.slug))[0]));
+  app.get('/api/vouchers/available', sendPublicCached(async () => {
     const { rows } = await pool.query('SELECT code,type,description FROM vouchers WHERE active=true ORDER BY code');
     return rows;
-  }));
+  }, 30));
   app.post('/api/checkout/quote', guest, send(req => commerce.quote(req.guestId, parse('quote', req.body)), 201));
   app.post('/api/orders', guest, send(req => commerce.createOrder(req.guestId, parse('order', req.body), parse('key', req.get('idempotency-key'))), 201));
   app.get('/api/orders/:number', guest, send(req => commerce.getOrder(req.guestId, req.params.number)));
@@ -103,7 +109,7 @@ function createApp({ pool, demoMode = false, origins = ['http://localhost:3000']
   app.post('/api/payments/sessions', guest, send(req => commerce.createPayment(req.guestId, parse('payment', req.body).orderNumber, parse('key', req.get('idempotency-key'))), 201));
   app.post('/api/payments/sessions/:id/simulate', guest, send(req => commerce.simulate(req.guestId, parse('uuid', req.params.id), parse('outcome', req.body).outcome)));
   app.get('/api/tracking/:number', guest, send(req => commerce.tracking(req.guestId, req.params.number)));
-  app.get('/api/reviews/:slug', send(req => commerce.reviews(req.params.slug)));
+  app.get('/api/reviews/:slug', sendPublicCached(req => commerce.reviews(req.params.slug, req.query), 10));
   app.post('/api/reviews', guest, send(req => commerce.addReview(req.guestId, parse('review', req.body)), 201));
   app.use('/api', (req, res, next) => next(new AppError(404, 'NOT_FOUND', 'API endpoint not found.')));
   if (serveStatic) {
@@ -116,10 +122,10 @@ function createApp({ pool, demoMode = false, origins = ['http://localhost:3000']
         }
         next();
       });
-      app.use(express.static(distDir, { dotfiles: 'deny', index: false }));
-      app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny', index: false }));
+      app.use(express.static(distDir, { dotfiles: 'deny', index: false, maxAge: '7d' }));
+      app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny', index: false, maxAge: '7d' }));
     } else {
-      app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny' }));
+      app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny', maxAge: '7d' }));
     }
   }
   app.use((error, req, res, next) => {

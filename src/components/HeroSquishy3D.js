@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { getPerfProfile } from '../utils/devicePerf';
 
 const CHEESE_HOLES_3D = [
   [-0.36, 0.42, 0.82, 0.2, 0.18],
@@ -22,13 +23,14 @@ const CHAR_3D_PALETTES = {
 };
 
 export function createHeroSquishy3D(canvas) {
+  const perf = getPerfProfile();
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: true,
+      antialias: !perf.isLowEnd,
       alpha: true,
-      powerPreference: 'high-performance',
+      powerPreference: perf.isLowEnd ? 'default' : 'high-performance',
     });
   } catch {
     return null;
@@ -44,17 +46,22 @@ export function createHeroSquishy3D(canvas) {
   const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 50);
   camera.position.set(0, 0, camZ);
 
-  // Subtle studio environment reflections for 3D clearcoat speculars
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  const roomEnv = new RoomEnvironment();
-  const envMap = pmremGenerator.fromScene(roomEnv, 0.04).texture;
-  scene.environment = envMap;
+  // Subtle studio environment reflections for 3D clearcoat speculars (skipped on low-end devices to avoid shader stall)
+  let pmremGenerator = null;
+  let roomEnv = null;
+  let envMap = null;
+  if (perf.enableEnvMap) {
+    pmremGenerator = new THREE.PMREMGenerator(renderer);
+    roomEnv = new RoomEnvironment();
+    envMap = pmremGenerator.fromScene(roomEnv, 0.04).texture;
+    scene.environment = envMap;
+  }
 
   // High-contrast 3D studio lighting for deep sculptural 3D volume
-  const ambientLight = new THREE.AmbientLight('#ffeef8', 0.28);
+  const ambientLight = new THREE.AmbientLight('#ffeef8', perf.enableEnvMap ? 0.28 : 0.42);
   scene.add(ambientLight);
 
-  const hemiLight = new THREE.HemisphereLight('#fff6fb', '#3d1948', 0.58);
+  const hemiLight = new THREE.HemisphereLight('#fff6fb', '#3d1948', 0.62);
   scene.add(hemiLight);
 
   const keyLight = new THREE.DirectionalLight('#fff8ee', 1.55);
@@ -73,18 +80,21 @@ export function createHeroSquishy3D(canvas) {
   bounceLight.position.set(0, -2.4, 1.8);
   scene.add(bounceLight);
 
-  // Dynamic 1024x1024 UV texture for character colors, wrappers & kawaii face
+  // Adaptive UV texture size (384px on mobile/low-end, 512px on desktop) with dirty-checking
+  const texSize = perf.heroTexSize || 512;
+  const texScale = texSize / 1024;
   const texCanvas = document.createElement('canvas');
-  texCanvas.width = 1024;
-  texCanvas.height = 1024;
+  texCanvas.width = texSize;
+  texCanvas.height = texSize;
   const tctx = texCanvas.getContext('2d');
   const bodyTexture = new THREE.CanvasTexture(texCanvas);
   bodyTexture.colorSpace = THREE.SRGBColorSpace;
-  bodyTexture.anisotropy = 4;
+  bodyTexture.generateMipmaps = false;
+  bodyTexture.minFilter = THREE.LinearFilter;
+  bodyTexture.magFilter = THREE.LinearFilter;
 
-  // High-resolution deformable sphere mesh
-  const segW = 88;
-  const segH = 68;
+  // Adaptive deformable sphere mesh resolution
+  const [segW, segH] = perf.heroSegments || [64, 48];
   const geometry = new THREE.SphereGeometry(1, segW, segH);
   const posAttr = geometry.attributes.position;
   const uvAttr = geometry.attributes.uv;
@@ -226,6 +236,8 @@ export function createHeroSquishy3D(canvas) {
   let sculptedCharIdx = -1;
   let rotX = 0;
   let rotY = 0;
+  let lastTexKey = '';
+  let lastTexUpdateTime = -1;
 
   function sculptCharacterGeometry(chIdx, charObj) {
     sculptedCharIdx = chIdx;
@@ -321,6 +333,7 @@ export function createHeroSquishy3D(canvas) {
     const deco = charObj.deco;
     const pal = CHAR_3D_PALETTES[deco] || [charObj.c1, charObj.c2, charObj.c3];
 
+    tctx.setTransform(texScale, 0, 0, texScale, 0, 0);
     tctx.clearRect(0, 0, W, H);
 
     // Rich 3D spherical shading gradient baked into albedo to amplify 3D depth
@@ -586,7 +599,7 @@ export function createHeroSquishy3D(canvas) {
 
     if (!W || !H) return;
 
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = Math.min(perf.maxDpr || 1.5, window.devicePixelRatio || 1);
     if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
       renderer.setPixelRatio(dpr);
       renderer.setSize(W, H, false);
@@ -594,11 +607,24 @@ export function createHeroSquishy3D(canvas) {
       camera.updateProjectionMatrix();
     }
 
-    if (sculptedCharIdx !== ch) {
+    const charChanged = sculptedCharIdx !== ch;
+    if (charChanged) {
       sculptCharacterGeometry(ch, charObj);
     }
 
-    updateTexture(charObj, sq, blink, lx, ly);
+    // Dirty-checked & rate-limited GPU texture upload
+    const texKey = `${ch}:${Math.round(sq * 22)}:${blink < 0 ? 1 : 0}:${Math.round(
+      clampVal(lx, -1, 1) * 12
+    )}:${Math.round(clampVal(ly, -1, 1) * 12)}`;
+    const minTexInterval = 1 / (perf.textureFps || 20);
+    if (
+      charChanged ||
+      (texKey !== lastTexKey && t - lastTexUpdateTime >= minTexInterval)
+    ) {
+      lastTexKey = texKey;
+      lastTexUpdateTime = t;
+      updateTexture(charObj, sq, blink, lx, ly);
+    }
 
     const visH = 2 * camZ * Math.tan((fov * Math.PI) / 360);
     const pxPerUnit = H / visH;
@@ -688,9 +714,12 @@ export function createHeroSquishy3D(canvas) {
 
   function dispose() {
     scene.environment = null;
-    envMap.dispose();
-    roomEnv.dispose?.();
-    pmremGenerator.dispose();
+    if (envMap) envMap.dispose();
+    if (roomEnv) roomEnv.dispose?.();
+    if (pmremGenerator) pmremGenerator.dispose();
+    shadowTex.dispose();
+    shadowGeo.dispose();
+    shadowMat.dispose();
     bodyTexture.dispose();
     geometry.dispose();
     bodyMaterial.dispose();

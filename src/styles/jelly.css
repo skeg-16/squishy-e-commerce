@@ -884,14 +884,33 @@ main > .account-jelly {
 }
 
 @media (max-width: 480px) {
+  .site-header--jelly-dock .header__dock {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .site-header--jelly-dock .logo__wordmark {
+    font-size: 1.12rem;
+  }
+
+  .site-header--jelly-dock .header__actions {
+    gap: 5px;
+  }
+
   .site-header--jelly-dock .account-btn--dock {
-    width: 36px;
+    width: 34px;
+    height: 34px;
     padding: 0;
     justify-content: center;
   }
 
   .site-header--jelly-dock .account-btn--dock span {
     display: none;
+  }
+
+  .site-header--jelly-dock .menu-toggle {
+    width: 34px;
+    height: 34px;
   }
 }
 
@@ -4007,4 +4026,227 @@ main > .account-jelly {
     padding: 23px 17px;
   }
 }
+
+/* =========================================================
+   PAGINATION BAR, ROUTE SHELL & MOBILE GPU OPTIMIZATIONS
+   ========================================================= */
+
+.route-loading-shell {
+  min-height: 56vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: Fredoka, var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff6fb;
+}
+
+.route-loading-orb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffc4de, #ff6fa8);
+  box-shadow: 0 0 16px rgba(255, 111, 168, 0.65);
+  animation: routeOrbPulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes routeOrbPulse {
+  from {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+.jelly-pagination {
+  margin-top: 28px;
+  padding: 14px 20px;
+  border-radius: 999px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 224, 242, 0.16) 100%
+  );
+  border: 1.5px solid rgba(255, 255, 255, 0.42);
+  box-shadow:
+    0 14px 32px rgba(45, 20, 62, 0.16),
+    inset 0 1px 1px rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.jelly-pagination--compact {
+  margin-top: 18px;
+  padding: 10px 16px;
+  border-radius: 20px;
+}
+
+.jelly-pagination__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.jelly-pagination__summary {
+  font-size: 0.9rem;
+  color: rgba(255, 248, 252, 0.92);
+}
+
+.jelly-pagination__summary strong {
+  font-family: Fredoka, var(--font-display);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.jelly-pagination__size {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(58, 26, 56, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+}
+
+.jelly-pagination__size-btn {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 245, 251, 0.88);
+  font-family: Nunito, var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.jelly-pagination__size-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.jelly-pagination__size-btn.is-active {
+  background: #ffffff;
+  color: #4b2448;
+  box-shadow: 0 4px 10px rgba(45, 20, 60, 0.18);
+}
+
+.jelly-pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jelly-pagination__pages {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jelly-pagination__nav,
+.jelly-pagination__page {
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff8fc;
+  font-family: Fredoka, var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.jelly-pagination__page {
+  min-width: 36px;
+  padding: 0 10px;
+}
+
+.jelly-pagination__nav:hover:not(:disabled),
+.jelly-pagination__page:hover:not(.is-active) {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.jelly-pagination__page.is-active {
+  background: linear-gradient(135deg, #ff8db8 0%, #f05297 100%);
+  border-color: rgba(255, 255, 255, 0.75);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(240, 82, 151, 0.38);
+}
+
+.jelly-pagination__nav:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.jelly-pagination__ellipsis {
+  padding: 0 4px;
+  color: rgba(255, 245, 251, 0.72);
+  font-weight: 700;
+}
+
+/* Below-the-fold layout containment to reduce paint work */
+.home-jelly .promo,
+.site-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 680px;
+}
+
+@media (max-width: 860px) {
+  /* Eliminate full-viewport repaint jank from fixed backgrounds on mobile GPUs */
+  body,
+  .home-jelly,
+  .shop-jelly,
+  .product-jelly,
+  .about-jelly,
+  .checkout-jelly,
+  .account-jelly {
+    background-attachment: scroll !important;
+  }
+
+  /* Lighter blur passes on mobile cards for smooth 60fps touch scrolling */
+  .product-card,
+  .promo-card,
+  .checkout-card,
+  .account-card,
+  .jelly-pagination {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .jelly-pagination {
+    border-radius: 22px;
+    padding: 12px 14px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .jelly-pagination__meta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .jelly-pagination__controls {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 

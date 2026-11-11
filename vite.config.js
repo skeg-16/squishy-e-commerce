@@ -50,24 +50,30 @@ function squishiesDevPlugin() {
         next();
       });
 
-      // Automatically boot the API + embedded DB on port 3000 if not already running
-      isPortListening(3000).then((listening) => {
-        if (listening || apiProcess) return;
-        apiProcess = spawn(
-          process.execPath,
-          [path.join(__dirname, 'server/server.js')],
-          {
-            cwd: __dirname,
-            stdio: 'inherit',
-            env: { ...process.env, DEMO_MODE: process.env.DEMO_MODE || 'true' },
-          }
-        );
-        apiProcess.on('exit', () => {
-          apiProcess = null;
+      function ensureApiServer() {
+        isPortListening(3000).then((listening) => {
+          if (listening || apiProcess) return;
+          apiProcess = spawn(
+            process.execPath,
+            [path.join(__dirname, 'server/server.js')],
+            {
+              cwd: __dirname,
+              stdio: 'inherit',
+              env: { ...process.env, DEMO_MODE: process.env.DEMO_MODE || 'true' },
+            }
+          );
+          apiProcess.on('exit', () => {
+            apiProcess = null;
+          });
         });
-      });
+      }
+
+      // Automatically boot the API + embedded DB on port 3000 if not already running
+      ensureApiServer();
+      const bootRetryTimer = setTimeout(ensureApiServer, 800);
 
       server.httpServer?.once('close', () => {
+        clearTimeout(bootRetryTimer);
         if (apiProcess) {
           apiProcess.kill();
           apiProcess = null;
@@ -97,5 +103,29 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (
+              id.includes('three') ||
+              id.includes('@react-three') ||
+              id.includes('troika') ||
+              id.includes('maath')
+            ) {
+              return 'vendor-three';
+            }
+            if (
+              id.includes('react') ||
+              id.includes('scheduler') ||
+              id.includes('remix-run')
+            ) {
+              return 'vendor-react';
+            }
+          }
+          return undefined;
+        },
+      },
+    },
   },
 });

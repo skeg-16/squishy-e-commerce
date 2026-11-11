@@ -1,14 +1,15 @@
-
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import SiteLayout from './layouts/SiteLayout';
 import Home from './pages/Home';
-import Shop from './pages/Shop';
-import Product from './pages/Product';
-import About from './pages/About';
-import Checkout from './pages/Checkout';
 import ScrollToTop from './components/ScrollToTop';
-import AdminPage from './pages/admin/AdminPage';
-import Account from './pages/Account';
+
+const Shop = lazy(() => import('./pages/Shop'));
+const Product = lazy(() => import('./pages/Product'));
+const About = lazy(() => import('./pages/About'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const Account = lazy(() => import('./pages/Account'));
+const AdminPage = lazy(() => import('./pages/admin/AdminPage'));
 
 function Placeholder({ title }) {
   return (
@@ -19,33 +20,48 @@ function Placeholder({ title }) {
   );
 }
 
+function RouteFallback() {
+  return (
+    <div
+      className="route-loading-shell"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="route-loading-orb" aria-hidden="true" />
+      <span>Loading Squishies…</span>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <>
       <ScrollToTop />
 
-      <Routes>
-        {/* Admin page — separate from the storefront layout */}
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin.html" element={<AdminPage />} />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          {/* Admin page — separate from the storefront layout */}
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin.html" element={<AdminPage />} />
 
-        {/* Storefront pages */}
-        <Route element={<SiteLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/index.html" element={<Navigate to="/" replace />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/shop.html" element={<Shop />} />
-          <Route path="/product" element={<Product />} />
-          <Route path="/product.html" element={<Product />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/checkout.html" element={<Checkout />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/about.html" element={<About />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/account.html" element={<Account />} />
-          <Route path="*" element={<Placeholder title="Page Not Found" />} />
-        </Route>
-      </Routes>
+          {/* Storefront pages */}
+          <Route element={<SiteLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/index.html" element={<Navigate to="/" replace />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop.html" element={<Shop />} />
+            <Route path="/product" element={<Product />} />
+            <Route path="/product.html" element={<Product />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/checkout.html" element={<Checkout />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/about.html" element={<About />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/account.html" element={<Account />} />
+            <Route path="*" element={<Placeholder title="Page Not Found" />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </>
   );
 }

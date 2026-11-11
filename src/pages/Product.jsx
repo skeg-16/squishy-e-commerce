@@ -4,6 +4,7 @@ import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { PRODUCT_MODELS } from '../data/productModels';
 import { FALLBACK_PRODUCTS_BY_SLUG } from '../data/catalogFallback';
+import PaginationBar from '../components/PaginationBar';
 
 const ProductViewer3D = lazy(() => import('../components/ProductViewer3D'));
 
@@ -46,7 +47,10 @@ export default function Product() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const slug = searchParams.get('slug') || 'dumpling';
-  const fallbackProduct = FALLBACK_PRODUCTS_BY_SLUG.get(slug) || null;
+  const fallbackProduct =
+    SquishiesAPI.getCachedProduct?.(slug) ||
+    FALLBACK_PRODUCTS_BY_SLUG.get(slug) ||
+    null;
 
   const { syncProducts, addToCart, formatPeso } = useCart();
 
@@ -56,15 +60,21 @@ export default function Product() {
   const [openFaqs, setOpenFaqs] = useState([]);
   const [reviews, setReviews] = useState(null);
   const [reviewsError, setReviewsError] = useState(false);
+  const [reviewPage, setReviewPage] = useState(1);
+  const REVIEWS_PER_PAGE = 3;
 
   useEffect(() => {
     let cancelled = false;
-    const initialFallback = FALLBACK_PRODUCTS_BY_SLUG.get(slug) || null;
+    const initialFallback =
+      SquishiesAPI.getCachedProduct?.(slug) ||
+      FALLBACK_PRODUCTS_BY_SLUG.get(slug) ||
+      null;
 
     setProduct(initialFallback);
     setLoadError(null);
     setReviews(null);
     setReviewsError(false);
+    setReviewPage(1);
     setQuantity(1);
     setOpenFaqs([]);
 
@@ -398,20 +408,40 @@ export default function Product() {
             </p>
           )}
 
-          {reviews?.reviews.map((review, index) => (
-            <article
-              className="checkout-card"
-              key={review.id ?? `${review.reviewerName}-${index}`}
-            >
-              <strong>
-                {review.reviewerName} · Verified Purchase
-              </strong>
-              <p>
-                {'★'.repeat(review.rating)} ({review.rating}/5)
-              </p>
-              <p>{review.comment}</p>
-            </article>
-          ))}
+          {reviews?.reviews
+            .slice(
+              (reviewPage - 1) * REVIEWS_PER_PAGE,
+              reviewPage * REVIEWS_PER_PAGE
+            )
+            .map((review, index) => (
+              <article
+                className="checkout-card"
+                key={review.id ?? `${review.reviewerName}-${index}`}
+              >
+                <strong>
+                  {review.reviewerName} · Verified Purchase
+                </strong>
+                <p>
+                  {'★'.repeat(review.rating)} ({review.rating}/5)
+                </p>
+                <p>{review.comment}</p>
+              </article>
+            ))}
+
+          {reviews && reviews.reviews.length > 0 && (
+            <PaginationBar
+              page={reviewPage}
+              totalPages={Math.max(
+                1,
+                Math.ceil(reviews.reviews.length / REVIEWS_PER_PAGE)
+              )}
+              totalItems={reviews.reviews.length}
+              pageSize={REVIEWS_PER_PAGE}
+              onPageChange={(nextPage) => setReviewPage(nextPage)}
+              itemLabel="reviews"
+              compact
+            />
+          )}
         </section>
       </div>
     </main>

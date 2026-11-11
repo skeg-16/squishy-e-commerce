@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
+import PaginationBar from '../components/PaginationBar';
 
 const shopProducts = [
   {
@@ -80,9 +81,13 @@ function getCatalogArray(result) {
 }
 
 export default function Shop() {
-  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
+  const [products, setProducts] = useState(
+    () => SquishiesAPI.getCachedProducts?.() || FALLBACK_PRODUCTS
+  );
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(3);
 
   const { addToCart, syncProducts, showToast } = useCart();
 
@@ -132,6 +137,13 @@ export default function Shop() {
       return matchesCategory && matchesSearch;
     });
   }, [search, category]);
+
+  const totalPages = Math.max(1, Math.ceil(visibleProducts.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginatedProducts = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return visibleProducts.slice(start, start + pageSize);
+  }, [visibleProducts, safePage, pageSize]);
 
   function handleAddToCart(slug) {
     const product = productsBySlug.get(slug);
@@ -192,7 +204,10 @@ export default function Shop() {
                 placeholder="Search squishies…"
                 aria-label="Search squishies"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
               />
             </div>
 
@@ -214,7 +229,10 @@ export default function Shop() {
                     category === filter.value ? 'is-active' : ''
                   }`}
                   aria-pressed={category === filter.value}
-                  onClick={() => setCategory(filter.value)}
+                  onClick={() => {
+                    setCategory(filter.value);
+                    setPage(1);
+                  }}
                 >
                   {filter.label}
                 </button>
@@ -227,7 +245,7 @@ export default function Shop() {
       <section className="shop-grid-section">
         <div className="container">
           <div className="product-grid product-grid--shop" id="shopGrid">
-            {visibleProducts.map((item) => {
+            {paginatedProducts.map((item) => {
               const product = productsBySlug.get(item.slug);
               const unavailable = !product || product.stockQuantity <= 0;
 
@@ -244,6 +262,9 @@ export default function Shop() {
                   data-category={item.category}
                   data-name={item.name.toLowerCase()}
                   key={item.slug}
+                  onPointerEnter={() =>
+                    SquishiesAPI.prefetchProduct?.(item.slug)
+                  }
                 >
                   <div className="product-card__media">
                     <img
@@ -299,11 +320,27 @@ export default function Shop() {
             })}
           </div>
 
-          {visibleProducts.length === 0 && (
+          {visibleProducts.length === 0 ? (
             <p className="shop-empty" id="shopEmpty">
               No squishies match your search. Try a different keyword or
               filter.
             </p>
+          ) : (
+            <PaginationBar
+              page={safePage}
+              totalPages={totalPages}
+              totalItems={visibleProducts.length}
+              pageSize={pageSize}
+              pageSizeOptions={[3, 6]}
+              onPageSizeChange={(nextSize) => {
+                setPageSize(nextSize);
+                setPage(1);
+              }}
+              onPageChange={(nextPage) => {
+                setPage(nextPage);
+              }}
+              itemLabel="squishies"
+            />
           )}
         </div>
       </section>

@@ -310,7 +310,9 @@ function getCatalogArray(result) {
 }
 
 export default function Home() {
-  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
+  const [products, setProducts] = useState(
+    () => SquishiesAPI.getCachedProducts?.() || FALLBACK_PRODUCTS
+  );
   const [activeShelf, setActiveShelf] = useState('faves');
   const [squishPulses, setSquishPulses] = useState({});
   const [activePromoVibe, setActivePromoVibe] = useState('all');
@@ -1107,7 +1109,14 @@ export default function Home() {
 
     let last = performance.now();
     let rafId = 0;
+    let heroVisible = true;
+    let pageVisible = !document.hidden;
+
     function loop(now) {
+      if (!heroVisible || !pageVisible) {
+        rafId = 0;
+        return;
+      }
       const dt = Math.min(0.033, (now - last) / 1000);
       last = now;
       t += dt;
@@ -1122,10 +1131,42 @@ export default function Home() {
       rafId = requestAnimationFrame(loop);
     }
 
+    function syncLoop() {
+      if (heroVisible && pageVisible) {
+        if (!rafId) {
+          last = performance.now();
+          rafId = requestAnimationFrame(loop);
+        }
+      } else if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    }
+
+    function onVisibilityChange() {
+      pageVisible = !document.hidden;
+      syncLoop();
+    }
+
+    const io =
+      typeof IntersectionObserver !== 'undefined'
+        ? new IntersectionObserver(
+            ([entry]) => {
+              heroVisible = Boolean(entry?.isIntersecting);
+              syncLoop();
+            },
+            { threshold: 0.01 }
+          )
+        : null;
+    if (io) io.observe(hero);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     rafId = requestAnimationFrame(loop);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (io) io.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       if (hero3d) hero3d.dispose();
       window.removeEventListener('resize', resize);
       if (ro) ro.disconnect();
@@ -1337,6 +1378,9 @@ export default function Home() {
                 <article
                   className="product-card product-card--3d"
                   key={featured.slug}
+                  onPointerEnter={() =>
+                    SquishiesAPI.prefetchProduct?.(featured.slug)
+                  }
                 >
                   <div className="product-card__media product-card__media--3d">
                     <div className="product-card__pedestal" aria-hidden="true" />

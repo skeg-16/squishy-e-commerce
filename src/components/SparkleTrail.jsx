@@ -1,20 +1,28 @@
 
 import { useEffect, useRef } from 'react';
+import { getPerfProfile } from '../utils/devicePerf';
 
 export default function SparkleTrail() {
   const trailRef = useRef(null);
 
   useEffect(() => {
     const trail = trailRef.current;
-    if (!trail) return;
+    if (!trail) return undefined;
+
+    const perf = getPerfProfile();
+    if (perf.isMobile || perf.isLowEnd || perf.prefersReducedMotion) {
+      return undefined;
+    }
 
     let lastX = 0;
     let lastY = 0;
     let hasLastPosition = false;
+    let activeCount = 0;
 
     function handlePointerMove(event) {
       // Only create sparkles for a mouse or pen.
       if (event.pointerType === 'touch') return;
+      if (activeCount >= 12) return;
 
       const { clientX, clientY } = event;
 
@@ -25,12 +33,13 @@ export default function SparkleTrail() {
           clientY - lastY
         );
 
-        if (distance < 18) return;
+        if (distance < 24) return;
       }
 
       lastX = clientX;
       lastY = clientY;
       hasLastPosition = true;
+      activeCount += 1;
 
       const sparkle = document.createElement('span');
       sparkle.className = 'cursor-sparkle';
@@ -55,12 +64,15 @@ export default function SparkleTrail() {
 
       sparkle.addEventListener(
         'animationend',
-        () => sparkle.remove(),
+        () => {
+          activeCount = Math.max(0, activeCount - 1);
+          sparkle.remove();
+        },
         { once: true }
       );
     }
 
-    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
 
     return () => {
       window.removeEventListener('pointermove', handlePointerMove);
