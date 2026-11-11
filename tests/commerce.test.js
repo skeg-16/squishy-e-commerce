@@ -65,7 +65,7 @@ after(async () => {
 test('complete catalog, idempotent migrations/seeds, and honest review aggregates', async () => {
   await migrate(pool); await seed(pool);
   const res = await request(app).get('/api/products');
-  assert.equal(res.status, 200); assert.equal(res.body.data.length, 10);
+  assert.equal(res.status, 200); assert.equal(res.body.data.length, 24);
   assert.equal(res.body.data.find(p => p.slug === 'party-pack').stockQuantity, 25);
   assert.ok(res.body.data.every(p => p.rating === 0 && p.reviewsCount === 0));
   assert.equal((await request(app).get('/api/products/missing')).status, 404);

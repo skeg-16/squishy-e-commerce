@@ -8,7 +8,7 @@
     "badge": "Fan Fave",
     "badgeClass": "badge--pink",
     "image": "assets/images/product-dumpling.svg",
-    "description": "Our plumpest, most satisfying squishy yet. Modeled after a perfectly steamed bao — round, soft-faced, slow-rising, and impossible to put down.",
+    "description": "Our plumpest, most satisfying squishy yet. Modeled after a perfectly steamed bao — round, pleated, slow-rising, and impossible to put down.",
     "specs": {
       "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
       "Texture": "Ultra-Soft, slow-rising",
@@ -115,6 +115,286 @@
       "Rise time": "40 seconds from a full squeeze",
       "Dimensions": "Approx. 4 × 2 × 2 in (varies slightly by design)",
       "Weight": "45–55 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "strawberry-mochi",
+    "priceMinor": 8900,
+    "stock": 95,
+    "kind": "single",
+    "name": "Strawberry Daifuku Mochi",
+    "badge": "Sweet Pick",
+    "badgeClass": "badge--pink",
+    "image": "assets/images/product-dumpling.svg",
+    "description": "Plump sakura-pink rice cake dome crowned with a sculpted ruby strawberry and cream collar. Cloud-soft and slow-rising.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Silky mochi skin, ultra-soft core",
+      "Rise time": "42 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.2 × 3.2 × 2.8 in",
+      "Weight": "48–56 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "matcha-roll",
+    "priceMinor": 9500,
+    "stock": 85,
+    "kind": "single",
+    "name": "Matcha Swiss Roll Squishy",
+    "badge": "Cafe Series",
+    "badgeClass": "badge--mint",
+    "image": "assets/images/product-toast.svg",
+    "description": "Uji green-tea sponge cake rolled around a whipped vanilla cream swirl. Dense, velvety, and deeply satisfying to compress.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Velvet sponge grain, slow-rising",
+      "Rise time": "40 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.6 × 2.8 × 2.5 in",
+      "Weight": "52–60 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "boba-cup",
+    "priceMinor": 9900,
+    "stock": 90,
+    "kind": "single",
+    "name": "Brown Sugar Boba Cup",
+    "badge": "Trending",
+    "badgeClass": "badge--peach",
+    "image": "assets/images/product-peanut.svg",
+    "description": "Tall milk-tea tumbler with a frosted dome lid, pink boba straw, and sculpted tapioca pearls at the base.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Smooth cup body, slow-rising",
+      "Rise time": "38 seconds from a full squeeze",
+      "Dimensions": "Approx. 2.8 × 2.8 × 4.2 in",
+      "Weight": "55–65 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "macaron",
+    "priceMinor": 8900,
+    "stock": 100,
+    "kind": "single",
+    "name": "Berry French Macaron",
+    "badge": "So Cute",
+    "badgeClass": "badge--pink",
+    "image": "assets/images/product-catpaw.svg",
+    "description": "Twin domed raspberry meringue shells with ruffled pied feet and a thick buttercream ring in the center.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Matte shell, pillowy center",
+      "Rise time": "36 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.2 × 3.2 × 2.0 in",
+      "Weight": "40–48 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "croissant",
+    "priceMinor": 9500,
+    "stock": 80,
+    "kind": "single",
+    "name": "Golden Butter Croissant",
+    "badge": "Bakery Pick",
+    "badgeClass": "badge--peach",
+    "image": "assets/images/product-butter.svg",
+    "description": "Flaky-look crescent pastry sculpted with seven graduated golden layers. Built for two-handed desk squeezes.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Segmented pastry ridges, slow-rising",
+      "Rise time": "44 seconds from a full squeeze",
+      "Dimensions": "Approx. 4.4 × 2.6 × 2.0 in",
+      "Weight": "48–56 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "melon-bun",
+    "priceMinor": 8900,
+    "stock": 95,
+    "kind": "single",
+    "name": "Hokkaido Melon Pan",
+    "badge": "Fan Fave",
+    "badgeClass": "badge--peach",
+    "image": "assets/images/product-cheese.svg",
+    "description": "Classic Japanese sweet bread dome scored with a crisp diamond cookie-crust pattern for extra tactile grip.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Diamond-scored crust, cloud core",
+      "Rise time": "41 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.5 × 3.5 × 2.4 in",
+      "Weight": "46–54 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "taiyaki",
+    "priceMinor": 9500,
+    "stock": 88,
+    "kind": "single",
+    "name": "Custard Taiyaki Waffle",
+    "badge": "New Drop",
+    "badgeClass": "badge--purple",
+    "image": "assets/images/product-peanut.svg",
+    "description": "Sculpted golden waffle-fish silhouette with embossed belly ribs and a flared tail fin in slow-rise memory foam.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Embossed waffle detail, slow-rising",
+      "Rise time": "39 seconds from a full squeeze",
+      "Dimensions": "Approx. 4.0 × 2.8 × 1.8 in",
+      "Weight": "44–52 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "onigiri",
+    "priceMinor": 8900,
+    "stock": 100,
+    "kind": "single",
+    "name": "Nori Rice Onigiri",
+    "badge": "Bestseller",
+    "badgeClass": "badge--mint",
+    "image": "assets/images/product-dumpling.svg",
+    "description": "Plump triangular rice ball wrapped in a dark nori seaweed band. Fits naturally in your palm for one-handed squeezes.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Soft rice cushion, matte nori band",
+      "Rise time": "37 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.2 × 3.0 × 2.2 in",
+      "Weight": "45–53 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "pudding",
+    "priceMinor": 9500,
+    "stock": 92,
+    "kind": "single",
+    "name": "Caramel Custard Pudding",
+    "badge": "Cafe Series",
+    "badgeClass": "badge--peach",
+    "image": "assets/images/product-cheese.svg",
+    "description": "Jiggly-look golden custard dome topped with glossy dark caramel drips, whipped cream, and a ruby cherry.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Glossy caramel crown, pudding-soft base",
+      "Rise time": "40 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.2 × 3.2 × 3.4 in",
+      "Weight": "50–58 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "donut",
+    "priceMinor": 8900,
+    "stock": 100,
+    "kind": "single",
+    "name": "Strawberry Frosted Donut",
+    "badge": "Sweet Pick",
+    "badgeClass": "badge--pink",
+    "image": "assets/images/product-catpaw.svg",
+    "description": "Classic ring donut dipped in glossy strawberry glaze and topped with pastel 3D rainbow sprinkles.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Smooth glaze top, fluffy ring base",
+      "Rise time": "38 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.6 × 3.6 × 1.6 in",
+      "Weight": "42–50 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "waffle",
+    "priceMinor": 9500,
+    "stock": 86,
+    "kind": "single",
+    "name": "Honey Belgian Waffle",
+    "badge": "Bakery Pick",
+    "badgeClass": "badge--peach",
+    "image": "assets/images/product-toast.svg",
+    "description": "Thick square Belgian waffle with deep grid pockets and a melting square pat of sweet cream butter in the center.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Deep waffle grid, slow-rising",
+      "Rise time": "43 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.6 × 3.6 × 1.6 in",
+      "Weight": "48–56 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "dango",
+    "priceMinor": 8900,
+    "stock": 94,
+    "kind": "single",
+    "name": "Hanami Tri-Color Dango",
+    "badge": "So Cute",
+    "badgeClass": "badge--pink",
+    "image": "assets/images/product-dumpling.svg",
+    "description": "Three plump sakura, vanilla, and matcha mochi spheres aligned on a sculpted bamboo skewer.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Triple-sphere mochi grip, slow-rising",
+      "Rise time": "36 seconds from a full squeeze",
+      "Dimensions": "Approx. 4.5 × 1.8 × 1.8 in",
+      "Weight": "44–52 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "cloud-puff",
+    "priceMinor": 8900,
+    "stock": 100,
+    "kind": "single",
+    "name": "Dreamy Cloud Puff",
+    "badge": "New Drop",
+    "badgeClass": "badge--purple",
+    "image": "assets/images/product-catpaw.svg",
+    "description": "Multi-lobed cumulus cloud cushion in pastel sky-blue. Feather-light feel with our slowest, dreamiest rebound.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Cloud-matte finish, ultra-plush",
+      "Rise time": "46 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.8 × 2.6 × 2.2 in",
+      "Weight": "40–48 g",
+      "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
+      "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
+    }
+  },
+  {
+    "slug": "star-jelly",
+    "priceMinor": 9500,
+    "stock": 90,
+    "kind": "single",
+    "name": "Shooting Star Jelly",
+    "badge": "Collector",
+    "badgeClass": "badge--mint",
+    "image": "assets/images/product-cheese.svg",
+    "description": "Plump five-point star cushion in warm pastel gold. Rounded points fit every finger for full-palm stress relief.",
+    "specs": {
+      "Material": "Premium Thermoplastic Rubber (TPR) and memory foam",
+      "Texture": "Smooth star lobes, slow-rising",
+      "Rise time": "40 seconds from a full squeeze",
+      "Dimensions": "Approx. 3.6 × 3.6 × 2.0 in",
+      "Weight": "45–53 g",
       "Packaging": "Individually wrapped in an eco-friendly matte zip pouch with care instructions",
       "Safety": "Non-toxic, BPA-free, hypoallergenic, low-odor. Ages 3+. Not edible."
     }
