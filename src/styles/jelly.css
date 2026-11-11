@@ -4257,12 +4257,13 @@ main > .account-jelly {
     radial-gradient(ellipse at 88% 32%, rgba(105, 127, 174, 0.65), transparent 48%),
     radial-gradient(ellipse at 50% 100%, rgba(199, 179, 126, 0.55), transparent 55%),
     linear-gradient(135deg, #9e6485 0%, #805d83 48%, #647b9b 100%) !important;
-  background-attachment: fixed !important;
+  background-attachment: scroll !important;
+  background-size: cover !important;
 }
 
 .checkout-jelly .checkout-page {
-  padding-top: 65px;
-  padding-bottom: 90px;
+  padding-top: 24px;
+  padding-bottom: 45px;
 }
 
 /* Stepper Header */
@@ -4271,9 +4272,9 @@ main > .account-jelly {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin: 0 auto 28px;
-  max-width: 480px;
-  padding: 10px 20px;
+  margin: 0 auto 16px;
+  max-width: 460px;
+  padding: 6px 18px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.35);
@@ -4335,36 +4336,36 @@ main > .account-jelly {
 
 /* Page heading */
 .checkout-jelly .checkout-page__head {
-  margin-bottom: 35px;
+  margin-bottom: 18px;
   text-align: center;
 }
 
 .checkout-badge-pill {
   display: inline-flex;
   align-items: center;
-  padding: 5px 14px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 800;
   color: #ffe0ef;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.32);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .checkout-jelly .checkout-page__head h1 {
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
-  font-size: clamp(2.3rem, 5vw, 3.4rem);
+  font-size: clamp(1.75rem, 3.5vw, 2.3rem);
   font-weight: 900;
-  margin: 0 0 10px;
+  margin: 0 0 6px;
   text-shadow: 0 4px 18px rgba(45, 18, 60, 0.25);
 }
 
 .checkout-jelly .checkout-page__head p {
   color: rgba(255, 244, 250, 0.9);
-  font-size: 1.05rem;
-  max-width: 600px;
+  font-size: 0.94rem;
+  max-width: 580px;
   margin: 0 auto;
 }
 
@@ -4400,13 +4401,13 @@ main > .account-jelly {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
   align-items: start;
-  gap: 28px;
+  gap: 20px;
 }
 
 .checkout-main-col {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
 }
 
 .checkout-side-col {
@@ -4417,8 +4418,8 @@ main > .account-jelly {
 /* Airy Frosted Glass Cards */
 .checkout-card.squishy-glass-card {
   position: relative;
-  padding: 30px 32px;
-  border-radius: 28px !important;
+  padding: 20px 22px !important;
+  border-radius: 22px !important;
   color: #fff8fc;
   background:
     radial-gradient(
@@ -4436,19 +4437,19 @@ main > .account-jelly {
   -webkit-backdrop-filter: blur(24px) saturate(125%) !important;
   box-shadow:
     inset 0 1.5px 2px rgba(255, 255, 255, 0.5),
-    0 24px 54px rgba(45, 18, 60, 0.2) !important;
+    0 20px 45px rgba(45, 18, 60, 0.18) !important;
 }
 
 .checkout-card__header {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 22px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .checkout-card__step-orb {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: linear-gradient(180deg, #f08cb9 0%, #d8649c 100%);
   color: #ffffff;
@@ -4456,7 +4457,7 @@ main > .account-jelly {
   align-items: center;
   justify-content: center;
   font-family: Fredoka, var(--font-display);
-  font-size: 1.05rem;
+  font-size: 0.92rem;
   font-weight: 800;
   box-shadow: 0 4px 12px rgba(216, 100, 156, 0.35);
   flex-shrink: 0;
@@ -4465,35 +4466,35 @@ main > .account-jelly {
 .checkout-card__header h2 {
   font-family: Fredoka, var(--font-display);
   color: #ffffff !important;
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 800;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
 }
 
 .checkout-card__subtitle {
   color: rgba(255, 244, 250, 0.85);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   margin: 0;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 /* Form inputs & fields */
 .checkout-jelly .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .checkout-jelly .form-field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  margin-bottom: 16px;
+  gap: 5px;
+  margin-bottom: 12px;
 }
 
 .checkout-jelly .form-field label {
   color: #fff4fb !important;
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 700;
 }
 
@@ -4508,9 +4509,9 @@ main > .account-jelly {
   color: #ffffff !important;
   background: rgba(255, 255, 255, 0.16) !important;
   border: 1.5px solid rgba(255, 255, 255, 0.36) !important;
-  border-radius: 14px !important;
-  padding: 12px 16px !important;
-  font-size: 0.95rem;
+  border-radius: 12px !important;
+  padding: 9px 13px !important;
+  font-size: 0.9rem !important;
   transition: all 180ms ease;
   box-shadow: inset 0 1px 3px rgba(45, 18, 60, 0.1);
 }
@@ -4536,95 +4537,126 @@ main > .account-jelly {
 
 .checkout-jelly .field-error {
   color: #ffc4dc;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
-/* Delivery badge */
-.squishy-delivery-badge {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  margin-top: 10px;
-}
-
-.delivery-badge-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffe0ef;
-  flex-shrink: 0;
-}
-
-.delivery-badge-content strong {
-  display: block;
-  color: #ffffff;
-  font-size: 0.92rem;
-  margin-bottom: 2px;
-}
-
-.delivery-badge-content p {
-  margin: 0;
-  font-size: 0.82rem;
-  color: rgba(255, 244, 250, 0.85);
-  line-height: 1.4;
-}
-
-/* Payment tiles */
-.payment-options-grid {
-  display: flex;
-  flex-direction: column;
+/* 3-column compact address row */
+.form-row--tri {
+  display: grid;
+  grid-template-columns: 1fr 1fr 120px;
   gap: 12px;
 }
 
-.squishy-payment-tile {
+@media (max-width: 640px) {
+  .form-row--tri {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* High-Contrast, Crystal Clear Delivery Badge */
+.squishy-delivery-badge {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 10px 14px !important;
+  border-radius: 14px !important;
+  background: rgba(30, 14, 38, 0.72) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.38) !important;
+  margin-top: 6px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(25, 10, 35, 0.25) !important;
+}
+
+.squishy-delivery-badge .delivery-badge-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(180deg, #f08cb9 0%, #d8649c 100%) !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.squishy-delivery-badge .delivery-badge-content {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 20px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1.5px solid rgba(255, 255, 255, 0.32);
-  cursor: pointer;
-  transition: all 180ms ease;
-  user-select: none;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.squishy-delivery-badge .delivery-badge-title {
+  display: block !important;
+  font-family: Fredoka, var(--font-display) !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  line-height: 1.25 !important;
+}
+
+.squishy-delivery-badge .delivery-badge-sub {
+  display: block !important;
+  font-size: 0.78rem !important;
+  color: #ffd8ec !important;
+  line-height: 1.35 !important;
+}
+
+/* Compact 2x2 Payment Options Grid */
+.payment-options-compact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 680px) {
+  .payment-options-compact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.squishy-payment-tile {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 11px 14px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.32) !important;
+  cursor: pointer !important;
+  transition: all 180ms ease !important;
+  user-select: none !important;
+  color: #ffffff !important;
 }
 
 .squishy-payment-tile:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 20px rgba(45, 18, 60, 0.15);
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 6px 16px rgba(45, 18, 60, 0.15);
 }
 
 .squishy-payment-tile.is-selected {
-  background: rgba(255, 255, 255, 0.26);
-  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.28) !important;
+  border-color: #ffffff !important;
   box-shadow:
     inset 0 1px 2px rgba(255, 255, 255, 0.4),
-    0 10px 26px rgba(45, 18, 60, 0.2);
+    0 8px 20px rgba(45, 18, 60, 0.2) !important;
 }
 
 .payment-tile-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .payment-tile-icon-wrap {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
@@ -4636,8 +4668,8 @@ main > .account-jelly {
 .payment-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 3px;
+  gap: 8px;
+  margin-bottom: 2px;
 }
 
 .payment-title-row strong {
@@ -4706,30 +4738,30 @@ main > .account-jelly {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .summary-header-row h2 {
   font-family: Fredoka, var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   margin: 0;
   color: #ffffff;
 }
 
 .summary-item-count {
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 800;
   color: #ffd6ea;
   background: rgba(255, 255, 255, 0.16);
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 999px;
 }
 
 .order-summary-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 280px;
+  gap: 8px;
+  max-height: 180px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -4737,43 +4769,43 @@ main > .account-jelly {
 .squishy-summary-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 14px;
-  border-radius: 18px;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .summary-thumb-cushion {
   position: relative;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 3px;
+  padding: 2px;
 }
 
 .summary-thumb-cushion img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .summary-qty-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 19px;
-  height: 19px;
+  top: -4px;
+  right: -4px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: linear-gradient(180deg, #f08cb9 0%, #d8649c 100%);
   color: #ffffff;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -4782,29 +4814,29 @@ main > .account-jelly {
 }
 
 .order-summary__item-info h4 {
-  font-size: 0.94rem;
+  font-size: 0.86rem;
   color: #ffffff;
-  margin: 0 0 2px;
+  margin: 0 0 1px;
 }
 
 .summary-unit-calc {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   color: rgba(255, 244, 250, 0.78);
 }
 
 .order-summary__item-price {
   margin-left: auto;
   font-family: Fredoka, var(--font-display);
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: #ffffff;
 }
 
 /* Quick Vouchers */
 .squishy-voucher-box {
-  margin: 20px 0;
-  padding: 18px;
-  border-radius: 20px;
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
@@ -4813,14 +4845,14 @@ main > .account-jelly {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .voucher-header label {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 0.86rem;
+  gap: 6px;
+  font-size: 0.82rem;
   font-weight: 800;
   color: #fff4fb;
 }
@@ -4829,7 +4861,7 @@ main > .account-jelly {
   background: none;
   border: none;
   color: #ffb8dc;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
@@ -4839,20 +4871,20 @@ main > .account-jelly {
 .quick-vouchers-strip {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .quick-voucher-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: 5px;
+  padding: 3px 9px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.32);
   color: #ffffff;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 800;
   cursor: pointer;
   transition: all 160ms ease;
@@ -4881,24 +4913,25 @@ main > .account-jelly {
 
 .voucher-input-group {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .voucher-input-group input {
   flex: 1;
-  padding: 10px 14px !important;
-  font-size: 0.9rem !important;
+  padding: 8px 11px !important;
+  font-size: 0.84rem !important;
+  border-radius: 10px !important;
   text-transform: uppercase;
 }
 
 .voucher-apply-btn {
-  padding: 10px 18px;
-  border-radius: 14px;
+  padding: 8px 14px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.4);
   color: #ffffff;
   font-weight: 800;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   cursor: pointer;
   transition: all 160ms ease;
 }
@@ -4911,28 +4944,28 @@ main > .account-jelly {
 .voucher-applied-success {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 8px 12px;
-  border-radius: 12px;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
   background: rgba(52, 211, 153, 0.25);
   border: 1px solid rgba(110, 231, 183, 0.45);
   color: #d6fcef;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
 }
 
 /* Pricing Rows */
 .checkout-jelly .order-summary__rows {
-  margin-top: 18px;
+  margin-top: 10px;
 }
 
 .checkout-jelly .order-summary__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 7px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   color: rgba(255, 244, 250, 0.85);
 }
 
@@ -4945,7 +4978,7 @@ main > .account-jelly {
   color: #a7f3d0 !important;
   font-weight: 800;
   background: rgba(16, 185, 129, 0.25);
-  padding: 2px 8px;
+  padding: 1px 7px;
   border-radius: 999px;
   border: 1px solid rgba(110, 231, 183, 0.4);
 }
@@ -4960,18 +4993,18 @@ main > .account-jelly {
 }
 
 .checkout-jelly .order-summary__note {
-  font-size: 0.84rem;
-  line-height: 1.45;
+  font-size: 0.8rem;
+  line-height: 1.4;
   color: #ffe0ef;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.12);
-  margin: 14px 0 0;
+  margin: 10px 0 0;
 }
 
 .checkout-jelly .order-summary__row--total {
-  margin-top: 16px;
-  padding: 18px 0 0;
+  margin-top: 10px;
+  padding: 12px 0 0;
   border-top: 1.5px solid rgba(255, 255, 255, 0.35);
   border-bottom: none;
   align-items: center;
@@ -4980,19 +5013,19 @@ main > .account-jelly {
 .total-label-wrap span {
   display: block;
   font-family: Fredoka, var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #ffffff;
 }
 
 .total-label-wrap small {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: rgba(255, 244, 250, 0.75);
 }
 
 .final-total-display {
   font-family: Fredoka, var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.45rem;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 0 2px 10px rgba(45, 18, 60, 0.25);
@@ -5004,24 +5037,24 @@ main > .account-jelly {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 15px 28px;
+  gap: 8px;
+  padding: 12px 22px;
   border-radius: 999px;
   background: linear-gradient(180deg, #f08cb9 0%, #d8649c 100%);
   border: 1.5px solid rgba(255, 255, 255, 0.5);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.02rem;
   font-weight: 800;
-  margin-top: 22px;
+  margin-top: 14px;
   cursor: pointer;
-  box-shadow: 0 10px 28px rgba(216, 100, 156, 0.42);
+  box-shadow: 0 8px 24px rgba(216, 100, 156, 0.4);
   transition: all 180ms ease;
 }
 
 .checkout-place-order-btn:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 14px 34px rgba(216, 100, 156, 0.55);
+  box-shadow: 0 12px 28px rgba(216, 100, 156, 0.52);
 }
 
 .checkout-place-order-btn:active:not(:disabled) {
@@ -5037,10 +5070,10 @@ main > .account-jelly {
   display: block;
   text-align: center;
   color: rgba(255, 244, 250, 0.8);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 700;
   text-decoration: none;
-  margin-top: 14px;
+  margin-top: 10px;
   transition: color 140ms ease;
 }
 
@@ -5053,17 +5086,17 @@ main > .account-jelly {
 .checkout-trust-guarantee {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
-  margin-top: 24px;
-  padding-top: 20px;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .trust-point {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.82rem;
+  gap: 8px;
+  font-size: 0.76rem;
   color: rgba(255, 244, 250, 0.85);
 }
 

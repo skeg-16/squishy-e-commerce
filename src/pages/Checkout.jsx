@@ -966,36 +966,13 @@ export default function Checkout() {
         <form onSubmit={placeOrder}>
           <div className="checkout-page__layout">
             <div className="checkout-main-col">
-              {/* Card 1: Contact Information */}
+              {/* Unified Card 1: Delivery & Contact */}
               <div className="checkout-card squishy-glass-card">
                 <div className="checkout-card__header">
                   <span className="checkout-card__step-orb">1</span>
                   <div>
-                    <h2>Contact Information</h2>
-                    <p className="checkout-card__subtitle">We will send your tracking updates and parcel receipt here.</p>
-                  </div>
-                </div>
-
-                <Field
-                  label="Email Address"
-                  name="customerEmail"
-                  type="email"
-                  placeholder="you@email.com"
-                  autoComplete="email"
-                  value={fields.customerEmail}
-                  onChange={updateField}
-                  error={fieldErrors.customerEmail}
-                  disabled={Boolean(pending) || submitting}
-                />
-              </div>
-
-              {/* Card 2: Shipping Destination */}
-              <div className="checkout-card squishy-glass-card">
-                <div className="checkout-card__header">
-                  <span className="checkout-card__step-orb">2</span>
-                  <div>
-                    <h2>Delivery Destination</h2>
-                    <p className="checkout-card__subtitle">Where should our courier deliver your bubble-wrapped squishies?</p>
+                    <h2>Shipping & Contact Details</h2>
+                    <p className="checkout-card__subtitle">Where should our courier deliver your squishies?</p>
                   </div>
                 </div>
 
@@ -1024,18 +1001,18 @@ export default function Checkout() {
                   />
                 </div>
 
-                <Field
-                  label="Street Address / House No. / Building"
-                  name="shippingAddress"
-                  placeholder="Unit / House No., Building Name, Street"
-                  autoComplete="street-address"
-                  value={fields.shippingAddress}
-                  onChange={updateField}
-                  error={fieldErrors.shippingAddress}
-                  disabled={Boolean(pending) || submitting}
-                />
-
                 <div className="form-row">
+                  <Field
+                    label="Email Address (Tracking Updates)"
+                    name="customerEmail"
+                    type="email"
+                    placeholder="you@email.com"
+                    autoComplete="email"
+                    value={fields.customerEmail}
+                    onChange={updateField}
+                    error={fieldErrors.customerEmail}
+                    disabled={Boolean(pending) || submitting}
+                  />
                   <div className="form-field">
                     <label htmlFor="ckRegion">
                       Delivery Region & Transit Zone <span className="required-star">*</span>
@@ -1056,14 +1033,27 @@ export default function Checkout() {
                     </div>
                     <ErrorMessage>{fieldErrors.region}</ErrorMessage>
                   </div>
+                </div>
 
+                <Field
+                  label="Street Address / House No. / Building"
+                  name="shippingAddress"
+                  placeholder="Unit / House No., Building Name, Street"
+                  autoComplete="street-address"
+                  value={fields.shippingAddress}
+                  onChange={updateField}
+                  error={fieldErrors.shippingAddress}
+                  disabled={Boolean(pending) || submitting}
+                />
+
+                <div className="form-row form-row--tri">
                   <div className="form-field">
                     <label htmlFor="ckCity">City / Municipality <span className="required-star">*</span></label>
                     <input
                       id="ckCity"
                       name="city"
                       autoComplete="address-level2"
-                      placeholder="e.g. Quezon City / Cebu City"
+                      placeholder="e.g. Quezon City"
                       required
                       value={fields.city}
                       onChange={updateField}
@@ -1072,9 +1062,7 @@ export default function Checkout() {
                     />
                     <ErrorMessage>{fieldErrors.city}</ErrorMessage>
                   </div>
-                </div>
 
-                <div className="form-row">
                   <div className="form-field">
                     <label htmlFor="ckBarangay">Barangay <span className="required-star">*</span></label>
                     <input
@@ -1089,8 +1077,9 @@ export default function Checkout() {
                     />
                     <ErrorMessage>{fieldErrors.barangay}</ErrorMessage>
                   </div>
-                  <div className="form-field">
-                    <label htmlFor="ckPostalCode">Postal Code (4 Digits) <span className="required-star">*</span></label>
+
+                  <div className="form-field form-field--postal">
+                    <label htmlFor="ckPostalCode">Postal Code <span className="required-star">*</span></label>
                     <input
                       id="ckPostalCode"
                       name="postalCode"
@@ -1108,10 +1097,10 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                {/* Delivery Estimate Box */}
-                <div className="delivery-estimate-badge squishy-delivery-badge">
+                {/* High-Contrast, Compact Delivery Badge */}
+                <div className="squishy-delivery-badge">
                   <div className="delivery-badge-icon" aria-hidden="true">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                       <rect x="1" y="3" width="15" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
                       <path d="M16 8h4l3 3v5h-7V8z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                       <circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" strokeWidth="2" />
@@ -1119,38 +1108,38 @@ export default function Checkout() {
                     </svg>
                   </div>
                   <div className="delivery-badge-content">
-                    <strong>
+                    <span className="delivery-badge-title">
                       {quote
                         ? `Estimated Delivery: ${quote.delivery.minDays}–${quote.delivery.maxDays} Business Days`
                         : 'Calculating Dispatch Timeline…'}
-                    </strong>
-                    <p>
+                    </span>
+                    <span className="delivery-badge-sub">
                       {quote
-                        ? `${quote.delivery.label} — Carefully packed with anti-drop bubble cushions.`
-                        : 'Select your region above to view verified transit time.'}
-                    </p>
+                        ? `${quote.delivery.label} — Carefully packed in anti-drop bubble cushions.`
+                        : 'Select your delivery region above to view verified transit time.'}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Card 3: Payment Method */}
+              {/* Card 2: Payment Method (Compact 2x2 Grid) */}
               <div className="checkout-card squishy-glass-card">
                 <div className="checkout-card__header">
-                  <span className="checkout-card__step-orb">3</span>
+                  <span className="checkout-card__step-orb">2</span>
                   <div>
                     <h2>Choose Payment Method</h2>
-                    <p className="checkout-card__subtitle">All payment options are verified, fast, and secure.</p>
+                    <p className="checkout-card__subtitle">Instant confirmation & secure checkout.</p>
                   </div>
                 </div>
 
-                <div className="payment-options-grid">
+                <div className="payment-options-compact-grid">
                   {PAYMENT_METHODS_DATA.map((opt) => {
                     const available = !quote || quote.paymentMethods?.includes(opt.value);
                     const isSelected = paymentMethod === opt.value;
                     return (
                       <label
                         key={opt.value}
-                        className={`payment-option squishy-payment-tile${isSelected ? ' is-selected' : ''}${!available ? ' is-disabled' : ''}`}
+                        className={`squishy-payment-tile${isSelected ? ' is-selected' : ''}${!available ? ' is-disabled' : ''}`}
                         data-method={opt.value}
                       >
                         <div className="payment-tile-left">
