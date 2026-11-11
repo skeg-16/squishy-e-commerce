@@ -15,6 +15,8 @@ const SPA_HTML_PATHS = new Set([
   '/about.html',
   '/admin.html',
   '/admin',
+  '/account.html',
+  '/account',
 ]);
 
 function isPortListening(port, host = '127.0.0.1') {

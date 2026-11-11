@@ -2,6 +2,7 @@ const { mkdtemp, rm, mkdir, access } = require('node:fs/promises');
 const { tmpdir } = require('node:os');
 const path = require('node:path');
 const net = require('node:net');
+const { execSync } = require('node:child_process');
 const { randomBytes } = require('node:crypto');
 const { Client } = require('pg');
 async function freePort() {
@@ -41,8 +42,15 @@ async function embedded({ directory, port, password, persistent = false } = {}) 
     onLog: () => {}, onError: () => {} });
   let initialized = false;
   try { await access(path.join(base, 'data/PG_VERSION')); initialized = true; } catch { /* New cluster. */ }
-  if (!initialized) await db.initialise();
-  else await rm(path.join(base, 'data/postmaster.pid'), { force: true });
+  if (!initialized) {
+    await db.initialise();
+  } else if (persistent) {
+    await db.stop().catch(() => {});
+    if (process.platform === 'win32' && !(await isListening(port))) {
+      try { execSync('taskkill /F /IM postgres.exe /T', { stdio: 'ignore' }); } catch { /* No orphaned postgres */ }
+    }
+    await rm(path.join(base, 'data/postmaster.pid'), { force: true });
+  }
   await db.start();
   const client = db.getPgClient();
   await client.connect();

@@ -1,5 +1,6 @@
 const express = require('express');
 const helmet = require('helmet');
+const fs = require('node:fs');
 const path = require('node:path');
 const { randomBytes, randomUUID, createHash } = require('node:crypto');
 const { createCommerce } = require('./commerce');
@@ -8,14 +9,32 @@ const { parse } = require('./validation');
 const asyncRoute = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const digest = value => createHash('sha256').update(value).digest('hex');
 
-function createApp({ pool, demoMode = false, origins = ['http://localhost:3000'], secureCookies = false, rateLimit = 120, logger = console, serveStatic = false }) {
+const SPA_ROUTES = new Set([
+  '/',
+  '/index.html',
+  '/shop',
+  '/shop.html',
+  '/product',
+  '/product.html',
+  '/checkout',
+  '/checkout.html',
+  '/about',
+  '/about.html',
+  '/admin',
+  '/admin.html',
+  '/account',
+  '/account.html',
+]);
+
+function createApp({ pool, demoMode = false, origins = ['http://localhost:3000'], secureCookies = false, rateLimit = 120, logger = console, serveStatic = false, serveReact = false }) {
   const app = express();
   const commerce = createCommerce(pool, { demoMode });
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
   app.use(helmet({ contentSecurityPolicy: { directives: {
     defaultSrc: ["'self'"], scriptSrc: ["'self'"], styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-    fontSrc: ["'self'", 'https://fonts.gstatic.com'], imgSrc: ["'self'", 'data:'], connectSrc: ["'self'"],
+    fontSrc: ["'self'", 'https://fonts.gstatic.com'], imgSrc: ["'self'", 'data:', 'blob:'], connectSrc: ["'self'", 'data:', 'blob:'],
+    workerSrc: ["'self'", 'blob:'],
     upgradeInsecureRequests: secureCookies ? [] : null
   } }, strictTransportSecurity: secureCookies ? undefined : false }));
   app.use('/api', (req, res, next) => {
@@ -87,7 +106,22 @@ function createApp({ pool, demoMode = false, origins = ['http://localhost:3000']
   app.get('/api/reviews/:slug', send(req => commerce.reviews(req.params.slug)));
   app.post('/api/reviews', guest, send(req => commerce.addReview(req.guestId, parse('review', req.body)), 201));
   app.use('/api', (req, res, next) => next(new AppError(404, 'NOT_FOUND', 'API endpoint not found.')));
-  if (serveStatic) app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny' }));
+  if (serveStatic) {
+    const distDir = path.join(__dirname, '..', 'dist');
+    const distIndex = path.join(distDir, 'index.html');
+    if (serveReact && fs.existsSync(distIndex)) {
+      app.use((req, res, next) => {
+        if ((req.method === 'GET' || req.method === 'HEAD') && SPA_ROUTES.has(req.path)) {
+          return res.sendFile(distIndex);
+        }
+        next();
+      });
+      app.use(express.static(distDir, { dotfiles: 'deny', index: false }));
+      app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny', index: false }));
+    } else {
+      app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny' }));
+    }
+  }
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
     const known = error instanceof AppError;

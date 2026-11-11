@@ -24,12 +24,6 @@ img {
   max-width: 100%;
 }
 
-.product-page__image {
-  position: relative;
-  background: radial-gradient(circle at 50% 42%, #fffdf9 0%, #f7ece2 100%);
-  border: 1.5px solid var(--color-border, #f0e3da);
-}
-
 .viewer-3d-stage {
   cursor: grab;
 }
