@@ -24,10 +24,12 @@
 | `--hero-headline-accent` | `#ffc4de` | Staggered second-line headline & checklist circles |
 | `--hero-plum` | `#5b3358` | Headline text shadow & checklist check mark stroke |
 | `--hero-cta-gradient` | `linear-gradient(180deg, #f58fc0, #d96aa3)` | Hero primary pill CTA ("Pick your squish") |
-| `--char-peach` | `#ffd2e0` / `#ff86ab` / `#d9507f` | Peach Pie soft-body radial gradient stops |
-| `--char-toast` | `#fdebc2` / `#f1c57c` / `#c4903f` | Toasty soft-body radial gradient stops |
-| `--char-chick` | `#fff6b0` / `#ffd94f` / `#e5a31c` | Chickie soft-body radial gradient stops |
-| `--char-bun` | `#ffd8e8` / `#ff9fc6` / `#d4659a` | Bun-Bun soft-body radial gradient stops |
+| `--char-dumpling` | `#fff5eb` / `#fde2ca` / `#e5bc96` | Steamed Dumpling soft-body radial gradient stops |
+| `--char-cheese` | `#fff3a8` / `#f9d857` / `#d9a726` | Cheese Cube soft-body radial gradient stops |
+| `--char-catpaw` | `#fff7fb` / `#ffd6e7` / `#e89ab8` | Cat Paw soft-body radial gradient stops |
+| `--char-toast` | `#fff2d6` / `#f9d49b` / `#cf9855` | Pastel Toast soft-body radial gradient stops |
+| `--char-butter` | `#ffe6f0` / `#ff9ec4` / `#d9729f` | Butter Stick soft-body radial gradient stops |
+| `--char-peanut` | `#f7e3c4` / `#e0bc89` / `#b58850` | Peanut soft-body radial gradient stops |
 | `--bg-products` | `#fdf3ec` | Product catalog section backdrop |
 | `--bg-promo` | `#fbeaf3` | Promo bundle section backdrop |
 

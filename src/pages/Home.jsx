@@ -5,10 +5,114 @@ import { useCart } from '../context/CartContext';
 import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
 
 const HERO_CHARS = [
-  { name: 'Peach Pie', c1: '#ffd2e0', c2: '#ff86ab', c3: '#d9507f', n: 2, deco: 'leaf', p: 89 },
-  { name: 'Toasty', c1: '#fdebc2', c2: '#f1c57c', c3: '#c4903f', n: 4.2, deco: 'toast', p: 99 },
-  { name: 'Chickie', c1: '#fff6b0', c2: '#ffd94f', c3: '#e5a31c', n: 2, deco: 'chick', p: 89 },
-  { name: 'Bun-Bun', c1: '#ffd8e8', c2: '#ff9fc6', c3: '#d4659a', n: 2, deco: 'bunny', p: 109 },
+  {
+    name: 'Dumpling',
+    slug: 'dumpling',
+    c1: '#fff7f0',
+    c2: '#fbd9c9',
+    c3: '#dfa38f',
+    n: 2.1,
+    deco: 'dumpling',
+    p: 89,
+    pitch: 640,
+    lines: [
+      'Bao-tiful squish!',
+      'Hehe, so steamy and soft!',
+      'Squish my chubby cheeks!',
+      'Bye-bye stress!',
+      'Yay, study break hugs!',
+    ],
+  },
+  {
+    name: 'Cheese Cube',
+    slug: 'cheese',
+    c1: '#fff6b3',
+    c2: '#fbd852',
+    c3: '#d89d1e',
+    n: 4.5,
+    deco: 'cheese',
+    p: 89,
+    pitch: 700,
+    lines: [
+      'Say cheese!',
+      'So gouda to squish!',
+      'Hehe, that tickles!',
+      'Melting your stress away!',
+      'Extra cheesy smiles!',
+    ],
+  },
+  {
+    name: 'Cat Paw',
+    slug: 'catpaw',
+    c1: '#fff9fc',
+    c2: '#ffd4e6',
+    c3: '#e38eb4',
+    n: 2.3,
+    deco: 'catpaw',
+    p: 89,
+    pitch: 760,
+    lines: [
+      'Meow, purrfect squish!',
+      'Boop my pink toe beans!',
+      'Pawsitively ultra-soft!',
+      'Purr, stress is all gone!',
+      'Squish me again, meow!',
+    ],
+  },
+  {
+    name: 'Pastel Toast',
+    slug: 'toast',
+    c1: '#fff1d4',
+    c2: '#f6cf92',
+    c3: '#c88f48',
+    n: 4.3,
+    deco: 'toast',
+    p: 89,
+    pitch: 610,
+    lines: [
+      'Stay toasty and happy!',
+      'Warm bread hugs for you!',
+      'Fresh out of the bakery!',
+      'So fluffy and slow-rising!',
+      'You’re doing great today!',
+    ],
+  },
+  {
+    name: 'Butter Stick',
+    slug: 'butter',
+    c1: '#ffe8f2',
+    c2: '#ff9ec7',
+    c3: '#d86999',
+    n: 4.8,
+    deco: 'butter',
+    p: 89,
+    pitch: 680,
+    lines: [
+      'You’re so butter-ful!',
+      'Smooth like butter!',
+      'Everything feels butter now!',
+      'Squeeze the stress away!',
+      'Hehe, so soft and creamy!',
+    ],
+  },
+  {
+    name: 'Peanut',
+    slug: 'peanut',
+    c1: '#f8e5c8',
+    c2: '#e0bb87',
+    c3: '#b08046',
+    n: 2.4,
+    deco: 'peanut',
+    p: 89,
+    pitch: 650,
+    lines: [
+      'I’m nuts about you!',
+      'Crack a happy smile!',
+      'Mega squeezable shell!',
+      'Hehe, squish me some more!',
+      'Slow-rising peanut power!',
+    ],
+  },
 ];
 
 const featuredProducts = [
@@ -198,6 +302,71 @@ export default function Home() {
     let blink = 0;
     let sparks = [];
     let used = false;
+    let lastLine = '';
+    let speech = { text: 'Squish me~!', timer: 2.6, pop: 1 };
+    let audioCtx = null;
+
+    function playCuteVoice(charObj, customText) {
+      const pool = charObj.lines.filter((line) => line !== lastLine);
+      const phrase =
+        customText || pool[Math.floor(Math.random() * pool.length)] || charObj.lines[0];
+      lastLine = phrase;
+      speech = { text: phrase, timer: 3.2, pop: 0 };
+
+      // 1. Instant kawaii toy squeak + bubbly voice melody via Web Audio API
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          if (!audioCtx) audioCtx = new AudioContextClass();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          const now = audioCtx.currentTime;
+          const base = charObj.pitch || 660;
+          const notes = [base, base * 1.22, base * 1.48, base * 1.32];
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            const start = now + idx * 0.055;
+            osc.frequency.setValueAtTime(freq * 0.9, start);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.12, start + 0.045);
+            gain.gain.setValueAtTime(0.001, start);
+            gain.gain.exponentialRampToValueAtTime(0.11, start + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + 0.075);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(start);
+            osc.stop(start + 0.08);
+          });
+        }
+      } catch {
+        // Ignore audio context errors when blocked
+      }
+
+      // 2. Spoken cute voice via Web Speech API
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(phrase);
+          const voices = window.speechSynthesis.getVoices();
+          const cuteVoice =
+            voices.find((v) =>
+              /zira|samantha|victoria|google us english|aria|jenny|natasha|female/i.test(
+                v.name
+              )
+            ) ||
+            voices.find((v) => /^en/i.test(v.lang)) ||
+            voices[0];
+          if (cuteVoice) utter.voice = cuteVoice;
+          utter.pitch = 1.9;
+          utter.rate = 1.18;
+          utter.volume = 0.9;
+          window.speechSynthesis.speak(utter);
+        }
+      } catch {
+        // Ignore speech synthesis errors if unsupported
+      }
+    }
+
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     let reduce = mq.matches;
     const onMotionChange = (e) => {
@@ -237,6 +406,7 @@ export default function Home() {
       if (navigator.vibrate) navigator.vibrate(8);
       if (hintEl) hintEl.style.opacity = '0';
       used = true;
+      playCuteVoice(HERO_CHARS[ch]);
       e.preventDefault();
     }
 
@@ -284,6 +454,7 @@ export default function Home() {
       );
       sq = 0.9;
       sqv = 0;
+      playCuteVoice(HERO_CHARS[ch], HERO_CHARS[ch].lines[0]);
     }
 
     c.addEventListener('pointerdown', onPointerDown);
@@ -304,15 +475,32 @@ export default function Home() {
       } else {
         stress = Math.min(100, stress + 2.2 * dt);
       }
-      const sx = 1 + 0.3 * sq;
-      const sy = 1 - 0.42 * sq;
+      if (speech.timer > 0) {
+        speech.timer = Math.max(0, speech.timer - dt);
+        speech.pop = Math.min(1, speech.pop + dt * 9);
+      }
+      const curChar = HERO_CHARS[ch];
+      const sx = (1 + 0.3 * sq) * (curChar.deco === 'butter' ? 0.88 : curChar.deco === 'peanut' ? 0.86 : 1);
+      const sy = (1 - 0.42 * sq) * (curChar.deco === 'butter' ? 1.04 : 1);
       const cy = floor - R * sy;
-      const n = HERO_CHARS[ch].n;
+      const n = curChar.n;
       for (let i = 0; i < N; i += 1) {
         const p = pts[i];
         const c0 = Math.cos(p.a);
         const s0 = Math.sin(p.a);
-        const r = R / Math.pow(Math.pow(Math.abs(c0), n) + Math.pow(Math.abs(s0), n), 1 / n);
+        let r = R / Math.pow(Math.pow(Math.abs(c0), n) + Math.pow(Math.abs(s0), n), 1 / n);
+        if (curChar.deco === 'peanut') {
+          // Peanut figure-8 waist pinch
+          r *= 1 - 0.22 * Math.pow(c0, 4) + 0.08 * Math.pow(s0, 2);
+        } else if (curChar.deco === 'toast') {
+          // Toast top crust ears
+          if (s0 < -0.15) {
+            r *= 1 + 0.1 * Math.pow(Math.abs(c0), 1.6) * Math.abs(s0);
+          }
+        } else if (curChar.deco === 'dumpling') {
+          // Plump bao bottom fullness
+          r *= 1 + 0.06 * Math.max(0, s0);
+        }
         p.bx = cx + c0 * r * sx;
         p.by = cy + s0 * r * sy;
         let tgt = 0;
@@ -400,10 +588,70 @@ export default function Home() {
       x.restore();
     }
 
+    function drawSpeechBubble(sx, sy, cy) {
+      if (speech.timer <= 0 || !speech.text) return;
+      const fade = Math.min(1, speech.timer * 2.5);
+      const scale = 0.72 + 0.28 * Math.sin(Math.min(1, speech.pop) * Math.PI * 0.65);
+      const fs = Math.max(13, Math.min(16, R * 0.085));
+      x.save();
+      x.font = `700 ${fs}px Fredoka,sans-serif`;
+      const tw = x.measureText(speech.text).width;
+      const padX = 16;
+      const bw = tw + padX * 2;
+      const bh = fs + 18;
+      const isMobile = W < 860;
+      const bx = isMobile
+        ? cx
+        : Math.min(W - bw / 2 - 20, cx + R * 0.88 * sx + bw * 0.18);
+      const by = isMobile
+        ? Math.max(bh + 16, cy - R * 1.15 * sy)
+        : Math.max(bh + 20, cy - R * 0.52 * sy);
+
+      x.translate(bx, by);
+      x.scale(scale, scale);
+      x.globalAlpha = fade;
+
+      // Bubble pill shadow + fill
+      x.fillStyle = 'rgba(75, 36, 72, 0.22)';
+      x.beginPath();
+      x.roundRect(-bw / 2, -bh / 2 + 4, bw, bh, bh / 2);
+      x.fill();
+
+      x.fillStyle = '#ffffff';
+      x.strokeStyle = '#ffc4de';
+      x.lineWidth = 2.5;
+      x.beginPath();
+      x.roundRect(-bw / 2, -bh / 2, bw, bh, bh / 2);
+      x.fill();
+      x.stroke();
+
+      // Tail pointing to squishy
+      x.beginPath();
+      if (isMobile) {
+        x.moveTo(-8, bh / 2 - 1);
+        x.lineTo(0, bh / 2 + 9);
+        x.lineTo(8, bh / 2 - 1);
+      } else {
+        x.moveTo(-bw * 0.26, bh / 2 - 1);
+        x.lineTo(-bw * 0.38, bh / 2 + 9);
+        x.lineTo(-bw * 0.12, bh / 2 - 1);
+      }
+      x.closePath();
+      x.fillStyle = '#ffffff';
+      x.fill();
+
+      // Phrase text
+      x.fillStyle = '#4b2448';
+      x.textAlign = 'center';
+      x.textBaseline = 'middle';
+      x.fillText(speech.text, 0, 1);
+      x.restore();
+    }
+
     function draw() {
       const k = HERO_CHARS[ch];
-      const sx = 1 + 0.3 * sq;
-      const sy = 1 - 0.42 * sq;
+      const sx = (1 + 0.3 * sq) * (k.deco === 'butter' ? 0.88 : k.deco === 'peanut' ? 0.86 : 1);
+      const sy = (1 - 0.42 * sq) * (k.deco === 'butter' ? 1.04 : 1);
       const cy = floor - R * sy;
       x.clearRect(0, 0, W, H);
       // floor glow + shadow
@@ -418,53 +666,58 @@ export default function Home() {
       x.beginPath();
       x.ellipse(cx, floor + 6, R * (0.95 + 0.35 * sq), R * 0.17, 0, 0, 7);
       x.fill();
+
       // decorations behind body
       const top = cy - R * sy;
-      if (k.deco === 'bunny') {
-        for (const sd of [-1, 1]) {
+      if (k.deco === 'dumpling') {
+        // Steamed dumpling top knots / pleats
+        for (const a of [-0.24, 0, 0.24]) {
           x.save();
-          x.translate(cx + sd * R * 0.38 * sx, top + R * 0.1);
-          x.rotate(sd * 0.16 + sqv * 0.02 * sd);
-          x.fillStyle = k.c2;
+          x.translate(cx + a * R * sx, top + R * 0.03);
+          x.rotate(a * 0.7 + sqv * 0.02);
+          x.fillStyle = a === 0 ? k.c1 : k.c2;
           x.beginPath();
-          x.ellipse(0, -R * 0.5 * (1 + 0.15 * sq), R * 0.2, R * 0.5 * (1 + 0.15 * sq), 0, 0, 7);
+          x.ellipse(0, -R * 0.11, R * 0.13, R * 0.16, 0, 0, 7);
           x.fill();
-          x.fillStyle = '#ffd0e2';
-          x.beginPath();
-          x.ellipse(0, -R * 0.5 * (1 + 0.15 * sq), R * 0.1, R * 0.36 * (1 + 0.15 * sq), 0, 0, 7);
-          x.fill();
+          x.strokeStyle = 'rgba(210, 145, 120, 0.45)';
+          x.lineWidth = 2;
+          x.stroke();
           x.restore();
         }
-      }
-      if (k.deco === 'leaf') {
+      } else if (k.deco === 'catpaw') {
+        // 4 puffy cat paw toe beans along the top arc
+        const toes = [
+          [-0.58, 0.18, -0.38],
+          [-0.21, -0.02, -0.12],
+          [0.21, -0.02, 0.12],
+          [0.58, 0.18, 0.38],
+        ];
+        toes.forEach(([ox, oy, rot]) => {
+          x.save();
+          x.translate(cx + ox * R * sx, top + oy * R * sy);
+          x.rotate(rot + sqv * 0.015 * ox);
+          x.fillStyle = '#fff5fa';
+          x.beginPath();
+          x.ellipse(0, 0, R * 0.19, R * 0.23, 0, 0, 7);
+          x.fill();
+          x.fillStyle = '#ff94b8';
+          x.beginPath();
+          x.ellipse(0, R * 0.02, R * 0.1, R * 0.13, 0, 0, 7);
+          x.fill();
+          x.restore();
+        });
+      } else if (k.deco === 'peanut') {
+        // Cute cream puff on top of the peanut
         x.save();
-        x.translate(cx + R * 0.04, top + R * 0.04);
-        x.rotate(0.5 + sqv * 0.03);
-        x.fillStyle = '#6fcf8a';
+        x.translate(cx, top + R * 0.02);
+        x.rotate(sqv * 0.02);
+        x.fillStyle = '#fff8ee';
         x.beginPath();
-        x.ellipse(R * 0.14, -R * 0.12, R * 0.2, R * 0.09, -0.5, 0, 7);
+        x.ellipse(0, -R * 0.06, R * 0.22, R * 0.11, -0.1, 0, 7);
         x.fill();
-        x.strokeStyle = '#8b5a6e';
-        x.lineWidth = R * 0.05;
-        x.lineCap = 'round';
-        x.beginPath();
-        x.moveTo(0, R * 0.05);
-        x.lineTo(-R * 0.03, -R * 0.16);
-        x.stroke();
         x.restore();
       }
-      if (k.deco === 'chick') {
-        x.fillStyle = k.c2;
-        for (const a of [-0.3, 0, 0.3]) {
-          x.save();
-          x.translate(cx + a * R, top + R * 0.05);
-          x.rotate(a * 0.8);
-          x.beginPath();
-          x.ellipse(0, -R * 0.1, R * 0.07, R * 0.15, 0, 0, 7);
-          x.fill();
-          x.restore();
-        }
-      }
+
       // body
       body();
       g = x.createRadialGradient(cx - R * 0.4 * sx, cy - R * 0.5 * sy, R * 0.05, cx, cy, R * 1.5);
@@ -473,8 +726,89 @@ export default function Home() {
       g.addColorStop(1, k.c3);
       x.fillStyle = g;
       x.fill();
+
+      // Inner product details clipped to body
       x.save();
       x.clip();
+      if (k.deco === 'cheese') {
+        // Swiss cheese craters
+        const holes = [
+          [-0.18, -0.56, 0.11],
+          [0.52, -0.36, 0.17],
+          [-0.58, 0.38, 0.13],
+          [0.48, 0.48, 0.15],
+          [0.14, -0.28, 0.08],
+        ];
+        holes.forEach(([hx, hy, hr]) => {
+          x.fillStyle = 'rgba(205, 138, 18, 0.42)';
+          x.beginPath();
+          x.ellipse(cx + hx * R * sx, cy + hy * R * sy, hr * R * sx, hr * R * sy, 0, 0, 7);
+          x.fill();
+          x.fillStyle = 'rgba(255, 245, 190, 0.45)';
+          x.beginPath();
+          x.ellipse(
+            cx + (hx - 0.02) * R * sx,
+            cy + (hy - 0.02) * R * sy,
+            hr * 0.7 * R * sx,
+            hr * 0.7 * R * sy,
+            0,
+            0,
+            7
+          );
+          x.fill();
+        });
+      } else if (k.deco === 'toast') {
+        // Pastel toast top glaze band
+        x.fillStyle = 'rgba(255, 255, 255, 0.52)';
+        x.beginPath();
+        x.roundRect(
+          cx - R * 0.58 * sx,
+          cy - R * 0.72 * sy,
+          R * 1.16 * sx,
+          R * 0.34 * sy,
+          R * 0.14
+        );
+        x.fill();
+      } else if (k.deco === 'butter') {
+        // Butter stick golden top wrapper band with 'BUTTER'
+        x.fillStyle = '#facc15';
+        x.fillRect(cx - R * 1.1 * sx, cy - R * 0.85 * sy, R * 2.2 * sx, R * 0.42 * sy);
+        x.fillStyle = '#713f12';
+        x.font = `700 ${Math.max(13, R * 0.13)}px Fredoka,sans-serif`;
+        x.textAlign = 'center';
+        x.fillText('BUTTER', cx, cy - R * 0.56 * sy);
+        x.fillStyle = 'rgba(113, 63, 18, 0.65)';
+        x.font = `700 ${Math.max(9, R * 0.068)}px Nunito,sans-serif`;
+        x.fillText('4oz · SALTED SWEET CREAM', cx, cy - R * 0.3 * sy);
+      } else if (k.deco === 'peanut') {
+        // Subtle woven peanut shell ridges along outer edges
+        x.strokeStyle = 'rgba(150, 98, 42, 0.24)';
+        x.lineWidth = Math.max(2, R * 0.024);
+        x.beginPath();
+        x.arc(cx - R * 0.22 * sx, cy - R * 0.34 * sy, R * 0.48 * sy, Math.PI * 0.75, Math.PI * 1.25);
+        x.stroke();
+        x.beginPath();
+        x.arc(cx + R * 0.22 * sx, cy + R * 0.34 * sy, R * 0.48 * sy, -Math.PI * 0.25, Math.PI * 0.25);
+        x.stroke();
+      } else if (k.deco === 'catpaw') {
+        // Soft pink central paw cushion glow behind face
+        x.fillStyle = 'rgba(255, 148, 188, 0.25)';
+        x.beginPath();
+        x.ellipse(cx, cy + R * 0.12 * sy, R * 0.58 * sx, R * 0.46 * sy, 0, 0, 7);
+        x.fill();
+      } else if (k.deco === 'dumpling') {
+        // Cute pink heart mark on the dumpling forehead
+        const hx = cx;
+        const hy = cy - R * 0.42 * sy;
+        const hs = R * 0.075;
+        x.fillStyle = '#e86c9a';
+        x.beginPath();
+        x.moveTo(hx, hy + hs);
+        x.bezierCurveTo(hx - hs * 1.4, hy, hx - hs * 0.8, hy - hs * 1.1, hx, hy - hs * 0.35);
+        x.bezierCurveTo(hx + hs * 0.8, hy - hs * 1.1, hx + hs * 1.4, hy, hx, hy + hs);
+        x.fill();
+      }
+
       g = x.createRadialGradient(cx, floor + R * 0.1, R * 0.1, cx, floor, R * 1.1);
       g.addColorStop(0, 'rgba(255,255,255,.34)');
       g.addColorStop(1, 'rgba(255,255,255,0)');
@@ -498,12 +832,14 @@ export default function Home() {
       x.strokeStyle = 'rgba(255,255,255,.4)';
       x.stroke();
       // gloss
+      const glossX = k.deco === 'butter' ? -0.58 : -0.42;
+      const glossY = k.deco === 'butter' ? -0.34 : -0.48;
       x.save();
-      x.translate(cx - R * 0.42 * sx, cy - R * 0.48 * sy);
+      x.translate(cx + R * glossX * sx, cy + R * glossY * sy);
       x.rotate(-0.65);
       x.fillStyle = `rgba(255,255,255,${0.72 - 0.3 * sq})`;
       x.beginPath();
-      x.ellipse(0, 0, R * 0.2 * (1 + 0.2 * sq), R * 0.1, 0, 0, 7);
+      x.ellipse(0, 0, R * 0.18 * (1 + 0.2 * sq), R * 0.09, 0, 0, 7);
       x.fill();
       x.restore();
       x.fillStyle = 'rgba(255,255,255,.7)';
@@ -512,13 +848,13 @@ export default function Home() {
       x.fill();
       // face
       const fx = cx + Math.max(-1, Math.min(1, lx)) * R * 0.1;
-      const fy = cy + R * 0.06 * sy + Math.max(-1, Math.min(1, ly)) * R * 0.05;
-      const ex = R * 0.3 * sx;
+      const fy = cy + R * 0.08 * sy + Math.max(-1, Math.min(1, ly)) * R * 0.05;
+      const ex = R * 0.28 * sx;
       const ink = '#3d1f3d';
       x.fillStyle = 'rgba(255,90,130,.55)';
       for (const sd of [-1, 1]) {
         x.beginPath();
-        x.ellipse(fx + sd * R * 0.48 * sx, fy + R * 0.14, R * 0.1, R * 0.065, 0, 0, 7);
+        x.ellipse(fx + sd * R * 0.45 * sx, fy + R * 0.14, R * 0.1, R * 0.065, 0, 0, 7);
         x.fill();
       }
       x.strokeStyle = ink;
@@ -550,29 +886,19 @@ export default function Home() {
           x.fillStyle = ink;
         }
       }
-      if (k.deco === 'chick') {
-        x.fillStyle = '#ff9a3c';
-        x.beginPath();
-        x.moveTo(fx - R * 0.07, fy + R * 0.1);
-        x.lineTo(fx + R * 0.07, fy + R * 0.1);
-        x.lineTo(fx, fy + R * 0.18);
-        x.closePath();
+      x.beginPath();
+      if (sq > 0.35) {
+        x.ellipse(fx, fy + R * 0.2, R * 0.07, R * 0.09 * (1 + sq * 0.4), 0, 0, 7);
         x.fill();
-        x.fillStyle = ink;
+      } else if (sq < -0.25) {
+        x.ellipse(fx, fy + R * 0.18, R * 0.05, R * 0.06, 0, 0, 7);
+        x.fill();
       } else {
-        x.beginPath();
-        if (sq > 0.35) {
-          x.ellipse(fx, fy + R * 0.2, R * 0.07, R * 0.09 * (1 + sq * 0.4), 0, 0, 7);
-          x.fill();
-        } else if (sq < -0.25) {
-          x.ellipse(fx, fy + R * 0.18, R * 0.05, R * 0.06, 0, 0, 7);
-          x.fill();
-        } else {
-          x.arc(fx, fy + R * 0.1, R * 0.1, 0.15 * Math.PI, 0.85 * Math.PI);
-          x.stroke();
-        }
+        x.arc(fx, fy + R * 0.1, R * 0.1, 0.15 * Math.PI, 0.85 * Math.PI);
+        x.stroke();
       }
       callouts(sx, sy, cy);
+      drawSpeechBubble(sx, sy, cy);
       // sparks
       sparks.forEach((s) => {
         x.globalAlpha = Math.max(0, s.l);

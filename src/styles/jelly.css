@@ -908,26 +908,33 @@
   bottom: 3%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: #ffffff2e;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   padding: 8px;
   border-radius: 99px;
-  max-width: 94%;
+  max-width: 96%;
 }
 
 .home-jelly .hero .pick button {
-  padding: 10px 16px;
+  padding: 10px 15px;
   border-radius: 99px;
   background: transparent;
   color: #fff;
   font-family: Nunito, system-ui, sans-serif;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   white-space: nowrap;
   border: 0;
   cursor: pointer;
+  transition: background 0.18s, color 0.18s, transform 0.15s;
+}
+
+.home-jelly .hero .pick button:active {
+  transform: scale(0.95);
 }
 
 .home-jelly .hero .pick button[aria-pressed="true"] {
@@ -1032,7 +1039,7 @@
     height: 130px;
   }
   .home-jelly .hero .intro {
-    bottom: 13%;
+    bottom: 15%;
   }
   .home-jelly .hero .intro p {
     font-size: 0.95rem;
@@ -1042,17 +1049,22 @@
     font-size: 0.8rem;
   }
   .home-jelly .hero .pick {
-    bottom: 2%;
+    bottom: 1.8%;
+    flex-wrap: wrap;
+    border-radius: 26px;
+    width: calc(100% - 32px);
+    padding: 6px;
+    gap: 4px;
   }
   .home-jelly .hero .hint {
-    bottom: 9%;
+    bottom: 11.5%;
   }
 }
 
 @media (max-width: 480px) {
   .home-jelly .hero .pick button {
-    padding: 9px 11px;
-    font-size: 0.8rem;
+    padding: 7px 10px;
+    font-size: 0.78rem;
   }
 }
 
