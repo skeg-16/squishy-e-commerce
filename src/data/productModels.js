@@ -1,6 +1,6 @@
 export const PRODUCT_MODELS = {
   dumpling: '/models/dumpling.glb',
-  cheese: null,
+  cheese: 'procedural:cheese',
   catpaw: '/models/catpaw.glb',
   toast: '/models/toast.glb',
   butter: '/models/butter.glb',
