@@ -16,8 +16,8 @@ const HERO_CHARS = [
     p: 89,
     pitch: 640,
     lines: [
-      'Bao-tiful squish!',
-      'Hehe, so steamy and soft!',
+      'Hehe, bao-tiful squish!',
+      'Ooh, so steamy and soft!',
       'Squish my chubby cheeks!',
       'Bye-bye stress!',
       'Yay, study break hugs!',
@@ -35,8 +35,8 @@ const HERO_CHARS = [
     pitch: 700,
     lines: [
       'Say cheese!',
-      'So gouda to squish!',
-      'Hehe, that tickles!',
+      'Hehe, so gouda to squish!',
+      'Eee, that tickles!',
       'Melting your stress away!',
       'Extra cheesy smiles!',
     ],
@@ -52,9 +52,9 @@ const HERO_CHARS = [
     p: 89,
     pitch: 760,
     lines: [
-      'Meow, purrfect squish!',
-      'Boop my pink toe beans!',
-      'Pawsitively ultra-soft!',
+      'Meow! Purr-fect squish!',
+      'Hehe, boop my pink toe beans!',
+      'Paws-itively ultra soft!',
       'Purr, stress is all gone!',
       'Squish me again, meow!',
     ],
@@ -73,7 +73,7 @@ const HERO_CHARS = [
       'Stay toasty and happy!',
       'Warm bread hugs for you!',
       'Fresh out of the bakery!',
-      'So fluffy and slow-rising!',
+      'Ooh, so fluffy and slow-rising!',
       'You’re doing great today!',
     ],
   },
@@ -89,10 +89,10 @@ const HERO_CHARS = [
     pitch: 680,
     lines: [
       'You’re so butter-ful!',
-      'Smooth like butter!',
+      'Hehe, smooth like butter!',
       'Everything feels butter now!',
       'Squeeze the stress away!',
-      'Hehe, so soft and creamy!',
+      'Ooh, so soft and creamy!',
     ],
   },
   {
@@ -107,9 +107,9 @@ const HERO_CHARS = [
     pitch: 650,
     lines: [
       'I’m nuts about you!',
-      'Crack a happy smile!',
+      'Hehe, crack a happy smile!',
       'Mega squeezable shell!',
-      'Hehe, squish me some more!',
+      'Yay, squish me some more!',
       'Slow-rising peanut power!',
     ],
   },
@@ -305,65 +305,119 @@ export default function Home() {
     let lastLine = '';
     let speech = { text: 'Squish me~!', timer: 2.6, pop: 1 };
     let audioCtx = null;
+    let activeVoiceSource = null;
+    const voiceBufferCache = new Map();
 
-    function playCuteVoice(charObj, customText) {
-      const pool = charObj.lines.filter((line) => line !== lastLine);
-      const phrase =
-        customText || pool[Math.floor(Math.random() * pool.length)] || charObj.lines[0];
+    function getAudioCtx() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      if (!audioCtx) audioCtx = new AudioContextClass();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playPlushSqueak(isRelease = false) {
+      try {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+
+        // Soft physical rubber/plush toy air-valve squeak
+        const osc = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(isRelease ? 1150 : 1350, now);
+        filter.Q.setValueAtTime(4.5, now);
+
+        if (!isRelease) {
+          osc.frequency.setValueAtTime(680, now);
+          osc.frequency.exponentialRampToValueAtTime(1180, now + 0.055);
+          osc.frequency.exponentialRampToValueAtTime(890, now + 0.11);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(0.085, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.13);
+        } else {
+          // Gentle rising air-puff when the slow-rising squishy bounces back
+          osc.frequency.setValueAtTime(920, now);
+          osc.frequency.exponentialRampToValueAtTime(620, now + 0.08);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(0.045, now + 0.018);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.095);
+        }
+      } catch {
+        // Ignore audio context errors if blocked
+      }
+    }
+
+    async function playCuteVoice(charObj, customIdx) {
+      let idx =
+        typeof customIdx === 'number'
+          ? customIdx
+          : Math.floor(Math.random() * charObj.lines.length);
+      if (charObj.lines[idx] === lastLine && charObj.lines.length > 1) {
+        idx = (idx + 1) % charObj.lines.length;
+      }
+      const phrase = charObj.lines[idx];
       lastLine = phrase;
       speech = { text: phrase, timer: 3.2, pop: 0 };
 
-      // 1. Instant kawaii toy squeak + bubbly voice melody via Web Audio API
-      try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          if (!audioCtx) audioCtx = new AudioContextClass();
-          if (audioCtx.state === 'suspended') audioCtx.resume();
-          const now = audioCtx.currentTime;
-          const base = charObj.pitch || 660;
-          const notes = [base, base * 1.22, base * 1.48, base * 1.32];
-          notes.forEach((freq, idx) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            const start = now + idx * 0.055;
-            osc.frequency.setValueAtTime(freq * 0.9, start);
-            osc.frequency.exponentialRampToValueAtTime(freq * 1.12, start + 0.045);
-            gain.gain.setValueAtTime(0.001, start);
-            gain.gain.exponentialRampToValueAtTime(0.11, start + 0.015);
-            gain.gain.exponentialRampToValueAtTime(0.001, start + 0.075);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(start);
-            osc.stop(start + 0.08);
-          });
-        }
-      } catch {
-        // Ignore audio context errors when blocked
-      }
+      playPlushSqueak(false);
 
-      // 2. Spoken cute voice via Web Speech API
       try {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const utter = new SpeechSynthesisUtterance(phrase);
-          const voices = window.speechSynthesis.getVoices();
-          const cuteVoice =
-            voices.find((v) =>
-              /zira|samantha|victoria|google us english|aria|jenny|natasha|female/i.test(
-                v.name
-              )
-            ) ||
-            voices.find((v) => /^en/i.test(v.lang)) ||
-            voices[0];
-          if (cuteVoice) utter.voice = cuteVoice;
-          utter.pitch = 1.9;
-          utter.rate = 1.18;
-          utter.volume = 0.9;
-          window.speechSynthesis.speak(utter);
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+
+        const clipUrl = `/assets/voices/${charObj.slug}-${idx}.mp3?v=2`;
+        let audioBuffer = voiceBufferCache.get(clipUrl);
+        if (!audioBuffer) {
+          const res = await fetch(clipUrl);
+          if (!res.ok) return;
+          const arrayBuf = await res.arrayBuffer();
+          audioBuffer = await ctx.decodeAudioData(arrayBuf);
+          voiceBufferCache.set(clipUrl, audioBuffer);
         }
+
+        if (activeVoiceSource) {
+          try {
+            activeVoiceSource.stop();
+          } catch {
+            // already stopped
+          }
+        }
+
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.playbackRate.value = 1.0;
+
+        // Subtle warm filter so the voice sounds cozy inside the plush toy
+        const warmFilter = ctx.createBiquadFilter();
+        warmFilter.type = 'lowpass';
+        warmFilter.frequency.value = 7500;
+
+        const voiceGain = ctx.createGain();
+        voiceGain.gain.value = 0.95;
+
+        source.connect(warmFilter);
+        warmFilter.connect(voiceGain);
+        voiceGain.connect(ctx.destination);
+
+        activeVoiceSource = source;
+        source.start(ctx.currentTime + 0.03);
       } catch {
-        // Ignore speech synthesis errors if unsupported
+        // Ignore playback errors if audio is not yet unlocked
       }
     }
 
@@ -424,6 +478,7 @@ export default function Home() {
       if (!press) return;
       press = false;
       c.classList.remove('down');
+      playPlushSqueak(true);
       squishes += 1;
       cnEl.textContent = String(squishes);
       stress = Math.max(0, stress - 4);
@@ -454,7 +509,7 @@ export default function Home() {
       );
       sq = 0.9;
       sqv = 0;
-      playCuteVoice(HERO_CHARS[ch], HERO_CHARS[ch].lines[0]);
+      playCuteVoice(HERO_CHARS[ch], 0);
     }
 
     c.addEventListener('pointerdown', onPointerDown);
