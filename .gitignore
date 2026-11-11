@@ -22,3 +22,4 @@ Thumbs.db
 .local/
 test-results/
 playwright-report/
+.playwright-mcp/

@@ -3135,33 +3135,33 @@ main > .account-jelly {
 
 
 /* =========================================
-   SISO ABOUT PAGE — REDESIGNED & READABLE
+   SISO ABOUT PAGE — SOFT, AIRY FROSTED GLASS
 ========================================= */
 
 .siso-page-wrapper {
   min-height: 100vh;
-  color: #ffffff;
+  color: #fff8fc;
   background:
     radial-gradient(
-      ellipse at 15% 10%,
-      rgba(224, 112, 170, 0.42),
-      transparent 45%
-    ),
-    radial-gradient(
-      ellipse at 85% 25%,
-      rgba(120, 110, 200, 0.42),
+      ellipse at 12% 10%,
+      rgba(221, 143, 174, 0.65),
       transparent 48%
     ),
     radial-gradient(
-      ellipse at 50% 90%,
-      rgba(220, 180, 110, 0.32),
+      ellipse at 88% 32%,
+      rgba(105, 127, 174, 0.65),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(199, 179, 126, 0.55),
       transparent 55%
     ),
     linear-gradient(
-      145deg,
-      #44244a 0%,
-      #321a36 45%,
-      #252844 100%
+      135deg,
+      #9e6485 0%,
+      #805d83 48%,
+      #647b9b 100%
     ) !important;
   background-attachment: fixed !important;
   padding-bottom: 80px;
@@ -3191,15 +3191,25 @@ main > .account-jelly {
 }
 
 .siso-hero-card {
-  background: rgba(45, 18, 54, 0.52);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background:
+    radial-gradient(
+      circle at 18% 22%,
+      rgba(255, 230, 244, 0.22),
+      transparent 52%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+  border: 1.5px solid rgba(255, 255, 255, 0.42);
   border-radius: 28px;
-  padding: 36px 38px;
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  padding: 34px 36px;
+  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(24px) saturate(125%);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.45),
-    0 22px 50px rgba(28, 8, 36, 0.35);
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.5),
+    0 24px 54px rgba(45, 18, 60, 0.2);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -3219,15 +3229,15 @@ main > .account-jelly {
   gap: 8px;
   padding: 6px 14px 6px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.38);
 }
 
 .siso-logo-icon {
   width: 24px;
   height: 24px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
 }
 
 .siso-brand-pill-title {
@@ -3254,9 +3264,9 @@ main > .account-jelly {
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 800;
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.28);
-  border: 1px solid rgba(110, 231, 183, 0.42);
+  color: #d6fcef;
+  background: rgba(46, 128, 98, 0.32);
+  border: 1px solid rgba(164, 245, 214, 0.45);
 }
 
 .siso-hero-title {
@@ -3265,18 +3275,18 @@ main > .account-jelly {
   line-height: 1.1;
   color: #ffffff;
   margin: 0 0 16px;
-  text-shadow: 0 4px 18px rgba(35, 10, 42, 0.45);
+  text-shadow: 0 4px 18px rgba(45, 18, 60, 0.28);
 }
 
 .siso-text-highlight {
-  color: #ff9ecb;
-  text-shadow: 0 0 24px rgba(255, 158, 203, 0.65);
+  color: #ffe4f2;
+  text-shadow: 0 2px 14px rgba(255, 180, 215, 0.35);
 }
 
 .siso-hero-description {
   font-size: 1.05rem;
   line-height: 1.68;
-  color: #fff2fa;
+  color: rgba(255, 244, 250, 0.92);
   margin: 0 0 26px;
   max-width: 580px;
 }
@@ -3291,8 +3301,8 @@ main > .account-jelly {
 .siso-fact-item {
   padding: 14px 12px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -3313,7 +3323,7 @@ main > .account-jelly {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #ffd6ea;
+  color: #ffe0ef;
   margin-top: 4px;
 }
 
@@ -3330,19 +3340,19 @@ main > .account-jelly {
   gap: 8px;
   padding: 12px 24px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #ff7bac 0%, #e0327e 100%);
+  background: linear-gradient(180deg, #f08cb9 0%, #d8649c 100%);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
   font-size: 0.95rem;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 8px 24px rgba(224, 50, 126, 0.38);
+  box-shadow: 0 8px 22px rgba(216, 100, 156, 0.32);
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .siso-primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(224, 50, 126, 0.48);
+  box-shadow: 0 12px 26px rgba(216, 100, 156, 0.42);
 }
 
 .siso-secondary-btn {
@@ -3350,8 +3360,8 @@ main > .account-jelly {
   align-items: center;
   padding: 12px 22px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1.5px solid rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
   font-size: 0.95rem;
@@ -3361,7 +3371,7 @@ main > .account-jelly {
 }
 
 .siso-secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.26);
   border-color: #ffffff;
   transform: translateY(-2px);
 }
@@ -3373,18 +3383,23 @@ main > .account-jelly {
 .siso-pledge-card {
   background:
     radial-gradient(
-      circle at 50% 28%,
-      rgba(255, 255, 255, 0.22),
-      rgba(52, 22, 60, 0.48) 85%
+      circle at 18% 22%,
+      rgba(255, 230, 244, 0.22),
+      transparent 52%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.08) 100%
     );
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.42);
   border-radius: 28px;
   padding: 30px;
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(24px) saturate(125%);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.45),
-    0 22px 50px rgba(28, 8, 36, 0.35);
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.5),
+    0 24px 54px rgba(45, 18, 60, 0.2);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -3392,7 +3407,7 @@ main > .account-jelly {
 }
 
 .siso-pledge-card-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
   padding-bottom: 12px;
 }
 
@@ -3412,8 +3427,8 @@ main > .account-jelly {
 .siso-pledge-item {
   padding: 16px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3423,9 +3438,9 @@ main > .account-jelly {
   width: 38px;
   height: 38px;
   border-radius: 12px;
-  background: rgba(255, 123, 172, 0.22);
-  border: 1px solid rgba(255, 158, 203, 0.4);
-  color: #ffd6ea;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3442,7 +3457,7 @@ main > .account-jelly {
   margin: 0;
   font-size: 0.84rem;
   line-height: 1.5;
-  color: #ffebf6;
+  color: rgba(255, 244, 250, 0.9);
 }
 
 .siso-pledge-card-footer {
@@ -3455,9 +3470,9 @@ main > .account-jelly {
   gap: 8px;
   padding: 10px 16px;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.2);
-  border: 1px solid rgba(110, 231, 183, 0.38);
-  color: #a7f3d0;
+  background: rgba(46, 128, 98, 0.3);
+  border: 1px solid rgba(164, 245, 214, 0.45);
+  color: #d6fcef;
   font-size: 0.84rem;
   font-weight: 700;
 }
@@ -3466,8 +3481,8 @@ main > .account-jelly {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #34d399;
-  box-shadow: 0 0 8px #34d399;
+  background: #6cdbb2;
+  box-shadow: 0 0 8px #6cdbb2;
   display: inline-block;
   margin-right: 6px;
   animation: sisoDotPulse 2s ease infinite;
@@ -3479,7 +3494,7 @@ main > .account-jelly {
 }
 
 .siso-heart-svg {
-  color: #ff7bac;
+  color: #ff94c2;
   flex-shrink: 0;
   transition: transform 120ms ease;
 }
@@ -3508,7 +3523,7 @@ main > .account-jelly {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #ff9ecb;
+  color: #ffd4ea;
   margin-bottom: 6px;
 }
 
@@ -3517,13 +3532,13 @@ main > .account-jelly {
   font-size: clamp(2rem, 3.4vw, 2.7rem);
   color: #ffffff;
   margin: 0 0 10px;
-  text-shadow: 0 4px 16px rgba(35, 10, 42, 0.35);
+  text-shadow: 0 4px 16px rgba(45, 18, 60, 0.25);
 }
 
 .siso-section-subtitle {
   font-size: 1rem;
   line-height: 1.6;
-  color: #ffebf6;
+  color: rgba(255, 244, 250, 0.88);
   margin: 0;
 }
 
@@ -3538,15 +3553,20 @@ main > .account-jelly {
 }
 
 .siso-team-member-card {
-  background: rgba(45, 18, 54, 0.5);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
   border-radius: 24px;
   padding: 26px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px) saturate(125%);
+  -webkit-backdrop-filter: blur(20px) saturate(125%);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.38),
-    0 18px 42px rgba(28, 8, 36, 0.3);
+    inset 0 1px 2px rgba(255, 255, 255, 0.45),
+    0 20px 44px rgba(45, 18, 60, 0.2);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -3556,8 +3576,8 @@ main > .account-jelly {
 .siso-team-member-card:hover {
   transform: translateY(-4px);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    0 24px 52px rgba(28, 8, 36, 0.4);
+    inset 0 1px 2px rgba(255, 255, 255, 0.55),
+    0 24px 52px rgba(45, 18, 60, 0.28);
 }
 
 .siso-member-header {
@@ -3577,8 +3597,8 @@ main > .account-jelly {
   font-weight: 700;
   font-size: 1.25rem;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
-  border: 2px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
 }
 
@@ -3594,22 +3614,22 @@ main > .account-jelly {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #ffd6ea;
-  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
   padding: 3px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.32);
 }
 
 .siso-dept-tag {
   align-self: flex-start;
   font-size: 0.72rem;
   font-weight: 800;
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.24);
+  color: #d6fcef;
+  background: rgba(46, 128, 98, 0.3);
   padding: 3px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(110, 231, 183, 0.35);
+  border: 1px solid rgba(164, 245, 214, 0.4);
 }
 
 .siso-member-body {
@@ -3630,14 +3650,14 @@ main > .account-jelly {
 .siso-member-specialty {
   font-size: 0.84rem;
   font-weight: 700;
-  color: #ffd6ea;
+  color: #ffe0ef;
   margin-bottom: 8px;
 }
 
 .siso-member-bio {
   font-size: 0.88rem;
   line-height: 1.55;
-  color: #ffebf6;
+  color: rgba(255, 244, 250, 0.9);
   margin: 0;
   flex: 1;
 }
@@ -3653,8 +3673,8 @@ main > .account-jelly {
   gap: 8px;
   padding: 7px 16px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
   font-size: 0.84rem;
@@ -3664,7 +3684,7 @@ main > .account-jelly {
 }
 
 .siso-cheer-btn:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.28);
   transform: scale(1.04);
 }
 
@@ -3672,14 +3692,10 @@ main > .account-jelly {
   transform: scale(0.96);
 }
 
-.siso-cheer-heart {
-  font-size: 0.95rem;
-}
-
 .siso-cheer-count {
   font-family: Fredoka, var(--font-display);
   font-weight: 700;
-  color: #ffd6ea;
+  color: #ffe0ef;
   padding-left: 4px;
 }
 
@@ -3698,8 +3714,8 @@ main > .account-jelly {
 .siso-tab-button {
   padding: 10px 20px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.32);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
   font-size: 0.9rem;
@@ -3709,26 +3725,36 @@ main > .account-jelly {
 }
 
 .siso-tab-button:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .siso-tab-button.is-active {
   background: #ffffff;
-  color: #3b173e;
+  color: #4b2448;
   border-color: #ffffff;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 20px rgba(45, 18, 60, 0.2);
 }
 
 .siso-dossier-panel {
-  background: rgba(45, 18, 54, 0.52);
-  border: 1.5px solid rgba(255, 255, 255, 0.32);
+  background:
+    radial-gradient(
+      circle at 12% 18%,
+      rgba(255, 225, 242, 0.2),
+      transparent 50%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+  border: 1.5px solid rgba(255, 255, 255, 0.42);
   border-radius: 28px;
   padding: 36px 40px;
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(24px) saturate(125%);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.4),
-    0 22px 50px rgba(28, 8, 36, 0.35);
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.5),
+    0 24px 54px rgba(45, 18, 60, 0.2);
 }
 
 .siso-dossier-panel-head {
@@ -3738,7 +3764,7 @@ main > .account-jelly {
   gap: 16px;
   margin-bottom: 22px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .siso-dossier-kicker {
@@ -3746,7 +3772,7 @@ main > .account-jelly {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #ffd6ea;
+  color: #ffd4ea;
   display: block;
 }
 
@@ -3762,9 +3788,9 @@ main > .account-jelly {
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 800;
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.3);
-  border: 1px solid rgba(110, 231, 183, 0.4);
+  color: #d6fcef;
+  background: rgba(46, 128, 98, 0.32);
+  border: 1px solid rgba(164, 245, 214, 0.45);
 }
 
 /* TAB: Overview */
@@ -3786,8 +3812,8 @@ main > .account-jelly {
 .siso-overview-chip {
   padding: 16px 18px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -3819,8 +3845,8 @@ main > .account-jelly {
   gap: 16px;
   padding: 18px 20px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   align-items: flex-start;
 }
 
@@ -3828,7 +3854,7 @@ main > .account-jelly {
   font-family: Fredoka, var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffd6ea;
+  color: #ffd4ea;
   flex-shrink: 0;
 }
 
@@ -3843,7 +3869,7 @@ main > .account-jelly {
   margin: 0;
   font-size: 0.88rem;
   line-height: 1.5;
-  color: #ffebf6;
+  color: rgba(255, 244, 250, 0.9);
 }
 
 /* TAB: Specs */
@@ -3860,8 +3886,8 @@ main > .account-jelly {
   gap: 16px;
   padding: 14px 20px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.11);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   align-items: center;
 }
 
@@ -3893,16 +3919,25 @@ main > .account-jelly {
 .siso-usecase-card {
   padding: 20px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.siso-audience-icon {
-  font-size: 1.5rem;
+.siso-audience-indicator {
+  display: flex;
+  align-items: center;
   margin-bottom: 2px;
+}
+
+.siso-dot-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a4f5d6;
+  box-shadow: 0 0 8px rgba(164, 245, 214, 0.5);
 }
 
 .siso-usecase-tag {
@@ -3910,8 +3945,8 @@ main > .account-jelly {
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.25);
+  color: #d6fcef;
+  background: rgba(46, 128, 98, 0.32);
   padding: 2px 8px;
   border-radius: 999px;
   margin-bottom: 2px;
@@ -3930,7 +3965,7 @@ main > .account-jelly {
   margin: 0;
   font-size: 0.88rem;
   line-height: 1.55;
-  color: #ffebf6;
+  color: rgba(255, 244, 250, 0.9);
 }
 
 /* TAB: Packages */
@@ -3944,8 +3979,8 @@ main > .account-jelly {
 .siso-package-card {
   padding: 24px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -3953,9 +3988,9 @@ main > .account-jelly {
 }
 
 .siso-package-card.is-highlight {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: #ff9ecb;
-  box-shadow: 0 12px 32px rgba(255, 123, 172, 0.28);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: #ffffff;
+  box-shadow: 0 12px 32px rgba(45, 18, 60, 0.22);
 }
 
 .siso-pkg-promo-pill {
@@ -3964,11 +3999,11 @@ main > .account-jelly {
   right: 16px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: #ff7bac;
+  background: linear-gradient(180deg, #f08cb9 0%, #d8649c 100%);
   color: #ffffff;
   font-size: 0.72rem;
   font-weight: 800;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 10px rgba(45, 18, 60, 0.25);
 }
 
 .siso-pkg-header {
@@ -3989,7 +4024,7 @@ main > .account-jelly {
   font-size: 0.74rem;
   font-weight: 800;
   color: #ffd6ea;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.18);
   padding: 2px 8px;
   border-radius: 999px;
 }
@@ -4005,7 +4040,7 @@ main > .account-jelly {
 .siso-pkg-desc {
   font-size: 0.84rem;
   line-height: 1.48;
-  color: #ffebf6;
+  color: rgba(255, 244, 250, 0.9);
   margin: 0 0 14px;
   flex: 1;
 }
@@ -4016,19 +4051,19 @@ main > .account-jelly {
   padding: 10px;
   border-radius: 999px;
   text-align: center;
-  background: linear-gradient(135deg, #ff7bac 0%, #e0327e 100%);
+  background: linear-gradient(180deg, #f08cb9 0%, #d8649c 100%);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
   font-size: 0.88rem;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgba(224, 50, 126, 0.35);
+  box-shadow: 0 4px 14px rgba(216, 100, 156, 0.32);
   transition: transform 140ms ease, box-shadow 140ms ease;
 }
 
 .siso-pkg-order-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(224, 50, 126, 0.45);
+  box-shadow: 0 8px 20px rgba(216, 100, 156, 0.42);
 }
 
 /* =========================================
@@ -4044,17 +4079,21 @@ main > .account-jelly {
   background:
     radial-gradient(
       circle at 10% 20%,
-      rgba(255, 142, 193, 0.32),
+      rgba(255, 225, 242, 0.22),
       transparent 60%
     ),
-    rgba(45, 18, 54, 0.55);
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+  border: 1.5px solid rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(24px) saturate(125%);
   align-items: center;
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.42),
-    0 24px 54px rgba(28, 8, 36, 0.35);
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.5),
+    0 24px 54px rgba(45, 18, 60, 0.2);
 }
 
 .siso-contact-headline {
@@ -4067,7 +4106,7 @@ main > .account-jelly {
 .siso-contact-subtext {
   font-size: 0.98rem;
   line-height: 1.6;
-  color: #ffebf6;
+  color: rgba(255, 244, 250, 0.9);
   margin: 0 0 18px;
 }
 
@@ -4077,8 +4116,8 @@ main > .account-jelly {
   gap: 10px;
   padding: 10px 18px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.38);
   font-size: 0.9rem;
   color: #ffffff;
 }
@@ -4093,8 +4132,8 @@ main > .account-jelly {
 .siso-leadership-summary {
   padding: 24px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.32);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -4124,20 +4163,20 @@ main > .account-jelly {
   text-align: center;
   padding: 12px 20px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #ff7bac 0%, #e0327e 100%);
+  background: linear-gradient(180deg, #f08cb9 0%, #d8649c 100%);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
   font-size: 0.95rem;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 6px 20px rgba(224, 50, 126, 0.4);
+  box-shadow: 0 6px 20px rgba(216, 100, 156, 0.32);
   transition: transform 140ms ease, box-shadow 140ms ease;
   margin-top: 6px;
 }
 
 .siso-contact-action-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(224, 50, 126, 0.5);
+  box-shadow: 0 10px 24px rgba(216, 100, 156, 0.42);
 }
 
 /* =========================================
