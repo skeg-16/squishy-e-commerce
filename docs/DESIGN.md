@@ -28,7 +28,7 @@
 | `--char-cheese` | `#fff3a8` / `#f9d857` / `#d9a726` | Cheese Cube soft-body radial gradient stops |
 | `--char-catpaw` | `#fff7fb` / `#ffd6e7` / `#e89ab8` | Cat Paw soft-body radial gradient stops |
 | `--char-toast` | `#fff2d6` / `#f9d49b` / `#cf9855` | Pastel Toast soft-body radial gradient stops |
-| `--char-butter` | `#ffe6f0` / `#ff9ec4` / `#d9729f` | Butter Stick soft-body radial gradient stops |
+| `--char-butter` | `#fff9db` / `#ffebb0` / `#dfc059` | Butter Stick soft-body radial gradient stops |
 | `--char-peanut` | `#f7e3c4` / `#e0bc89` / `#b58850` | Peanut soft-body radial gradient stops |
 | `--bg-products` | `#fdf3ec` | Product catalog section backdrop |
 | `--bg-promo` | `#fbeaf3` | Promo bundle section backdrop |

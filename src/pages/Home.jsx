@@ -80,10 +80,10 @@ const HERO_CHARS = [
   {
     name: 'Butter Stick',
     slug: 'butter',
-    c1: '#ffe8f2',
-    c2: '#ff9ec7',
-    c3: '#d86999',
-    n: 4.8,
+    c1: '#fff9db',
+    c2: '#ffebb0',
+    c3: '#dfc059',
+    n: 5.2,
     deco: 'butter',
     p: 89,
     pitch: 680,
@@ -380,7 +380,7 @@ export default function Home() {
         const ctx = getAudioCtx();
         if (!ctx) return;
 
-        const clipUrl = `/assets/voices/${charObj.slug}-${idx}.mp3?v=2`;
+        const clipUrl = `/assets/voices/${charObj.slug}-${idx}.mp3?v=3`;
         let audioBuffer = voiceBufferCache.get(clipUrl);
         if (!audioBuffer) {
           const res = await fetch(clipUrl);
@@ -825,16 +825,24 @@ export default function Home() {
         );
         x.fill();
       } else if (k.deco === 'butter') {
-        // Butter stick golden top wrapper band with 'BUTTER'
-        x.fillStyle = '#facc15';
-        x.fillRect(cx - R * 1.1 * sx, cy - R * 0.85 * sy, R * 2.2 * sx, R * 0.42 * sy);
-        x.fillStyle = '#713f12';
-        x.font = `700 ${Math.max(13, R * 0.13)}px Fredoka,sans-serif`;
+        // Full top wrapper cap starting from the very top edge (matching product-butter.svg)
+        x.fillStyle = '#ffd34d';
+        x.fillRect(cx - R * 1.2 * sx, cy - R * 1.25 * sy, R * 2.4 * sx, R * 0.78 * sy);
+        // Subtle wrapper fold line
+        x.fillStyle = 'rgba(180, 130, 10, 0.18)';
+        x.fillRect(cx - R * 1.2 * sx, cy - R * 0.47 * sy, R * 2.4 * sx, R * 0.025 * sy);
+        // Crisp unobstructed 'BUTTER' title
+        x.fillStyle = '#8a6b00';
+        x.font = `800 ${Math.max(15, R * 0.15)}px Nunito,Fredoka,sans-serif`;
         x.textAlign = 'center';
-        x.fillText('BUTTER', cx, cy - R * 0.56 * sy);
-        x.fillStyle = 'rgba(113, 63, 18, 0.65)';
-        x.font = `700 ${Math.max(9, R * 0.068)}px Nunito,sans-serif`;
-        x.fillText('4oz · SALTED SWEET CREAM', cx, cy - R * 0.3 * sy);
+        x.fillText('BUTTER', cx, cy - R * 0.66 * sy);
+        // Bottom weight markings matching product-butter.svg
+        x.fillStyle = '#a98a2e';
+        x.font = `800 ${Math.max(11, R * 0.085)}px Nunito,sans-serif`;
+        x.fillText('4oz', cx, cy + R * 0.56 * sy);
+        x.fillStyle = '#bba254';
+        x.font = `700 ${Math.max(9, R * 0.065)}px Nunito,sans-serif`;
+        x.fillText('NET WT. (113 G)', cx, cy + R * 0.68 * sy);
       } else if (k.deco === 'peanut') {
         // Subtle woven peanut shell ridges along outer edges
         x.strokeStyle = 'rgba(150, 98, 42, 0.24)';
@@ -887,8 +895,10 @@ export default function Home() {
       x.strokeStyle = 'rgba(255,255,255,.4)';
       x.stroke();
       // gloss
-      const glossX = k.deco === 'butter' ? -0.58 : -0.42;
-      const glossY = k.deco === 'butter' ? -0.34 : -0.48;
+      const glossX = k.deco === 'butter' ? -0.62 : -0.42;
+      const glossY = k.deco === 'butter' ? -0.22 : -0.48;
+      const dotX = k.deco === 'butter' ? -0.48 : -0.22;
+      const dotY = k.deco === 'butter' ? -0.36 : -0.62;
       x.save();
       x.translate(cx + R * glossX * sx, cy + R * glossY * sy);
       x.rotate(-0.65);
@@ -899,7 +909,7 @@ export default function Home() {
       x.restore();
       x.fillStyle = 'rgba(255,255,255,.7)';
       x.beginPath();
-      x.arc(cx - R * 0.22 * sx, cy - R * 0.62 * sy, R * 0.035, 0, 7);
+      x.arc(cx + R * dotX * sx, cy + R * dotY * sy, R * 0.035, 0, 7);
       x.fill();
       // face
       const fx = cx + Math.max(-1, Math.min(1, lx)) * R * 0.1;
