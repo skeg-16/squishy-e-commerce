@@ -3135,134 +3135,172 @@ main > .account-jelly {
 
 
 /* =========================================
-   ABOUT PAGE — JELLY / GLASS THEME
+   SISO ABOUT PAGE — REDESIGNED & READABLE
 ========================================= */
 
-.about-jelly {
-  --about-ink: #fff8fc;
-  --about-muted: rgba(255, 244, 250, 0.76);
-  --about-border: rgba(255, 255, 255, 0.26);
-  --about-glass: rgba(255, 255, 255, 0.13);
-
-  color: var(--about-ink);
+.siso-page-wrapper {
+  min-height: 100vh;
+  color: #ffffff;
   background:
     radial-gradient(
-      ellipse at 12% 10%,
-      rgba(221, 143, 174, 0.65),
+      ellipse at 15% 10%,
+      rgba(224, 112, 170, 0.42),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 85% 25%,
+      rgba(120, 110, 200, 0.42),
       transparent 48%
     ),
     radial-gradient(
-      ellipse at 88% 35%,
-      rgba(105, 127, 174, 0.65),
-      transparent 48%
-    ),
-    radial-gradient(
-      ellipse at 50% 100%,
-      rgba(199, 179, 126, 0.55),
+      ellipse at 50% 90%,
+      rgba(220, 180, 110, 0.32),
       transparent 55%
     ),
     linear-gradient(
-      135deg,
-      #9e6485 0%,
-      #805d83 48%,
-      #647b9b 100%
-    );
-
-  background-attachment: fixed;
+      145deg,
+      #44244a 0%,
+      #321a36 45%,
+      #252844 100%
+    ) !important;
+  background-attachment: fixed !important;
+  padding-bottom: 80px;
 }
 
-/* ABOUT HERO & SISO INTRO */
+.siso-container {
+  width: 100%;
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
 
-.siso-hero-section {
-  position: relative;
-  isolation: isolate;
-  padding: 30px 0 50px;
-  background: transparent;
+/* =========================================
+   HERO BLOCK
+========================================= */
+
+.siso-hero-block {
+  padding: 70px 0 50px;
 }
 
 .siso-hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 36px;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: stretch;
+}
+
+.siso-hero-card {
+  background: rgba(45, 18, 54, 0.52);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 28px;
+  padding: 36px 38px;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.45),
+    0 22px 50px rgba(28, 8, 36, 0.35);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.siso-brand-badge-row {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.siso-hero-left {
-  position: relative;
-  z-index: 2;
-  text-align: left;
-}
-
-.siso-hero-badge {
+.siso-brand-pill {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 6px 14px 6px 10px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  backdrop-filter: blur(12px);
-  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
-.siso-brand-mark {
-  width: 22px;
-  height: 22px;
+.siso-logo-icon {
+  width: 24px;
+  height: 24px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
 }
 
-.siso-brand-name {
+.siso-brand-pill-title {
   font-family: Fredoka, var(--font-display);
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   color: #ffffff;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
-.siso-brand-tag {
-  font-size: 0.74rem;
+.siso-brand-pill-sub {
+  font-size: 0.78rem;
   font-weight: 700;
   color: #ffd6ea;
-  padding-left: 6px;
+  margin-left: 4px;
+  padding-left: 8px;
   border-left: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.siso-hero-left h1 {
-  color: var(--about-ink);
-  font-family: Fredoka, var(--font-display);
-  font-size: clamp(2.4rem, 4.2vw, 3.5rem);
-  line-height: 1.08;
-  margin: 0 0 16px;
-  text-shadow: 0 6px 20px rgba(55, 22, 62, 0.28);
+.siso-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.28);
+  border: 1px solid rgba(110, 231, 183, 0.42);
 }
 
-.siso-hero-sub {
-  color: var(--about-muted);
+.siso-hero-title {
+  font-family: Fredoka, var(--font-display);
+  font-size: clamp(2.3rem, 4vw, 3.4rem);
+  line-height: 1.1;
+  color: #ffffff;
+  margin: 0 0 16px;
+  text-shadow: 0 4px 18px rgba(35, 10, 42, 0.45);
+}
+
+.siso-text-highlight {
+  color: #ff9ecb;
+  text-shadow: 0 0 24px rgba(255, 158, 203, 0.65);
+}
+
+.siso-hero-description {
   font-size: 1.05rem;
-  line-height: 1.65;
-  margin-bottom: 24px;
+  line-height: 1.68;
+  color: #fff2fa;
+  margin: 0 0 26px;
   max-width: 580px;
 }
 
-.siso-metrics-strip {
+.siso-facts-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
-.siso-metric-card {
-  padding: 14px 16px;
+.siso-fact-item {
+  padding: 14px 12px;
   border-radius: 18px;
-  background: rgba(48, 20, 56, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  text-align: center;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.siso-metric-num {
+.siso-fact-num {
   font-family: Fredoka, var(--font-display);
   font-size: 1.45rem;
   font-weight: 700;
@@ -3270,374 +3308,505 @@ main > .account-jelly {
   line-height: 1.1;
 }
 
-.siso-metric-label {
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: rgba(255, 235, 246, 0.85);
+.siso-fact-lbl {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffd6ea;
   margin-top: 4px;
 }
 
 .siso-hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-}
-
-/* RIGHT: 3D TESTING CHAMBER & MASCOT CARD */
-
-.siso-hero-right {
-  position: relative;
-  z-index: 2;
-}
-
-.siso-mascot-card {
-  position: relative;
-  border-radius: 28px;
-  overflow: hidden;
-  padding: 20px;
-  background:
-    radial-gradient(
-      circle at 50% 30%,
-      rgba(255, 255, 255, 0.28),
-      rgba(68, 32, 74, 0.36) 88%
-    );
-  border: 1.5px solid rgba(255, 255, 255, 0.42);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  box-shadow:
-    inset 0 1.5px 2px rgba(255, 255, 255, 0.5),
-    0 24px 56px rgba(42, 16, 58, 0.28);
-  display: flex;
-  flex-direction: column;
   gap: 14px;
-}
-
-.siso-mascot-card__head {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
 }
 
-.siso-mascot-tag {
-  font-size: 0.76rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #ffd4ea;
-}
-
-.siso-mascot-title {
-  font-family: Fredoka, var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 700;
+.siso-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff7bac 0%, #e0327e 100%);
   color: #ffffff;
-}
-
-.siso-mascot-status {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: #d6fcef;
-  background: rgba(46, 128, 98, 0.4);
-  border: 1px solid rgba(164, 245, 214, 0.45);
-}
-
-.siso-mascot-bubble {
-  position: absolute;
-  top: 64px;
-  right: 24px;
-  z-index: 10;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #4b2448;
   font-family: Fredoka, var(--font-display);
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  box-shadow: 0 10px 24px rgba(45, 18, 58, 0.26);
-  animation: shopSpeechPop 220ms cubic-bezier(0.2, 1.3, 0.4, 1);
-  pointer-events: none;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(224, 50, 126, 0.38);
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.siso-mascot-stage {
-  position: relative;
-  min-height: 280px;
-  display: flex;
+.siso-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(224, 50, 126, 0.48);
+}
+
+.siso-secondary-btn {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-}
-
-.siso-mascot-stage .viewer-3d-stage {
-  height: 290px !important;
-  aspect-ratio: auto !important;
-}
-
-.siso-mascot-selector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-}
-
-.siso-mascot-chip {
-  padding: 6px 12px;
+  padding: 12px 22px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff8fc;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.36);
+  color: #ffffff;
   font-family: Fredoka, var(--font-display);
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
 
-.siso-mascot-chip:hover {
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.siso-mascot-chip.is-active {
-  background: #ffffff;
-  color: #4b2448;
+.siso-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
   border-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(45, 18, 60, 0.2);
-}
-
-.siso-mascot-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.siso-mascot-squish-btn {
-  width: 100%;
-  max-width: 320px;
-  padding: 10px 20px;
-  border-radius: 999px;
-  font-family: Fredoka, var(--font-display);
-  font-size: 0.92rem;
-  font-weight: 700;
-}
-
-.siso-mascot-hint {
-  margin: 0;
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: rgba(255, 242, 249, 0.8);
+  transform: translateY(-2px);
 }
 
 /* =========================================
-   SISO TEAM ROSTER SECTION
+   3D TACTILE CHAMBER
 ========================================= */
 
-.siso-team-section {
-  padding: 50px 0 60px;
-  background: transparent;
-}
-
-.siso-section-header {
-  text-align: center;
-  max-width: 680px;
-  margin: 0 auto 36px;
-}
-
-.siso-section-header h2 {
-  font-family: Fredoka, var(--font-display);
-  font-size: clamp(2rem, 3.4vw, 2.8rem);
-  margin: 8px 0 6px;
-  color: #ffffff;
-}
-
-.siso-section-header p {
-  color: var(--about-muted);
-  font-size: 0.98rem;
-  line-height: 1.6;
-}
-
-.siso-team-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 22px;
-}
-
-.siso-member-card {
-  padding: 24px;
-  border-radius: 24px;
-  background: rgba(48, 20, 56, 0.35);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+.siso-chamber-card {
+  position: relative;
+  background:
+    radial-gradient(
+      circle at 50% 28%,
+      rgba(255, 255, 255, 0.28),
+      rgba(52, 22, 60, 0.48) 85%
+    );
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 28px;
+  padding: 24px 26px;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.35),
-    0 16px 36px rgba(45, 18, 60, 0.2);
+    inset 0 1px 2px rgba(255, 255, 255, 0.48),
+    0 22px 50px rgba(28, 8, 36, 0.35);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 220ms ease;
+  justify-content: space-between;
+  gap: 14px;
 }
 
-.siso-member-card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.5),
-    0 24px 48px rgba(45, 18, 60, 0.3);
+.siso-chamber-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.siso-member-avatar {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
+.siso-chamber-kicker {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ffd6ea;
+}
+
+.siso-chamber-title {
+  margin: 2px 0 0;
+  font-family: Fredoka, var(--font-display);
+  font-size: 1.15rem;
   color: #ffffff;
+}
+
+.siso-pulse-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.32);
+  border: 1px solid rgba(110, 231, 183, 0.45);
+}
+
+.siso-chamber-bubble {
+  position: absolute;
+  top: 68px;
+  right: 26px;
+  z-index: 10;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #3b173e;
+  font-family: Fredoka, var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  box-shadow: 0 10px 28px rgba(30, 10, 38, 0.35);
+  animation: sisoBubblePop 220ms cubic-bezier(0.2, 1.3, 0.4, 1);
+  pointer-events: none;
+}
+
+@keyframes sisoBubblePop {
+  0% { transform: scale(0.6) translateY(8px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.siso-chamber-stage {
+  min-height: 270px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: Fredoka, var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 700;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  flex-shrink: 0;
+  position: relative;
 }
 
-.siso-member-info {
+.siso-chamber-stage .viewer-3d-stage {
+  height: 280px !important;
+  aspect-ratio: auto !important;
+}
+
+.siso-chamber-loading {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffd8ec;
+}
+
+.siso-model-selector-wrap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
+  align-items: center;
+  gap: 8px;
 }
 
-.siso-member-role-badge {
-  align-self: flex-start;
-  font-size: 0.72rem;
+.siso-selector-label {
+  font-size: 0.76rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #ffd6ea;
-  background: rgba(255, 255, 255, 0.14);
-  padding: 3px 10px;
+}
+
+.siso-model-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.siso-model-pill {
+  padding: 6px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  margin-bottom: 2px;
-}
-
-.siso-member-name {
-  margin: 0;
-  font-family: Fredoka, var(--font-display);
-  font-size: 1.22rem;
-  color: #ffffff;
-  line-height: 1.2;
-}
-
-.siso-member-title {
-  margin: 0;
-  font-size: 0.84rem;
-  font-weight: 700;
-  color: #a4f5d6;
-}
-
-.siso-member-bio {
-  margin: 6px 0 0;
-  font-size: 0.88rem;
-  line-height: 1.55;
-  color: var(--about-muted);
-}
-
-.siso-member-cheer-btn {
-  align-self: flex-start;
-  margin-top: auto;
-  padding: 7px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.12);
-  color: #fff8fc;
+  color: #ffffff;
   font-family: Fredoka, var(--font-display);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: background 160ms ease, transform 120ms ease;
+  transition: all 160ms ease;
 }
 
-.siso-member-cheer-btn:hover {
+.siso-model-pill:hover {
   background: rgba(255, 255, 255, 0.22);
-  transform: scale(1.03);
 }
 
-.siso-member-cheer-btn:active {
-  transform: scale(0.96);
+.siso-model-pill.is-active {
+  background: #ffffff;
+  color: #421c46;
+  border-color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.siso-chamber-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.siso-squish-action-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff7bac 0%, #e0327e 100%);
+  color: #ffffff;
+  border: none;
+  font-family: Fredoka, var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(224, 50, 126, 0.4);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.siso-squish-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(224, 50, 126, 0.5);
+}
+
+.siso-chamber-counter {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffebf6;
+}
+
+.siso-chamber-counter strong {
+  font-family: Fredoka, var(--font-display);
+  font-size: 0.95rem;
+  color: #a7f3d0;
+  margin-left: 4px;
 }
 
 /* =========================================
-   SISO KNOWLEDGE DOSSIER SECTION
+   SISO SECTION & HEADINGS
 ========================================= */
 
-.siso-knowledge-section {
-  padding: 50px 0 60px;
-  background: transparent;
+.siso-section {
+  padding: 60px 0;
 }
 
-.siso-tab-nav {
+.siso-section-heading {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 36px;
+}
+
+.siso-section-eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ff9ecb;
+  margin-bottom: 6px;
+}
+
+.siso-section-title {
+  font-family: Fredoka, var(--font-display);
+  font-size: clamp(2rem, 3.4vw, 2.7rem);
+  color: #ffffff;
+  margin: 0 0 10px;
+  text-shadow: 0 4px 16px rgba(35, 10, 42, 0.35);
+}
+
+.siso-section-subtitle {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #ffebf6;
+  margin: 0;
+}
+
+/* =========================================
+   TEAM ROSTER SECTION
+========================================= */
+
+.siso-team-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.siso-team-member-card {
+  background: rgba(45, 18, 54, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  padding: 26px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.38),
+    0 18px 42px rgba(28, 8, 36, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.siso-team-member-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    0 24px 52px rgba(28, 8, 36, 0.4);
+}
+
+.siso-member-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.siso-member-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Fredoka, var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+}
+
+.siso-member-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.siso-role-tag {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffd6ea;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.siso-dept-tag {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.24);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(110, 231, 183, 0.35);
+}
+
+.siso-member-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.siso-member-name {
+  font-family: Fredoka, var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 2px;
+  line-height: 1.2;
+}
+
+.siso-member-specialty {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #ffd6ea;
+  margin-bottom: 8px;
+}
+
+.siso-member-bio {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #ffebf6;
+  margin: 0;
+  flex: 1;
+}
+
+.siso-member-footer {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.siso-cheer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+  font-family: Fredoka, var(--font-display);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 120ms ease;
+}
+
+.siso-cheer-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: scale(1.04);
+}
+
+.siso-cheer-btn:active {
+  transform: scale(0.96);
+}
+
+.siso-cheer-heart {
+  font-size: 0.95rem;
+}
+
+.siso-cheer-count {
+  font-family: Fredoka, var(--font-display);
+  font-weight: 700;
+  color: #ffd6ea;
+  padding-left: 4px;
+}
+
+/* =========================================
+   KNOWLEDGE DOSSIER SECTION
+========================================= */
+
+.siso-tab-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   justify-content: center;
   margin-bottom: 28px;
 }
 
-.siso-tab-btn {
-  padding: 9px 18px;
+.siso-tab-button {
+  padding: 10px 20px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.12);
-  color: #fff8fc;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
   font-family: Fredoka, var(--font-display);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 180ms ease;
 }
 
-.siso-tab-btn:hover {
+.siso-tab-button:hover {
   background: rgba(255, 255, 255, 0.22);
 }
 
-.siso-tab-btn.is-active {
+.siso-tab-button.is-active {
   background: #ffffff;
-  color: #4b2448;
+  color: #3b173e;
   border-color: #ffffff;
-  box-shadow: 0 6px 18px rgba(45, 18, 60, 0.24);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
-.siso-knowledge-box {
-  padding: 32px 36px;
+.siso-dossier-panel {
+  background: rgba(45, 18, 54, 0.52);
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
   border-radius: 28px;
-  background: rgba(48, 20, 56, 0.34);
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  padding: 36px 40px;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.35),
-    0 20px 48px rgba(45, 18, 60, 0.22);
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    0 22px 50px rgba(28, 8, 36, 0.35);
 }
 
-.siso-knowledge-header {
+.siso-dossier-panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.siso-kicker {
-  font-size: 0.76rem;
+.siso-dossier-kicker {
+  font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -3645,127 +3814,175 @@ main > .account-jelly {
   display: block;
 }
 
-.siso-knowledge-header h3 {
+.siso-dossier-title {
   margin: 4px 0 0;
   font-family: Fredoka, var(--font-display);
   font-size: 1.6rem;
   color: #ffffff;
 }
 
-.siso-pill-badge {
+.siso-dossier-badge {
   padding: 5px 14px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
-  color: #d6fcef;
-  background: rgba(46, 128, 98, 0.38);
-  border: 1px solid rgba(164, 245, 214, 0.45);
-  flex-shrink: 0;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(110, 231, 183, 0.4);
 }
 
-.siso-tab-description {
+/* TAB: Overview */
+
+.siso-overview-lead {
   font-size: 1.05rem;
-  line-height: 1.75;
-  color: rgba(255, 245, 251, 0.94);
-  margin: 0;
+  line-height: 1.72;
+  color: #ffffff;
+  margin: 0 0 24px;
   max-width: 900px;
 }
 
-/* Features Grid */
-
-.siso-features-grid {
+.siso-overview-chips {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
-.siso-feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
+.siso-overview-chip {
   padding: 16px 18px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-}
-
-.siso-feature-num {
-  font-family: Fredoka, var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #ffd6ea;
-  flex-shrink: 0;
-}
-
-.siso-feature-item p {
-  margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.5;
-  color: #ffffff;
-}
-
-/* Specs Table */
-
-.siso-specs-table {
+  border: 1px solid rgba(255, 255, 255, 0.24);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
-.siso-spec-row {
-  display: grid;
-  grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
-  gap: 16px;
-  padding: 14px 18px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  align-items: center;
-}
-
-.siso-spec-label {
-  font-size: 0.84rem;
-  font-weight: 800;
+.siso-overview-chip strong {
+  font-size: 0.82rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: #ffd6ea;
 }
 
-.siso-spec-value {
+.siso-overview-chip span {
   font-size: 0.94rem;
   color: #ffffff;
   line-height: 1.45;
 }
 
-/* Audiences & Use Cases */
+/* TAB: Features */
 
-.siso-audiences-grid,
-.siso-usecases-grid {
+.siso-features-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.siso-feature-card {
+  display: flex;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  align-items: flex-start;
+}
+
+.siso-feature-num {
+  font-family: Fredoka, var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffd6ea;
+  flex-shrink: 0;
+}
+
+.siso-feature-text h4 {
+  margin: 0 0 4px;
+  font-family: Fredoka, var(--font-display);
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.siso-feature-text p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #ffebf6;
+}
+
+/* TAB: Specs */
+
+.siso-specs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.siso-spec-item {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  align-items: center;
+}
+
+.siso-spec-property {
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffd6ea;
+}
+
+.siso-spec-detail {
+  font-size: 0.95rem;
+  color: #ffffff;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* TAB: Audiences & Use Cases */
+
+.siso-audience-cards-grid,
+.siso-usecases-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .siso-audience-card,
-.siso-usecase-box {
+.siso-usecase-card {
   padding: 20px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.24);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.siso-usecase-num {
-  font-family: Fredoka, var(--font-display);
-  font-size: 0.82rem;
+.siso-audience-icon {
+  font-size: 1.5rem;
+  margin-bottom: 2px;
+}
+
+.siso-usecase-tag {
+  align-self: flex-start;
+  font-size: 0.72rem;
   font-weight: 800;
-  color: #a4f5d6;
+  text-transform: uppercase;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.25);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 2px;
 }
 
 .siso-audience-card h4,
-.siso-usecase-box h4 {
+.siso-usecase-card h4 {
   margin: 0;
   font-family: Fredoka, var(--font-display);
   font-size: 1.15rem;
@@ -3773,42 +3990,62 @@ main > .account-jelly {
 }
 
 .siso-audience-card p,
-.siso-usecase-box p {
+.siso-usecase-card p {
   margin: 0;
   font-size: 0.88rem;
   line-height: 1.55;
-  color: var(--about-muted);
+  color: #ffebf6;
 }
 
-/* Pricing Grid */
+/* TAB: Packages */
 
-.siso-pricing-grid {
+.siso-packages-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 
-.siso-pkg-card {
-  padding: 22px;
+.siso-package-card {
+  padding: 24px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.12);
   border: 1.5px solid rgba(255, 255, 255, 0.3);
   display: flex;
   flex-direction: column;
+  position: relative;
   gap: 8px;
 }
 
-.siso-pkg-card__head {
+.siso-package-card.is-highlight {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #ff9ecb;
+  box-shadow: 0 12px 32px rgba(255, 123, 172, 0.28);
+}
+
+.siso-pkg-promo-pill {
+  position: absolute;
+  top: -12px;
+  right: 16px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #ff7bac;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.siso-pkg-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.siso-pkg-card__head h4 {
+.siso-pkg-header h4 {
   margin: 0;
   font-family: Fredoka, var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: #ffffff;
 }
 
@@ -3823,71 +4060,82 @@ main > .account-jelly {
 
 .siso-pkg-price {
   font-family: Fredoka, var(--font-display);
-  font-size: 1.85rem;
+  font-size: 1.9rem;
   font-weight: 700;
   color: #ffffff;
+  margin: 4px 0;
 }
 
-.siso-pkg-note {
-  font-size: 0.82rem;
-  line-height: 1.45;
-  color: var(--about-muted);
-  margin: 0 0 8px;
+.siso-pkg-desc {
+  font-size: 0.84rem;
+  line-height: 1.48;
+  color: #ffebf6;
+  margin: 0 0 14px;
   flex: 1;
 }
 
-.siso-pkg-btn {
+.siso-pkg-order-btn {
+  margin-top: auto;
   width: 100%;
+  padding: 10px;
+  border-radius: 999px;
   text-align: center;
-  justify-content: center;
+  background: linear-gradient(135deg, #ff7bac 0%, #e0327e 100%);
+  color: #ffffff;
+  font-family: Fredoka, var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(224, 50, 126, 0.35);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.siso-pkg-order-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(224, 50, 126, 0.45);
 }
 
 /* =========================================
-   SISO CONTACT & SUPPORT BANNER
+   CONTACT & COLLABORATION BLOCK
 ========================================= */
 
-.siso-support-section {
-  padding: 30px 0 80px;
-  background: transparent;
-}
-
-.siso-support-banner {
-  padding: 36px 40px;
+.siso-contact-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 36px;
+  padding: 40px;
   border-radius: 28px;
   background:
     radial-gradient(
       circle at 10% 20%,
-      rgba(255, 142, 193, 0.28),
+      rgba(255, 142, 193, 0.32),
       transparent 60%
     ),
-    rgba(48, 20, 56, 0.42);
-  border: 1.5px solid rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.4),
-    0 24px 54px rgba(45, 18, 60, 0.25);
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 36px;
+    rgba(45, 18, 54, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
   align-items: center;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.42),
+    0 24px 54px rgba(28, 8, 36, 0.35);
 }
 
-.siso-support-banner__left h2 {
+.siso-contact-headline {
   font-family: Fredoka, var(--font-display);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  margin: 8px 0 10px;
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
   color: #ffffff;
+  margin: 6px 0 10px;
 }
 
-.siso-support-banner__left p {
-  color: var(--about-muted);
-  font-size: 0.96rem;
+.siso-contact-subtext {
+  font-size: 0.98rem;
   line-height: 1.6;
+  color: #ffebf6;
   margin: 0 0 18px;
 }
 
-.siso-contact-chip {
+.siso-email-display {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -3895,76 +4143,125 @@ main > .account-jelly {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: 0.9rem;
   color: #ffffff;
 }
 
-.siso-contact-chip a {
+.siso-email-link {
   color: #ffd6ea;
+  font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.siso-support-card {
+.siso-leadership-summary {
   padding: 24px;
-  border-radius: 22px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  text-align: center;
-  align-items: center;
+  gap: 12px;
 }
 
-.siso-support-card strong {
+.siso-lead-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.88rem;
+  gap: 10px;
+}
+
+.siso-lead-row strong {
   font-family: Fredoka, var(--font-display);
-  font-size: 1.05rem;
-  color: #ffffff;
-}
-
-.siso-support-card p {
-  margin: 0 0 12px;
-  font-size: 0.86rem;
   color: #ffd6ea;
 }
 
-.siso-banner-email-btn {
-  width: 100%;
-  max-width: 280px;
-  text-align: center;
-  justify-content: center;
+.siso-lead-row span {
+  color: #ffffff;
+  font-weight: 600;
+  text-align: right;
 }
 
-/* RESPONSIVE */
+.siso-contact-action-btn {
+  width: 100%;
+  text-align: center;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff7bac 0%, #e0327e 100%);
+  color: #ffffff;
+  font-family: Fredoka, var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(224, 50, 126, 0.4);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  margin-top: 6px;
+}
 
-@media (max-width: 960px) {
+.siso-contact-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(224, 50, 126, 0.5);
+}
+
+/* =========================================
+   RESPONSIVE QUERIES
+========================================= */
+
+@media (max-width: 1024px) {
   .siso-hero-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .siso-support-banner {
+  .siso-team-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .siso-packages-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .siso-contact-panel {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@media (max-width: 600px) {
-  .siso-metrics-strip {
+@media (max-width: 640px) {
+  .siso-hero-block {
+    padding-top: 85px;
+  }
+
+  .siso-team-cards-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .siso-knowledge-box {
-    padding: 22px 18px;
+  .siso-facts-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .siso-support-banner {
+  .siso-overview-chips {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .siso-packages-cards-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .siso-spec-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .siso-hero-card {
     padding: 24px 20px;
   }
 
-  .siso-spec-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
+  .siso-dossier-panel {
+    padding: 24px 20px;
+  }
+
+  .siso-contact-panel {
+    padding: 24px 20px;
   }
 }
 
