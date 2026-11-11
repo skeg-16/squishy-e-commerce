@@ -4,6 +4,7 @@ import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
 import { PRODUCT_MODELS } from '../data/productModels';
+import { createHeroSquishy3D } from '../components/HeroSquishy3D';
 
 const ProductViewer3D = lazy(() => import('../components/ProductViewer3D'));
 
@@ -315,6 +316,7 @@ export default function Home() {
   const [activePromoVibe, setActivePromoVibe] = useState('all');
   const { addToCart, syncProducts, showToast } = useCart();
   const heroRef = useRef(null);
+  const canvas3dRef = useRef(null);
   const canvasRef = useRef(null);
   const hintRef = useRef(null);
   const pickRef = useRef(null);
@@ -324,6 +326,7 @@ export default function Home() {
 
   useEffect(() => {
     const hero = heroRef.current;
+    const c3d = canvas3dRef.current;
     const c = canvasRef.current;
     const hintEl = hintRef.current;
     const pickEl = pickRef.current;
@@ -332,6 +335,7 @@ export default function Home() {
     const cnEl = squishCountRef.current;
     if (!hero || !c || !pickEl || !sbEl || !svEl || !cnEl) return undefined;
 
+    const hero3d = c3d ? createHeroSquishy3D(c3d) : null;
     const x = c.getContext('2d');
     let ch = 0;
     let W = 0;
@@ -783,13 +787,46 @@ export default function Home() {
       x.restore();
     }
 
-    function draw() {
+    function draw(dt = 0.016) {
       const k = HERO_CHARS[ch];
       const sx = (1 + 0.3 * sq) * (k.deco === 'butter' ? 0.88 : k.deco === 'peanut' ? 0.86 : 1);
       const sy = (1 - 0.42 * sq) * (k.deco === 'butter' ? 1.04 : 1);
       const cy = floor - R * sy;
       x.clearRect(0, 0, W, H);
-      // floor glow + shadow
+      if (hero3d) {
+        hero3d.renderFrame({
+          W,
+          H,
+          cx,
+          floor,
+          R,
+          ch,
+          charObj: k,
+          sq,
+          sqv,
+          press,
+          px,
+          py,
+          lx,
+          ly,
+          blink,
+          t,
+          dt,
+        });
+        callouts(sx, sy, cy);
+        drawSpeechBubble(sx, sy, cy);
+        sparks.forEach((s) => {
+          x.globalAlpha = Math.max(0, s.l);
+          x.fillStyle = s.h ? '#fff' : '#ffc4de';
+          x.beginPath();
+          x.arc(s.x, s.y, s.s * s.l + 1, 0, 7);
+          x.fill();
+        });
+        x.globalAlpha = 1;
+        return;
+      }
+
+      // floor glow + shadow (2D fallback)
       let g = x.createRadialGradient(cx, floor + 8, 0, cx, floor + 8, R * 1.8);
       g.addColorStop(0, 'rgba(255,225,240,.55)');
       g.addColorStop(1, 'rgba(255,225,240,0)');
@@ -802,7 +839,7 @@ export default function Home() {
       x.ellipse(cx, floor + 6, R * (0.95 + 0.35 * sq), R * 0.17, 0, 0, 7);
       x.fill();
 
-      // decorations behind body
+      // decorations behind body (2D fallback if WebGL unavailable)
       const top = cy - R * sy;
       if (k.deco === 'dumpling') {
         // Steamed dumpling top knots / pleats
@@ -1079,7 +1116,7 @@ export default function Home() {
         sq = 0.04 * Math.sin(t * 2.2);
       }
       ripple();
-      draw();
+      draw(dt);
       sbEl.style.height = `${stress}%`;
       svEl.textContent = `${Math.round(stress)}%`;
       rafId = requestAnimationFrame(loop);
@@ -1089,6 +1126,7 @@ export default function Home() {
 
     return () => {
       cancelAnimationFrame(rafId);
+      if (hero3d) hero3d.dispose();
       window.removeEventListener('resize', resize);
       if (ro) ro.disconnect();
       if (mq.removeEventListener) mq.removeEventListener('change', onMotionChange);
@@ -1181,9 +1219,14 @@ export default function Home() {
           </span>
         </h1>
         <canvas
+          className="hero__canvas-3d"
+          ref={canvas3dRef}
+          aria-hidden="true"
+        />
+        <canvas
           id="c"
           ref={canvasRef}
-          aria-label="Interactive squishy. Tap to poke, press and hold to squish."
+          aria-label="Interactive 3D squishy. Tap to poke, press and hold to squish."
         />
         <div className="o gauge" aria-live="polite">
           <div className="tube">
