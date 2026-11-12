@@ -824,24 +824,83 @@ main > .account-jelly {
 .site-header--jelly-dock .account-btn--dock {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   height: 40px;
-  padding: 0 15px;
+  padding: 0 14px 0 7px;
   border-radius: 999px;
-  font-size: 0.84rem;
-  font-weight: 800;
+  font-family: Fredoka, var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   color: #fff8fc !important;
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.32);
-  transition: transform 180ms ease, background 180ms ease;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.28), transparent 60%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(220, 180, 230, 0.12) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.4),
+    0 4px 14px rgba(35, 14, 48, 0.16);
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), background 200ms ease, box-shadow 220ms ease, border-color 200ms ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.account-btn__avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f7a0c8 0%, #db5996 100%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 2px 6px rgba(219, 89, 150, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.account-btn__label {
+  display: inline-block;
+  line-height: 1;
 }
 
 .site-header--jelly-dock .account-btn--dock:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.03);
+  background:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.38), transparent 60%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(240, 160, 210, 0.22) 100%);
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.6),
+    0 8px 22px rgba(240, 110, 165, 0.45);
+}
+
+.site-header--jelly-dock .account-btn--dock:hover .account-btn__avatar {
+  transform: scale(1.12) rotate(-5deg);
+}
+
+.site-header--jelly-dock .account-btn--dock:active {
+  transform: translateY(1px) scale(0.95);
+  box-shadow: 0 2px 8px rgba(35, 14, 48, 0.2);
+  transition-duration: 70ms;
+}
+
+/* Active State when viewing /account */
+.site-header--jelly-dock .account-btn--dock.is-active {
+  background: #ffffff !important;
+  color: #2e1732 !important;
+  border-color: #ffffff !important;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.4),
+    0 6px 20px rgba(235, 110, 165, 0.45) !important;
+}
+
+.site-header--jelly-dock .account-btn--dock.is-active .account-btn__avatar {
+  background: linear-gradient(180deg, #ff7db3 0%, #e64585 100%);
+  box-shadow: 0 2px 8px rgba(230, 69, 133, 0.55);
 }
 
 .site-header--jelly-dock .menu-toggle {
@@ -878,8 +937,8 @@ main > .account-jelly {
 
   .site-header--jelly-dock .account-btn--dock {
     height: 36px;
-    padding: 0 11px;
-    font-size: 0.78rem;
+    padding: 0 11px 0 5px;
+    font-size: 0.82rem;
   }
 }
 
@@ -898,14 +957,20 @@ main > .account-jelly {
   }
 
   .site-header--jelly-dock .account-btn--dock {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     padding: 0;
     justify-content: center;
+    border-radius: 50%;
   }
 
-  .site-header--jelly-dock .account-btn--dock span {
+  .site-header--jelly-dock .account-btn--dock .account-btn__label {
     display: none;
+  }
+
+  .site-header--jelly-dock .account-btn--dock .account-btn__avatar {
+    width: 24px;
+    height: 24px;
   }
 
   .site-header--jelly-dock .menu-toggle {
@@ -5866,21 +5931,85 @@ main > .account-jelly {
 
 .account-submit {
   width: 100%;
-  min-height: 50px;
-  margin-top: 3px;
-  border-radius: 13px;
-  font-weight: 800;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 13px 24px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  background: linear-gradient(180deg, #ff82b5 0%, #ea5690 100%) !important;
+  color: #ffffff !important;
+  font-family: Fredoka, var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.5),
+    0 8px 24px rgba(234, 86, 144, 0.42);
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, background 200ms ease;
+  user-select: none;
+}
+
+.account-submit:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.015);
+  background: linear-gradient(180deg, #ff94c2 0%, #f0619c 100%) !important;
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.6),
+    0 12px 30px rgba(234, 86, 144, 0.58);
+}
+
+.account-submit:active:not(:disabled) {
+  transform: translateY(2px) scale(0.97);
+  box-shadow: 0 4px 12px rgba(234, 86, 144, 0.35);
+  transition-duration: 80ms;
+}
+
+.account-submit.is-loading {
+  opacity: 0.9;
+  cursor: wait;
+}
+
+.account-submit.is-success {
+  background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%) !important;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.45);
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+.submit-spinner-orb {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: spinSubmit 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes spinSubmit {
+  to { transform: rotate(360deg); }
 }
 
 .account-message {
   margin: 0;
-  padding: 11px 13px;
+  padding: 12px 16px;
   color: white;
-  background: rgba(35, 17, 52, .35);
-  border: 1px solid rgba(255, 255, 255, .2);
-  border-radius: 11px;
-  font-size: .88rem;
+  background: rgba(35, 17, 52, .45);
+  border: 1.5px solid rgba(255, 255, 255, .28);
+  border-radius: 14px;
+  font-size: .9rem;
   line-height: 1.5;
+  box-shadow: 0 4px 14px rgba(25, 10, 35, 0.25);
+  animation: fadeInMsg 220ms ease;
+}
+
+@keyframes fadeInMsg {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .account-bottom {

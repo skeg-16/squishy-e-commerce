@@ -1139,7 +1139,7 @@ export default function Checkout() {
                     return (
                       <label
                         key={opt.value}
-                        className={`squishy-payment-tile${isSelected ? ' is-selected' : ''}${!available ? ' is-disabled' : ''}`}
+                        className={`payment-option squishy-payment-tile${isSelected ? ' is-selected' : ''}${!available ? ' is-disabled' : ''}`}
                         data-method={opt.value}
                       >
                         <div className="payment-tile-left">

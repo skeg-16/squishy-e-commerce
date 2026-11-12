@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 // ============================================================
 // BACKEND TEAM / AI CODING ASSISTANT — READ THIS BEFORE EDITING
@@ -38,8 +38,22 @@ import { Link } from 'react-router-dom';
 // ============================================================
 
 export default function Account() {
-  const [view, setView] = useState('account');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const modeParam = searchParams.get('mode');
+
+  // Default to 'login' unless specifically set to 'account' or 'register'
+  const initialView = modeParam === 'account' ? 'account' : modeParam === 'register' ? 'register' : 'login';
+  const [view, setView] = useState(initialView);
+  const [submitting, setSubmitting] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Keep view in sync when navigating or clicking header buttons
+  useEffect(() => {
+    if (modeParam === 'login' || modeParam === 'register' || modeParam === 'account') {
+      setView(modeParam);
+    }
+  }, [modeParam]);
 
   const [username, setUsername] = useState('squishylover');
   const [birthday, setBirthday] = useState('2004-05-29');
@@ -50,6 +64,7 @@ export default function Account() {
   function switchView(nextView) {
     setView(nextView);
     setMessage('');
+    setSearchParams({ mode: nextView }, { replace: true });
   }
 
   function previewNotice(action) {
@@ -60,7 +75,20 @@ export default function Account() {
 
   function handleLogin(event) {
     event.preventDefault();
-    previewNotice('Login');
+    setSubmitting(true);
+    setMessage('');
+
+    setTimeout(() => {
+      setSubmitting(false);
+      setLoginSuccess(true);
+      setMessage('Welcome back, Squishy Collector! ✨ Demo session verified.');
+
+      setTimeout(() => {
+        setView('account');
+        setLoginSuccess(false);
+        setSearchParams({ mode: 'account' }, { replace: true });
+      }, 700);
+    }, 600);
   }
 
   function handleRegister(event) {
@@ -100,7 +128,9 @@ export default function Account() {
   }
 
   function handleLogout() {
-    previewNotice('Logout');
+    setView('login');
+    setMessage('You have been logged out. See you next squish!');
+    setSearchParams({ mode: 'login' }, { replace: true });
   }
 
   function handleDelete() {
@@ -452,8 +482,53 @@ export default function Account() {
                 <p className="account-message" role="status">{message}</p>
               )}
 
-              <button type="submit" className="btn btn--pink account-submit">
-                {view === 'login' ? 'Log In' : 'Create Account'}
+              <button
+                type="submit"
+                className={`btn btn--pink account-submit${submitting ? ' is-loading' : ''}${loginSuccess ? ' is-success' : ''}`}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <span className="submit-spinner-orb" aria-hidden="true" />
+                    <span>Squishing in…</span>
+                  </>
+                ) : loginSuccess ? (
+                  <>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                    <span>Welcome Back!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      width="17"
+                      height="17"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    <span>{view === 'login' ? 'Log In to Squishies' : 'Create Collector Account'}</span>
+                  </>
+                )}
               </button>
             </form>
 
