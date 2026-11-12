@@ -8,9 +8,11 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:admin": "vite --config vite.admin.config.js",
     "dev:api": "node --env-file-if-exists=.env server/server.js",
     "start": "node --env-file-if-exists=.env server/server.js",
     "build": "vite build",
+    "build:admin": "vite build --config vite.admin.config.js",
     "db:migrate": "node --env-file-if-exists=.env scripts/database.js migrate",
     "db:seed": "node --env-file-if-exists=.env scripts/database.js seed",
     "demo:advance": "node --env-file-if-exists=.env scripts/demo.js",

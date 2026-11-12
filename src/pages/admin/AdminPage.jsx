@@ -22,6 +22,13 @@ const TABS = [
   ['reviews', 'Reviews'],
 ];
 
+function getStorefrontUrl() {
+  if (typeof window !== 'undefined' && window.location.port === '5174') {
+    return `${window.location.protocol}//${window.location.hostname}:5173/`;
+  }
+  return '/';
+}
+
 function getCurrentTab() {
   const tab = window.location.hash.slice(1);
   return TABS.some(([id]) => id === tab) ? tab : 'dashboard';
@@ -200,7 +207,7 @@ export default function AdminPage() {
             Log in
           </button>
 
-          <a href="/">Back to store</a>
+          <a href={getStorefrontUrl()}>Back to store</a>
         </form>
       </main>
     );
@@ -230,9 +237,9 @@ export default function AdminPage() {
         </nav>
 
         <div className="ad-header-actions">
-          <a className="btn btn--outline btn--sm" href="/">
+          <a className="btn btn--outline btn--sm" href={getStorefrontUrl()} target="_blank" rel="noopener noreferrer">
             View store
-            </a>
+          </a>
           <button
             className="btn btn--outline btn--sm"
             type="button"

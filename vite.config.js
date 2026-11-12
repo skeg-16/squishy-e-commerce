@@ -13,8 +13,6 @@ const SPA_HTML_PATHS = new Set([
   '/product.html',
   '/checkout.html',
   '/about.html',
-  '/admin.html',
-  '/admin',
   '/account.html',
   '/account',
 ]);
@@ -43,7 +41,10 @@ function squishiesDevPlugin() {
       server.middlewares.use((req, _res, next) => {
         if (req.url && (req.method === 'GET' || req.method === 'HEAD')) {
           const [pathname, search = ''] = req.url.split('?');
-          if (SPA_HTML_PATHS.has(pathname)) {
+          if (pathname === '/admin' || pathname === '/admin.html') {
+            // Admin runs on its own separated server (port 5174); avoid serving root admin.html on storefront
+            req.url = `/_not-found${search ? `?${search}` : ''}`;
+          } else if (SPA_HTML_PATHS.has(pathname)) {
             req.url = `/${search ? `?${search}` : ''}`;
           }
         }

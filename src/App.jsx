@@ -10,13 +10,14 @@ const Product = lazy(() => import('./pages/Product'));
 const About = lazy(() => import('./pages/About'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const Account = lazy(() => import('./pages/Account'));
-const AdminPage = lazy(() => import('./pages/admin/AdminPage'));
 
-function Placeholder({ title }) {
+function NotFoundPage() {
   return (
-    <section className="container" style={{ paddingBlock: '4rem' }}>
-      <h1>{title}</h1>
-      <p>This page is being migrated to React.</p>
+    <section className="container" style={{ paddingBlock: '5rem', textAlign: 'center' }}>
+      <h1>Page Not Found</h1>
+      <p style={{ marginTop: '0.75rem', opacity: 0.8 }}>
+        The page you requested does not exist on the Squishies storefront.
+      </p>
     </section>
   );
 }
@@ -29,11 +30,7 @@ export default function App() {
 
       <Suspense fallback={<SquishyPageLoader isSuspense />}>
         <Routes>
-          {/* Admin page — separate from the storefront layout */}
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin.html" element={<AdminPage />} />
-
-          {/* Storefront pages */}
+          {/* Storefront pages (Admin is served separately via dev:admin) */}
           <Route element={<SiteLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/index.html" element={<Navigate to="/" replace />} />
@@ -47,7 +44,7 @@ export default function App() {
             <Route path="/about.html" element={<About />} />
             <Route path="/account" element={<Account />} />
             <Route path="/account.html" element={<Account />} />
-            <Route path="*" element={<Placeholder title="Page Not Found" />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </Suspense>
