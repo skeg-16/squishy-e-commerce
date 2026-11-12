@@ -579,7 +579,9 @@ body {
 main > .product-jelly,
 main > .shop-jelly,
 main > .about-jelly,
-main > .account-jelly {
+main > .account-jelly,
+main > .checkout-jelly,
+.checkout-jelly {
   padding-top: 96px;
 }
 
@@ -4685,77 +4687,101 @@ main > .account-jelly {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 10px !important;
-  padding: 11px 14px !important;
+  gap: 12px !important;
+  padding: 13px 15px !important;
   border-radius: 16px !important;
-  background: rgba(255, 255, 255, 0.14) !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.32) !important;
+  background: rgba(28, 12, 38, 0.56) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
   cursor: pointer !important;
-  transition: all 180ms ease !important;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease !important;
   user-select: none !important;
   color: #ffffff !important;
 }
 
 .squishy-payment-tile:hover {
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.22) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
-  box-shadow: 0 6px 16px rgba(45, 18, 60, 0.15);
+  transform: translateY(-2px);
+  background: rgba(38, 16, 52, 0.72) !important;
+  border-color: rgba(255, 200, 228, 0.55) !important;
+  box-shadow: 0 8px 20px rgba(20, 8, 30, 0.28);
 }
 
 .squishy-payment-tile.is-selected {
-  background: rgba(255, 255, 255, 0.28) !important;
-  border-color: #ffffff !important;
+  background: rgba(54, 20, 62, 0.85) !important;
+  border-color: #ff94c4 !important;
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.4),
-    0 8px 20px rgba(45, 18, 60, 0.2) !important;
+    inset 0 1px 2px rgba(255, 255, 255, 0.25),
+    0 0 0 2px rgba(255, 148, 196, 0.28),
+    0 10px 24px rgba(25, 8, 35, 0.35) !important;
 }
 
 .payment-tile-left {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
   min-width: 0;
+  flex: 1;
 }
 
 .payment-tile-icon-wrap {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: #ffb4d7;
   flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.squishy-payment-tile.is-selected .payment-tile-icon-wrap {
+  background: linear-gradient(180deg, #ff85b8 0%, #db5490 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.squishy-payment-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
 }
 
 .payment-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 1px;
 }
 
 .payment-title-row strong {
   font-family: Fredoka, var(--font-display);
-  font-size: 1rem;
-  color: #ffffff;
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #ffffff !important;
+  line-height: 1.25;
 }
 
 .payment-badge-pill {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 800;
   padding: 2px 8px;
   border-radius: 999px;
-  color: #ffe0ef;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+  color: #ffe3f1 !important;
+  background: rgba(240, 140, 185, 0.24) !important;
+  border: 1px solid rgba(255, 190, 220, 0.42) !important;
+  line-height: 1.3;
 }
 
 .payment-desc-text {
-  font-size: 0.82rem;
-  color: rgba(255, 244, 250, 0.82);
+  display: block;
+  font-size: 0.78rem;
+  color: #eed6e7 !important;
   line-height: 1.4;
 }
 
@@ -5040,12 +5066,12 @@ main > .account-jelly {
 }
 
 .summary-free-pill {
-  color: #a7f3d0 !important;
+  color: #b8f7dc !important;
   font-weight: 800;
-  background: rgba(16, 185, 129, 0.25);
-  padding: 1px 7px;
+  background: rgba(16, 130, 92, 0.55) !important;
+  padding: 2px 9px;
   border-radius: 999px;
-  border: 1px solid rgba(110, 231, 183, 0.4);
+  border: 1px solid rgba(110, 231, 183, 0.55);
 }
 
 .summary-discount-row {
@@ -5057,14 +5083,30 @@ main > .account-jelly {
   font-weight: 800;
 }
 
-.checkout-jelly .order-summary__note {
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: #ffe0ef;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.12);
+.checkout-jelly .order-summary__note,
+.checkout-jelly .squishy-shipping-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #ffe8f3 !important;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(28, 12, 40, 0.62) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   margin: 10px 0 0;
+}
+
+.checkout-jelly .squishy-shipping-banner.is-unlocked {
+  background: rgba(16, 84, 62, 0.68) !important;
+  border-color: rgba(110, 231, 183, 0.5) !important;
+  color: #d6fcef !important;
+}
+
+.checkout-jelly .squishy-shipping-banner svg {
+  flex-shrink: 0;
 }
 
 .checkout-jelly .order-summary__row--total {
@@ -6702,5 +6744,535 @@ main > .account-jelly {
   font-weight: 600;
   color: #ffd6ea;
 }
+
+/* =========================================================
+   THEME TOGGLE BUTTON & LAG-FREE VIEW TRANSITION REVEAL
+   ========================================================= */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 999999;
+}
+
+.site-header--jelly-dock .theme-toggle-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: #fff8fc;
+  cursor: pointer;
+  user-select: none;
+  background:
+    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.28), transparent 58%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(220, 180, 230, 0.12) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.4),
+    0 4px 14px rgba(35, 14, 48, 0.16);
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 200ms ease,
+    border-color 200ms ease,
+    box-shadow 220ms ease;
+}
+
+.site-header--jelly-dock .theme-toggle-btn:hover {
+  transform: translateY(-2px) scale(1.06);
+  background:
+    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.36), transparent 60%),
+    linear-gradient(135deg, rgba(255, 182, 222, 0.32) 0%, rgba(180, 110, 225, 0.26) 100%);
+  border-color: rgba(255, 210, 236, 0.72);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.55),
+    0 8px 22px rgba(232, 95, 165, 0.42);
+}
+
+.site-header--jelly-dock .theme-toggle-btn:active {
+  transform: translateY(1px) scale(0.92);
+  transition-duration: 70ms;
+}
+
+.site-header--jelly-dock .theme-toggle-btn__track {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.site-header--jelly-dock .theme-toggle-btn:hover .theme-toggle-btn__track {
+  transform: rotate(-14deg) scale(1.08);
+}
+
+.site-header--jelly-dock .theme-toggle-btn.is-dark {
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 140, 200, 0.34), transparent 60%),
+    linear-gradient(135deg, rgba(84, 28, 108, 0.82) 0%, rgba(46, 15, 68, 0.88) 100%);
+  border-color: rgba(244, 140, 198, 0.52);
+  color: #ffd9ed;
+  box-shadow:
+    inset 0 1px 1.5px rgba(255, 195, 232, 0.32),
+    0 4px 16px rgba(220, 60, 145, 0.32);
+}
+
+@media (max-width: 768px) {
+  .site-header--jelly-dock .theme-toggle-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* =========================================================
+   DARK MODE — GRADIENT DARK PURPLE WITH DARK PINK TOUCH
+   Zero flat black; cohesive across all routes & overlays
+   ========================================================= */
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-cream: #1c0c2b;
+  --color-cream-soft: #26123a;
+  --color-white: #ffffff;
+  --color-navy: #fff2fa;
+  --color-navy-soft: #e6c6dc;
+  --color-pink: #ff8dc4;
+  --color-pink-deep: #f060a8;
+  --color-pink-tint: rgba(240, 96, 168, 0.2);
+  --color-border: rgba(235, 165, 220, 0.24);
+  --bg-hero: linear-gradient(135deg, #170924 0%, #2a103d 52%, #3a143c 100%);
+  --bg-products: linear-gradient(160deg, #210e34 0%, #2f1444 52%, #39143a 100%);
+  --bg-promo: linear-gradient(160deg, #1a0b29 0%, #2c123f 55%, #3c143c 100%);
+}
+
+/* Global canvas & default dark gradient purple + subtle dark pink sheen */
+html[data-theme="dark"] body {
+  color: #fff2fa;
+  background:
+    radial-gradient(ellipse at 14% 12%, rgba(212, 46, 132, 0.28), transparent 48%),
+    radial-gradient(ellipse at 86% 24%, rgba(120, 44, 184, 0.34), transparent 50%),
+    radial-gradient(ellipse at 52% 96%, rgba(190, 44, 118, 0.22), transparent 55%),
+    linear-gradient(135deg, #150822 0%, #241038 42%, #311244 72%, #230d32 100%);
+  background-attachment: fixed;
+}
+
+/* Header capsule dock */
+html[data-theme="dark"] .site-header--jelly-dock .header__dock {
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(230, 74, 152, 0.26), transparent 58%),
+    radial-gradient(ellipse at 82% 100%, rgba(136, 62, 198, 0.24), transparent 58%),
+    linear-gradient(180deg, rgba(44, 16, 64, 0.78), rgba(28, 10, 44, 0.86));
+  border-color: rgba(242, 162, 212, 0.28);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 200, 232, 0.22),
+    0 16px 38px rgba(14, 4, 24, 0.58);
+}
+
+html[data-theme="dark"] .site-header--jelly-dock .main-nav--dock {
+  background: rgba(24, 8, 36, 0.52);
+  border-color: rgba(240, 156, 210, 0.22);
+}
+
+html[data-theme="dark"] .site-header--jelly-dock .main-nav--dock a.is-active {
+  background: linear-gradient(135deg, #ffd8ec 0%, #f8c2e2 100%);
+  color: #361036;
+}
+
+html[data-theme="dark"] .site-header--jelly-dock .cart-btn--dock,
+html[data-theme="dark"] .site-header--jelly-dock .account-btn--dock {
+  background: rgba(38, 14, 58, 0.65);
+  border-color: rgba(240, 165, 215, 0.3);
+}
+
+html[data-theme="dark"] .site-header--jelly-dock .account-btn--dock.is-active {
+  background: linear-gradient(135deg, #ffe2f2 0%, #f8c4e4 100%) !important;
+  color: #341036 !important;
+}
+
+@media (max-width: 768px) {
+  html[data-theme="dark"] .site-header--jelly-dock .main-nav--dock.is-open {
+    background: linear-gradient(160deg, rgba(38, 14, 56, 0.96), rgba(26, 9, 40, 0.98));
+    border-color: rgba(240, 160, 210, 0.32);
+  }
+}
+
+/* Home page: Hero, Showcase & Bundles */
+html[data-theme="dark"] .home-jelly {
+  --home-ink: #fff4fb;
+  --home-muted: #ebd0e5;
+  background:
+    radial-gradient(ellipse at 14% 12%, rgba(214, 48, 134, 0.26), transparent 48%),
+    radial-gradient(ellipse at 86% 32%, rgba(124, 48, 186, 0.34), transparent 50%),
+    radial-gradient(ellipse at 50% 96%, rgba(188, 42, 114, 0.2), transparent 54%),
+    linear-gradient(135deg, #160924 0%, #25103a 44%, #331344 74%, #220d31 100%);
+}
+
+html[data-theme="dark"] .home-jelly .hero {
+  background:
+    radial-gradient(ellipse at 22% 24%, rgba(218, 52, 138, 0.3), transparent 52%),
+    radial-gradient(ellipse at 82% 72%, rgba(124, 46, 190, 0.32), transparent 52%),
+    linear-gradient(125deg, #170826 0%, #281040 42%, #381446 72%, #240e34 100%);
+}
+
+html[data-theme="dark"] .home-jelly .hero::before {
+  background: rgba(235, 72, 154, 0.26);
+}
+
+html[data-theme="dark"] .home-jelly .hero::after {
+  background: rgba(146, 70, 212, 0.24);
+}
+
+html[data-theme="dark"] .home-jelly .products,
+html[data-theme="dark"] .home-jelly .promo {
+  background: transparent;
+}
+
+html[data-theme="dark"] .home-jelly .shelf-tabs,
+html[data-theme="dark"] .home-jelly .promo-vibe-bar {
+  background: rgba(34, 12, 52, 0.56);
+  border-color: rgba(242, 162, 212, 0.26);
+}
+
+html[data-theme="dark"] .home-jelly .shelf-tab.is-active,
+html[data-theme="dark"] .home-jelly .promo-vibe-pill.is-active {
+  background: linear-gradient(135deg, #ffdfef 0%, #f8c4e2 100%);
+  color: #361036;
+}
+
+html[data-theme="dark"] .home-jelly .product-card,
+html[data-theme="dark"] .home-jelly .promo-card,
+html[data-theme="dark"] .shop-jelly .product-card--shop-3d {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(226, 62, 146, 0.16), transparent 56%),
+    linear-gradient(155deg, rgba(46, 17, 68, 0.72) 0%, rgba(28, 10, 44, 0.82) 100%);
+  border-color: rgba(242, 166, 216, 0.28);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 200, 232, 0.2),
+    0 20px 44px rgba(14, 4, 24, 0.45);
+}
+
+html[data-theme="dark"] .home-jelly .product-card:hover,
+html[data-theme="dark"] .home-jelly .promo-card:hover,
+html[data-theme="dark"] .shop-jelly .product-card--shop-3d:hover {
+  border-color: rgba(255, 152, 206, 0.56);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 210, 238, 0.3),
+    0 24px 52px rgba(18, 5, 30, 0.62);
+}
+
+html[data-theme="dark"] .home-jelly .promo-card--featured {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(235, 76, 158, 0.24), transparent 56%),
+    linear-gradient(155deg, rgba(64, 22, 86, 0.8) 0%, rgba(36, 12, 54, 0.88) 100%);
+  border-color: rgba(255, 168, 218, 0.52);
+}
+
+html[data-theme="dark"] .home-jelly .product-card__media,
+html[data-theme="dark"] .shop-jelly .product-card__media--shop-3d,
+html[data-theme="dark"] .home-jelly .promo-card__stage {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(245, 126, 190, 0.22), rgba(92, 34, 122, 0.26) 58%, rgba(20, 7, 32, 0.48) 100%);
+}
+
+/* Shop page */
+html[data-theme="dark"] .shop-jelly {
+  --shop-ink: #fff4fb;
+  --shop-muted: #ebd0e5;
+  background:
+    radial-gradient(ellipse at 12% 14%, rgba(214, 48, 134, 0.26), transparent 48%),
+    radial-gradient(ellipse at 88% 30%, rgba(124, 48, 186, 0.32), transparent 50%),
+    radial-gradient(ellipse at 50% 96%, rgba(190, 44, 118, 0.22), transparent 55%),
+    linear-gradient(135deg, #160924 0%, #26103b 48%, #341344 82%, #220d31 100%);
+  background-attachment: fixed;
+}
+
+html[data-theme="dark"] .shop-carousel,
+html[data-theme="dark"] .shop-toolbar,
+html[data-theme="dark"] .jelly-pagination {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(226, 62, 146, 0.14), transparent 54%),
+    linear-gradient(155deg, rgba(44, 16, 66, 0.72) 0%, rgba(28, 10, 44, 0.8) 100%);
+  border-color: rgba(242, 166, 216, 0.28);
+}
+
+html[data-theme="dark"] .shop-search input,
+html[data-theme="dark"] .shop-sort select,
+html[data-theme="dark"] .shop-filter-pill {
+  background: rgba(28, 10, 44, 0.68);
+  border-color: rgba(240, 160, 212, 0.28);
+  color: #fff4fb;
+}
+
+/* Product detail page (.product-jelly) */
+html[data-theme="dark"] .product-jelly {
+  --jelly-ink: #fff4fb;
+  --jelly-muted: #ebd0e5;
+  --jelly-white: rgba(38, 14, 58, 0.76);
+  color: #fff4fb;
+  background:
+    radial-gradient(ellipse at 14% 12%, rgba(214, 48, 134, 0.28), transparent 48%),
+    radial-gradient(ellipse at 86% 26%, rgba(122, 46, 186, 0.34), transparent 50%),
+    radial-gradient(ellipse at 50% 96%, rgba(192, 46, 120, 0.22), transparent 55%),
+    linear-gradient(135deg, #160924 0%, #26103b 50%, #371342 100%);
+  background-attachment: fixed;
+}
+
+html[data-theme="dark"] .product-jelly .product-page__image,
+html[data-theme="dark"] .product-jelly .product-page__info,
+html[data-theme="dark"] .product-jelly .product-page__specs,
+html[data-theme="dark"] .product-jelly .product-page__faqs,
+html[data-theme="dark"] .product-jelly .faq-item,
+html[data-theme="dark"] .product-jelly .checkout-card,
+html[data-theme="dark"] .product-jelly #verifiedReviewsContainer article {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(226, 62, 146, 0.16), transparent 56%),
+    linear-gradient(145deg, rgba(44, 16, 66, 0.78), rgba(28, 10, 44, 0.86));
+  border-color: rgba(242, 166, 216, 0.3);
+  box-shadow:
+    inset 0 1.5px 3px rgba(255, 200, 232, 0.18),
+    0 18px 42px rgba(14, 4, 24, 0.5);
+  color: #fff4fb;
+}
+
+html[data-theme="dark"] .product-jelly .product-page__image::before,
+html[data-theme="dark"] .product-jelly .product-page__info::before,
+html[data-theme="dark"] .product-jelly .product-page__specs::before,
+html[data-theme="dark"] .product-jelly .product-page__faqs::before,
+html[data-theme="dark"] .product-jelly .faq-item::before {
+  background: linear-gradient(135deg, rgba(255, 195, 230, 0.12), transparent 40%);
+}
+
+html[data-theme="dark"] .product-jelly .specs-list dd {
+  color: #ffe2f2;
+}
+
+html[data-theme="dark"] .product-jelly .specs-list__row {
+  border-bottom-color: rgba(242, 166, 216, 0.2);
+}
+
+html[data-theme="dark"] .product-jelly .breadcrumb,
+html[data-theme="dark"] .product-jelly .breadcrumb a {
+  color: #f3c8e4;
+}
+
+html[data-theme="dark"] .product-jelly .qty-stepper {
+  background: rgba(28, 10, 44, 0.7);
+  border-color: rgba(242, 166, 216, 0.34);
+}
+
+html[data-theme="dark"] .product-jelly .qty-btn {
+  background: rgba(240, 120, 185, 0.24);
+  color: #fff4fb;
+}
+
+html[data-theme="dark"] .product-jelly #pdpAddToCart {
+  background: linear-gradient(135deg, #f074b4 0%, #c84b96 60%, #9b48c8 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 26px rgba(214, 60, 145, 0.4);
+}
+
+html[data-theme="dark"] .product-jelly #pdpBuyNow {
+  background: linear-gradient(135deg, #7444ad 0%, #5a2c8e 100%);
+  color: #fff4fb;
+  border: 1px solid rgba(242, 172, 222, 0.36);
+}
+
+/* About page (.about-jelly) */
+html[data-theme="dark"] .about-jelly {
+  background:
+    radial-gradient(ellipse at 14% 12%, rgba(214, 48, 134, 0.28), transparent 48%),
+    radial-gradient(ellipse at 86% 28%, rgba(124, 48, 186, 0.34), transparent 50%),
+    radial-gradient(ellipse at 50% 96%, rgba(190, 44, 118, 0.22), transparent 55%),
+    linear-gradient(135deg, #160924 0%, #26103b 48%, #381442 100%) !important;
+  background-attachment: fixed !important;
+}
+
+html[data-theme="dark"] .siso-hero-card,
+html[data-theme="dark"] .siso-pledge-card,
+html[data-theme="dark"] .siso-dossier-panel,
+html[data-theme="dark"] .siso-showcase-card,
+html[data-theme="dark"] .siso-team-member-card,
+html[data-theme="dark"] .siso-package-card,
+html[data-theme="dark"] .siso-feature-tile,
+html[data-theme="dark"] .siso-spec-card,
+html[data-theme="dark"] .siso-bundle-card {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(226, 62, 146, 0.16), transparent 55%),
+    linear-gradient(145deg, rgba(44, 16, 66, 0.78) 0%, rgba(26, 9, 40, 0.88) 100%);
+  border-color: rgba(242, 166, 216, 0.28);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 200, 232, 0.2),
+    0 22px 48px rgba(14, 4, 24, 0.5);
+}
+
+html[data-theme="dark"] .siso-package-card.is-highlight {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(235, 76, 158, 0.26), transparent 56%),
+    linear-gradient(145deg, rgba(64, 22, 86, 0.86) 0%, rgba(36, 12, 54, 0.92) 100%);
+  border-color: rgba(255, 168, 218, 0.58);
+}
+
+html[data-theme="dark"] .siso-fact-item,
+html[data-theme="dark"] .siso-pledge-item,
+html[data-theme="dark"] .siso-overview-chip,
+html[data-theme="dark"] .siso-feature-card,
+html[data-theme="dark"] .siso-spec-item,
+html[data-theme="dark"] .siso-audience-card,
+html[data-theme="dark"] .siso-usecase-card,
+html[data-theme="dark"] .siso-tab-button {
+  background: rgba(28, 10, 44, 0.66);
+  border-color: rgba(242, 166, 216, 0.28);
+}
+
+html[data-theme="dark"] .siso-tab-button.is-active {
+  background: linear-gradient(135deg, #ffe2f2 0%, #f8c4e4 100%);
+  color: #341036;
+  border-color: #ffffff;
+}
+
+/* Checkout page (.checkout-jelly) */
+html[data-theme="dark"] .checkout-jelly {
+  --shop-ink: #fff4fb;
+  --shop-muted: #ebd0e5;
+  background:
+    radial-gradient(ellipse at 14% 12%, rgba(214, 48, 134, 0.28), transparent 48%),
+    radial-gradient(ellipse at 86% 28%, rgba(124, 48, 186, 0.34), transparent 50%),
+    radial-gradient(ellipse at 50% 96%, rgba(190, 44, 118, 0.22), transparent 55%),
+    linear-gradient(135deg, #160924 0%, #26103b 48%, #381442 100%) !important;
+  background-attachment: fixed !important;
+}
+
+html[data-theme="dark"] .checkout-jelly .checkout-card.squishy-glass-card,
+html[data-theme="dark"] .checkout-jelly .shopee-receipt-card {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(226, 62, 146, 0.16), transparent 55%),
+    linear-gradient(155deg, rgba(42, 15, 64, 0.78) 0%, rgba(26, 9, 40, 0.86) 100%) !important;
+  border-color: rgba(242, 166, 216, 0.3) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 200, 232, 0.2),
+    0 24px 54px rgba(14, 4, 24, 0.56) !important;
+}
+
+html[data-theme="dark"] .checkout-jelly .form-field input,
+html[data-theme="dark"] .checkout-jelly .form-field textarea,
+html[data-theme="dark"] .checkout-jelly .form-select,
+html[data-theme="dark"] .checkout-jelly .voucher-input-row input {
+  background: rgba(20, 7, 32, 0.72) !important;
+  border-color: rgba(240, 160, 212, 0.3) !important;
+  color: #fff4fb !important;
+}
+
+html[data-theme="dark"] .checkout-jelly .form-select option {
+  background: #220d36;
+  color: #fff4fb;
+}
+
+html[data-theme="dark"] .checkout-jelly .squishy-payment-tile {
+  background: rgba(24, 8, 38, 0.72);
+  border-color: rgba(240, 162, 214, 0.28);
+}
+
+html[data-theme="dark"] .checkout-jelly .squishy-payment-tile.is-selected {
+  background: linear-gradient(145deg, rgba(84, 24, 82, 0.9), rgba(48, 16, 68, 0.94));
+  border-color: #ff92c8;
+  box-shadow: 0 10px 26px rgba(224, 62, 146, 0.34);
+}
+
+html[data-theme="dark"] .checkout-jelly .squishy-voucher-box,
+html[data-theme="dark"] .checkout-jelly .order-item,
+html[data-theme="dark"] .checkout-jelly .checkout-stepper-wrap,
+html[data-theme="dark"] .checkout-jelly .shopee-info-box,
+html[data-theme="dark"] .checkout-jelly .shopee-financial-box {
+  background: rgba(22, 8, 36, 0.65) !important;
+  border-color: rgba(240, 162, 214, 0.24) !important;
+}
+
+html[data-theme="dark"] .checkout-jelly .payment-modal {
+  background: linear-gradient(155deg, rgba(46, 16, 68, 0.96), rgba(26, 9, 40, 0.98)) !important;
+  border-color: rgba(244, 168, 218, 0.38) !important;
+  color: #fff4fb;
+}
+
+/* Account page (.account-jelly) */
+html[data-theme="dark"] .account-jelly {
+  --account-muted: #e6c6df;
+  background:
+    radial-gradient(ellipse at 14% 12%, rgba(214, 48, 134, 0.28), transparent 48%),
+    radial-gradient(ellipse at 86% 28%, rgba(124, 48, 186, 0.34), transparent 50%),
+    radial-gradient(ellipse at 50% 96%, rgba(190, 44, 118, 0.22), transparent 55%),
+    linear-gradient(135deg, #160924 0%, #26103b 48%, #381442 100%) !important;
+  background-attachment: fixed !important;
+}
+
+html[data-theme="dark"] .account-card {
+  background:
+    radial-gradient(circle at 16% 16%, rgba(226, 62, 146, 0.16), transparent 54%),
+    linear-gradient(155deg, rgba(44, 16, 66, 0.78), rgba(26, 9, 40, 0.86));
+  border-color: rgba(242, 166, 216, 0.28);
+}
+
+html[data-theme="dark"] .account-switch,
+html[data-theme="dark"] .account-field input,
+html[data-theme="dark"] .account-setting-section,
+html[data-theme="dark"] .account-profile-summary {
+  background: rgba(20, 7, 32, 0.72);
+  border-color: rgba(240, 160, 212, 0.28);
+}
+
+/* Footer */
+html[data-theme="dark"] .logo--footer .logo__text,
+html[data-theme="dark"] .logo__text {
+  color: #ffffff;
+}
+
+/* Cart Drawer */
+html[data-theme="dark"] .cart-overlay {
+  background: rgba(14, 4, 24, 0.76) !important;
+}
+
+html[data-theme="dark"] .squishy-cart-drawer.cart-drawer {
+  background:
+    radial-gradient(circle at 12% 14%, rgba(226, 62, 146, 0.24), transparent 52%),
+    linear-gradient(180deg, rgba(42, 15, 64, 0.97) 0%, rgba(22, 8, 36, 0.99) 100%) !important;
+  border-left-color: rgba(242, 166, 216, 0.3) !important;
+}
+
+html[data-theme="dark"] .squishy-cart-card,
+html[data-theme="dark"] .cart-free-shipping-card,
+html[data-theme="dark"] .cart-trust-ribbon {
+  background: rgba(24, 8, 38, 0.72) !important;
+  border-color: rgba(240, 162, 214, 0.26) !important;
+}
+
+/* Footer */
+html[data-theme="dark"] .site-footer {
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(214, 48, 134, 0.22), transparent 55%),
+    radial-gradient(ellipse at 82% 100%, rgba(124, 48, 186, 0.22), transparent 55%),
+    linear-gradient(180deg, #1b0a2c 0%, #12061e 100%);
+  border-top: 1px solid rgba(242, 166, 216, 0.22);
+}
+
+html[data-theme="dark"] .footer__brand p,
+html[data-theme="dark"] .footer__note {
+  color: #dfc0da;
+}
+
+html[data-theme="dark"] .footer__bottom,
+html[data-theme="dark"] .footer__by {
+  color: #bfa1be !important;
+}
+
 
 

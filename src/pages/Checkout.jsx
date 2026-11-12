@@ -871,11 +871,11 @@ export default function Checkout() {
   const PAYMENT_METHODS_DATA = [
     {
       value: 'cod',
-      title: 'Cash on Delivery (COD)',
-      badge: 'Zero Upfront Cash',
-      desc: 'Pay cash directly upon parcel arrival after inspecting package.',
+      title: 'Cash on Delivery',
+      badge: 'Pay on Arrival',
+      desc: 'Inspect your parcel first and pay cash directly upon delivery.',
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" strokeWidth="1.8" />
           <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.8" />
           <path d="M6 8h.01M18 16h.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
@@ -885,10 +885,10 @@ export default function Checkout() {
     {
       value: 'gcash',
       title: 'GCash',
-      badge: 'Instant QR / E-Wallet',
+      badge: 'Instant QR',
       desc: 'Philippine mobile wallet simulation with instant confirmation.',
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" strokeWidth="1.8" />
           <circle cx="12" cy="18" r="1.2" fill="currentColor" />
           <path d="M9 5h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -898,10 +898,10 @@ export default function Checkout() {
     {
       value: 'maya',
       title: 'Maya',
-      badge: 'Fast Transfer',
+      badge: 'Fast Wallet',
       desc: 'Maya app or dynamic QR checkout (School Demo simulator).',
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
           <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -910,10 +910,10 @@ export default function Checkout() {
     {
       value: 'card',
       title: 'Credit / Debit Card',
-      badge: 'Visa • Mastercard • JCB',
+      badge: 'Visa / MC / JCB',
       desc: '256-bit encrypted simulated card gateway (School Demo).',
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="2" y="5" width="20" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
           <path d="M2 10h20M6 15h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
@@ -1139,14 +1139,14 @@ export default function Checkout() {
                     return (
                       <label
                         key={opt.value}
-                        className={`payment-option squishy-payment-tile${isSelected ? ' is-selected' : ''}${!available ? ' is-disabled' : ''}`}
+                        className={`squishy-payment-tile${isSelected ? ' is-selected' : ''}${!available ? ' is-disabled' : ''}`}
                         data-method={opt.value}
                       >
                         <div className="payment-tile-left">
                           <div className="payment-tile-icon-wrap" aria-hidden="true">
                             {opt.icon}
                           </div>
-                          <div className="payment-option__body">
+                          <div className="squishy-payment-body">
                             <div className="payment-title-row">
                               <strong>{opt.title}</strong>
                               <span className="payment-badge-pill">{opt.badge}</span>
@@ -1297,13 +1297,30 @@ export default function Checkout() {
                   )}
 
                   {quote && (
-                    <p className="order-summary__note">
-                      {quote.shippingDiscount
-                        ? `Shipping voucher saved ${formatPeso(quote.shippingDiscount)} on delivery.`
-                        : quote.subtotal >= 500
-                          ? '🎉 You unlocked Free Nationwide Shipping!'
-                          : `Add ${formatPeso(500 - quote.subtotal)} more to qualify for Free Shipping.`}
-                    </p>
+                    <div
+                      className={`squishy-shipping-banner${quote.subtotal >= 500 || quote.shippingDiscount ? ' is-unlocked' : ''}`}
+                      role="status"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        {quote.subtotal >= 500 || quote.shippingDiscount ? (
+                          <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                        ) : (
+                          <>
+                            <rect x="1" y="3" width="15" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
+                            <path d="M16 8h4l3 3v5h-7V8z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                            <circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" strokeWidth="2" />
+                            <circle cx="18.5" cy="18.5" r="2.5" stroke="currentColor" strokeWidth="2" />
+                          </>
+                        )}
+                      </svg>
+                      <span>
+                        {quote.shippingDiscount
+                          ? `Shipping voucher saved ${formatPeso(quote.shippingDiscount)} on delivery.`
+                          : quote.subtotal >= 500
+                            ? 'You unlocked Free Nationwide Shipping!'
+                            : `Add ${formatPeso(500 - quote.subtotal)} more to qualify for Free Shipping.`}
+                      </span>
+                    </div>
                   )}
 
                   <div className="order-summary__row order-summary__row--total">
