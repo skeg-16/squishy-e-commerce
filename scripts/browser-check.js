@@ -98,7 +98,7 @@ const { build } = require('./build');
     await screenshot('shop-mobile.png');
     const other = await browser.newContext(); const otherPage = await other.newPage();
     await otherPage.goto(`${base}/checkout.html?order=${encodeURIComponent(codNumber)}`);
-    await otherPage.getByText('Order not found in this browser session.').waitFor();
+    await otherPage.getByText('Order not found in this session.').waitFor();
     assert.equal(await otherPage.locator('.shopee-order-view').count(), 0); await other.close();
     for (const asset of ['/server/squishies-db.json', '/.env', '/server/catalog.json', '/package.json', '/squishies-site/squishies-site/index.html']) {
       assert.equal((await context.request.get(base + asset)).status(), 404, asset);

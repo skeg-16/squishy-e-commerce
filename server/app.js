@@ -186,7 +186,12 @@ function createApp({
       const payload = JSON.stringify({ success: true, data });
       const etag = `W/"${digest(payload).slice(0, 24)}"`;
       res.set('ETag', etag);
-      res.set('Cache-Control', `public, max-age=${maxAgeSec}, stale-while-revalidate=60`);
+      res.set(
+        'Cache-Control',
+        maxAgeSec > 0
+          ? `public, max-age=${maxAgeSec}, stale-while-revalidate=60`
+          : 'public, max-age=0, must-revalidate'
+      );
       if (req.get('if-none-match') === etag) {
         return res.status(304).end();
       }
@@ -373,7 +378,7 @@ function createApp({
     guest,
     send((req) => commerce.tracking(req.guestId, req.params.number, req.user?.id || null))
   );
-  app.get('/api/reviews/:slug', sendPublicCached((req) => commerce.reviews(req.params.slug, req.query), 10));
+  app.get('/api/reviews/:slug', sendPublicCached((req) => commerce.reviews(req.params.slug, req.query), 0));
   app.post(
     '/api/reviews',
     guest,

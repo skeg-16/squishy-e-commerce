@@ -15,17 +15,7 @@
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="/assets/images/logo-mark.svg">
-    <script>
-      (function () {
-        try {
-          var t = localStorage.getItem('squishies-theme');
-          if (t === 'dark' || t === 'light') {
-            document.documentElement.setAttribute('data-theme', t);
-            document.documentElement.style.colorScheme = t;
-          }
-        } catch (e) {}
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
   </head>
 
   <body>

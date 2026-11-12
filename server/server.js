@@ -15,7 +15,12 @@ function isPortOpen(port, host = '127.0.0.1') {
 function getApp() {
   if (!app) {
     const port = process.env.PORT || '3000';
-    const origins = [process.env.APP_ORIGIN, process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`, process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`].filter(Boolean);
+    const origins = [
+      process.env.APP_ORIGIN,
+      process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`,
+      process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`,
+      process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+    ].filter(Boolean);
     if (!process.env.VERCEL) origins.push(`http://localhost:${port}`, `http://127.0.0.1:${port}`, 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174');
     if (!origins.length) throw new Error('APP_ORIGIN must be configured.');
     const pool = createPool();

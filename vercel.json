@@ -1,17 +1,22 @@
 {
   "version": 2,
   "framework": null,
-  "installCommand": "npm ci --omit=dev",
-  "buildCommand": "npm run build",
-  "outputDirectory": "public",
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/index" }],
+  "installCommand": "npm ci",
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/admin/", "destination": "/admin.html" },
+    { "source": "/((?!api/|assets/|models/|css/|js/|admin\\.html$|sw\\.js$|theme-init\\.js$).*)", "destination": "/index.html" }
+  ],
   "headers": [{
     "source": "/(.*)",
     "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },
       { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
       { "key": "X-Frame-Options", "value": "DENY" },
-      { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" }
+      { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' data: blob:; media-src 'self' data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" }
     ]
   }]
 }
