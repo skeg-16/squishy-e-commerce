@@ -4,13 +4,13 @@
    ========================================================= */
 
 .siso-studio-page {
-  --siso-bg: #fbf4ee;
-  --siso-grid-line: rgba(45, 27, 61, 0.045);
-  --siso-surface: #ffffff;
+  --siso-bg: #805d83;
+  --siso-surface: #fffdf9;
   --siso-well: #fdf7f2;
   --siso-well-alt: #f7ebe1;
-  --siso-border: #e5d2c4;
+  --siso-border: #ead9cd;
   --siso-border-strong: #d3b8a6;
+  --siso-card-ring: rgba(255, 255, 255, 0.72);
   --siso-ink: #2d1b3d;
   --siso-muted: #5a4d68;
   --siso-rose: #df3b72;
@@ -19,27 +19,29 @@
   --siso-mint-ink: #0f6850;
   --siso-mint-bg: #def6ed;
   --siso-mint-border: #9ad8c1;
-  --siso-shadow: 0 14px 32px -12px rgba(45, 27, 61, 0.14);
+  --siso-shadow: 0 22px 48px -12px rgba(45, 18, 60, 0.28);
 
   min-height: 100vh;
   color: var(--siso-ink);
-  background-color: var(--siso-bg);
-  background-image:
-    linear-gradient(to right, var(--siso-grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--siso-grid-line) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background:
+    radial-gradient(ellipse at 10% 10%, rgba(221, 143, 174, 0.68), transparent 48%),
+    radial-gradient(ellipse at 90% 30%, rgba(105, 127, 174, 0.68), transparent 48%),
+    radial-gradient(ellipse at 50% 100%, rgba(199, 179, 126, 0.55), transparent 55%),
+    linear-gradient(135deg, #9e6485 0%, #805d83 48%, #647b9b 100%);
+  background-attachment: scroll;
+  background-size: cover;
   padding-bottom: 56px;
   transition: background-color 220ms ease, color 200ms ease;
 }
 
 html[data-theme="dark"] .siso-studio-page {
   --siso-bg: #1a0b29;
-  --siso-grid-line: rgba(255, 200, 232, 0.045);
   --siso-surface: #25103a;
   --siso-well: #1d0c2e;
   --siso-well-alt: #311548;
   --siso-border: rgba(242, 166, 216, 0.24);
   --siso-border-strong: rgba(255, 166, 214, 0.5);
+  --siso-card-ring: rgba(242, 166, 216, 0.26);
   --siso-ink: #fff4fb;
   --siso-muted: #e3c2da;
   --siso-rose: #ff7fb8;
@@ -48,15 +50,15 @@ html[data-theme="dark"] .siso-studio-page {
   --siso-mint-ink: #9bf0d1;
   --siso-mint-bg: rgba(20, 96, 72, 0.34);
   --siso-mint-border: rgba(132, 232, 194, 0.36);
-  --siso-shadow: 0 20px 44px -14px rgba(10, 3, 18, 0.6);
+  --siso-shadow: 0 22px 48px -14px rgba(10, 3, 18, 0.6);
 
-  background-image:
-    linear-gradient(to right, var(--siso-grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--siso-grid-line) 1px, transparent 1px),
-    radial-gradient(ellipse at 14% 12%, rgba(214, 48, 134, 0.24), transparent 46%),
-    radial-gradient(ellipse at 86% 24%, rgba(124, 48, 186, 0.3), transparent 48%),
-    linear-gradient(140deg, #160924 0%, #26103b 52%, #381442 100%);
-  background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%, 100% 100%;
+  background:
+    radial-gradient(ellipse at 14% 12%, rgba(214, 48, 134, 0.28), transparent 48%),
+    radial-gradient(ellipse at 86% 28%, rgba(124, 48, 186, 0.34), transparent 50%),
+    radial-gradient(ellipse at 50% 96%, rgba(190, 44, 118, 0.22), transparent 55%),
+    linear-gradient(135deg, #160924 0%, #26103b 48%, #381442 100%);
+  background-attachment: scroll;
+  background-size: cover;
 }
 
 .siso-studio-page .siso-container {
