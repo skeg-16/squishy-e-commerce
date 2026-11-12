@@ -1,0 +1,480 @@
+/* ============================================================
+   PET LAYER ("Let it roam")
+   Strict performance rules:
+   - Animate ONLY transform and opacity (never top/left/width/height/blur/filter/box-shadow).
+   - Ground shadow is a separate compositor element without blur/box-shadow animations.
+   - Idle bounce, blink, and sleep breathing are pure CSS keyframes so JS rAF stays stopped.
+   ============================================================ */
+
+.pet-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  overflow: hidden;
+  contain: layout style;
+}
+
+.pet-layer__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Ground shadow sits centered at (x, groundY) using translate3d(x, groundY, 0) scale(...) */
+.pet-shadow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 78px;
+  height: 18px;
+  margin-left: -39px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(45, 27, 61, 0.38) 0%,
+    rgba(45, 27, 61, 0.14) 55%,
+    rgba(45, 27, 61, 0) 100%
+  );
+  pointer-events: none;
+  will-change: transform, opacity;
+  transform-origin: center center;
+}
+
+@media (max-width: 479px) {
+  .pet-shadow {
+    width: 58px;
+    height: 14px;
+    margin-left: -29px;
+    margin-top: -7px;
+  }
+}
+
+/* Pet interactive root — bottom-center anchor at (0, 0) in local coordinates */
+.pet-entity {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 96px;
+  height: 96px;
+  margin-left: -48px;
+  margin-top: -96px;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  will-change: transform, opacity;
+  transform-origin: center bottom;
+  outline: none;
+}
+
+.pet-entity:focus-visible {
+  outline: 2px solid #f58fc0;
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+.pet-entity.is-dragging {
+  cursor: grabbing;
+}
+
+@media (max-width: 479px) {
+  .pet-entity {
+    width: 72px;
+    height: 72px;
+    margin-left: -36px;
+    margin-top: -72px;
+  }
+}
+
+.pet-entity__squash {
+  width: 100%;
+  height: 100%;
+  transform-origin: center bottom;
+  will-change: transform;
+}
+
+.pet-entity__pose {
+  width: 100%;
+  height: 100%;
+  transform-origin: center bottom;
+  will-change: transform;
+}
+
+.pet-entity__flip {
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+}
+
+.pet-entity__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Pure CSS Idle animations (JS rAF completely stopped during IDLE) */
+.pet-entity.is-idle .pet-entity__pose {
+  animation: pet-idle-bounce 1.2s ease-in-out infinite;
+}
+
+.pet-entity.is-idle .pet-eye-open {
+  transform-box: fill-box;
+  transform-origin: center center;
+  animation: pet-idle-blink 3.6s ease-in-out infinite;
+}
+
+/* Soft gloss shimmer (automatically disabled in Lite mode or reduced motion) */
+.pet-entity:not(.is-lite) .pet-gloss {
+  transform-box: fill-box;
+  transform-origin: center center;
+  animation: pet-gloss-shimmer 3.2s ease-in-out infinite;
+}
+
+.pet-entity.is-lite .pet-gloss {
+  animation: none;
+}
+
+/* Sleep animations (JS rAF completely stopped during SLEEP) */
+.pet-entity.is-sleeping .pet-entity__pose {
+  animation: pet-sleep-breathe 2.6s ease-in-out infinite;
+}
+
+.pet-face {
+  transition: opacity 0.08s ease;
+}
+
+.pet-face--squish,
+.pet-face--sleep {
+  opacity: 0;
+}
+
+.pet-entity.is-squishing .pet-face--awake {
+  opacity: 0;
+}
+.pet-entity.is-squishing .pet-face--squish {
+  opacity: 1;
+}
+
+.pet-entity.is-sleeping .pet-face--awake,
+.pet-entity.is-sleeping .pet-face--squish {
+  opacity: 0;
+}
+.pet-entity.is-sleeping .pet-face--sleep {
+  opacity: 1;
+}
+
+/* Floating sleepy "z" */
+.pet-sleep-z {
+  position: absolute;
+  top: -10px;
+  right: 2px;
+  font-family: Fredoka, Nunito, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+  color: #4b2448;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+html[data-theme="dark"] .pet-sleep-z {
+  color: #ffd4ea;
+}
+
+.pet-entity.is-sleeping .pet-sleep-z {
+  animation: pet-zzz-float 2.2s ease-in-out infinite;
+}
+
+/* Wobble release keyframe helper */
+.pet-entity.is-wobbling .pet-entity__pose {
+  animation: pet-wobble 0.36s cubic-bezier(0.22, 1.35, 0.36, 1);
+}
+
+@keyframes pet-idle-bounce {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1, 1);
+  }
+  50% {
+    transform: translate3d(0, -4px, 0) scale(0.98, 1.03);
+  }
+}
+
+@keyframes pet-idle-blink {
+  0%,
+  44%,
+  48%,
+  100% {
+    transform: scaleY(1);
+  }
+  46% {
+    transform: scaleY(0.08);
+  }
+}
+
+@keyframes pet-gloss-shimmer {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes pet-sleep-breathe {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.03, 0.95);
+  }
+  50% {
+    transform: translate3d(0, 0, 0) scale(0.99, 1.01);
+  }
+}
+
+@keyframes pet-zzz-float {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0) scale(0.75);
+  }
+  30% {
+    opacity: 0.92;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(8px, -16px, 0) scale(1.1);
+  }
+}
+
+@keyframes pet-wobble {
+  0% {
+    transform: scale(1.22, 0.74);
+  }
+  35% {
+    transform: scale(0.92, 1.12);
+  }
+  65% {
+    transform: scale(1.06, 0.95);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+/* Pooled sparkle particles (max 6 DOM elements, transform + opacity only) */
+.pet-sparkle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 15%, #ffc4de 75%, rgba(255, 196, 222, 0) 100%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.pet-sparkle--alt {
+  background: radial-gradient(circle, #fff8fc 15%, #ff8fc6 75%, rgba(255, 143, 198, 0) 100%);
+}
+
+/* Reduced motion: smooth glide + fade, no bounce/hop */
+.pet-entity.is-reduced {
+  transition: transform 0.28s ease-out, opacity 0.22s ease;
+}
+
+.pet-shadow.is-reduced {
+  transition: transform 0.28s ease-out, opacity 0.22s ease;
+}
+
+.pet-entity.is-reduced .pet-entity__pose,
+.pet-entity.is-reduced .pet-eye-open,
+.pet-entity.is-reduced .pet-gloss,
+.pet-entity.is-reduced .pet-sleep-z {
+  animation: none !important;
+}
+
+/* Floating "Send home" pill at bottom-right with >= 44px tap target + safe-area insets */
+.pet-send-home {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 248, 252, 0.84);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #4b2448;
+  font-family: Nunito, system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 8px 24px rgba(45, 27, 61, 0.16);
+  transition: transform 0.16s ease, background 0.18s ease, opacity 0.2s ease;
+}
+
+.pet-send-home:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translate3d(0, -1px, 0);
+}
+
+.pet-send-home:active {
+  transform: translate3d(0, 1px, 0) scale(0.97);
+}
+
+.pet-send-home:focus-visible {
+  outline: 2px solid #f58fc0;
+  outline-offset: 2px;
+}
+
+html[data-theme="dark"] .pet-send-home {
+  background: rgba(247, 232, 245, 0.9);
+  color: #2d1b3d;
+  border-color: rgba(255, 210, 235, 0.65);
+}
+
+/* Hero quiet text button placement near existing hint above character switcher */
+.home-jelly .hero .hero__hint-wrap {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 10.6%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 12px;
+  width: min(92%, 680px);
+  pointer-events: none;
+}
+
+.home-jelly .hero .hero__hint-wrap .hint {
+  position: static;
+  transform: none;
+  left: auto;
+  bottom: auto;
+  text-align: center;
+  white-space: normal;
+}
+
+.hero__roam-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-family: Nunito, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.84rem;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease;
+}
+
+.hero__roam-btn:hover {
+  background: rgba(255, 255, 255, 0.26);
+  transform: translate3d(0, -1px, 0);
+}
+
+.hero__roam-btn:active {
+  transform: scale(0.96);
+}
+
+.hero__roam-btn[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.9);
+  color: #4b2448;
+}
+
+.hero__roam-btn:focus-visible {
+  outline: 2px solid #ffc4de;
+  outline-offset: 2px;
+}
+
+.hero__roam-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.hero__roam-btn:hover .hero__roam-icon {
+  transform: translate3d(1px, -1px, 0);
+}
+
+.hero__roam-btn[aria-pressed="true"]:hover .hero__roam-icon {
+  transform: translate3d(-1px, 1px, 0);
+}
+
+@media (max-width: 860px) {
+  .home-jelly .hero .hero__hint-wrap {
+    bottom: 12.4%;
+    gap: 4px 8px;
+  }
+  .home-jelly .hero.hero--pet-out .intro {
+    bottom: 19.5%;
+  }
+  .home-jelly .hero .hero__hint-wrap .hint {
+    font-size: 0.8rem;
+  }
+  .hero__roam-btn {
+    font-size: 0.78rem;
+    padding: 4px 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-jelly .hero .hero__hint-wrap {
+    bottom: 12.4%;
+  }
+  .home-jelly .hero.hero--pet-out .hero__hint-wrap {
+    bottom: 12.6%;
+  }
+  .home-jelly .hero .hero__hint-wrap .hint {
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-entity.is-idle .pet-entity__pose,
+  .pet-entity.is-idle .pet-eye-open,
+  .pet-entity:not(.is-lite) .pet-gloss,
+  .pet-entity.is-sleeping .pet-entity__pose,
+  .pet-entity.is-sleeping .pet-sleep-z,
+  .pet-entity.is-wobbling .pet-entity__pose {
+    animation: none;
+  }
+}
+

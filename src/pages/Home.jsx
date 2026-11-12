@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
 import { PRODUCT_MODELS } from '../data/productModels';
 import { createHeroSquishy3D } from '../components/HeroSquishy3D';
+import PetLayer from '../components/PetLayer';
 
 const ProductViewer3D = lazy(() => import('../components/ProductViewer3D'));
 
@@ -316,6 +317,11 @@ export default function Home() {
   const [activeShelf, setActiveShelf] = useState('faves');
   const [squishPulses, setSquishPulses] = useState({});
   const [activePromoVibe, setActivePromoVibe] = useState('all');
+  const [heroCharIdx, setHeroCharIdx] = useState(0);
+  const [petActive, setPetActive] = useState(false);
+  const [petReturning, setPetReturning] = useState(false);
+  const [petLaunchOrigin, setPetLaunchOrigin] = useState(null);
+  const heroBridgeRef = useRef(null);
   const { addToCart, syncProducts, showToast } = useCart();
   const heroRef = useRef(null);
   const canvas3dRef = useRef(null);
@@ -530,6 +536,7 @@ export default function Home() {
     }
 
     function onPointerDown(e) {
+      if (roamMode !== 'home') return;
       const p = pos(e);
       if (!hit(p)) return;
       press = true;
@@ -544,7 +551,7 @@ export default function Home() {
         }
       }
       if (navigator.vibrate) navigator.vibrate(8);
-      if (hintEl) hintEl.style.opacity = '0';
+      if (hintEl && roamMode === 'home') hintEl.style.opacity = '0';
       used = true;
       playCuteVoice(HERO_CHARS[ch]);
       e.preventDefault();
@@ -590,12 +597,15 @@ export default function Home() {
       const b = e.target.closest('button');
       if (!b) return;
       ch = +b.dataset.i;
+      setHeroCharIdx(ch);
       [...pickEl.children].forEach((o, i) =>
         o.setAttribute('aria-pressed', String(i === ch))
       );
-      sq = 0.9;
-      sqv = 0;
-      playCuteVoice(HERO_CHARS[ch], 0);
+      if (roamMode === 'home') {
+        sq = 0.9;
+        sqv = 0;
+        playCuteVoice(HERO_CHARS[ch], 0);
+      }
     }
 
     c.addEventListener('pointerdown', onPointerDown);
@@ -789,6 +799,52 @@ export default function Home() {
       x.restore();
     }
 
+    let roamMode = 'home'; // 'home' | 'launching' | 'away'
+    let launchElapsed = 0;
+    let launchLift = 0;
+    let bodyOpacity = 1;
+    let shadowOpacity = 1;
+    let onHandoffReady = null;
+    let loopPaused = false;
+
+    function getSquishyViewportMetrics() {
+      const r = c.getBoundingClientRect();
+      const k = HERO_CHARS[ch];
+      const sx =
+        (1 + 0.3 * sq) *
+        (k.deco === 'butter' ? 0.88 : k.deco === 'peanut' ? 0.86 : 1);
+      const sy = (1 - 0.42 * sq) * (k.deco === 'butter' ? 1.04 : 1);
+      const cyPx = floor - R * sy - launchLift;
+      return {
+        x: r.left + cx,
+        y: r.top + floor - launchLift,
+        groundY: r.top + floor,
+        centerY: r.top + cyPx,
+        size: R * 2,
+        scaleX: sx,
+        scaleY: sy,
+      };
+    }
+
+    function drawEmptyFloorSpot() {
+      const g = x.createRadialGradient(cx, floor + 4, 2, cx, floor + 4, R * 0.95);
+      g.addColorStop(0, 'rgba(255, 224, 240, 0.28)');
+      g.addColorStop(1, 'rgba(255, 224, 240, 0)');
+      x.fillStyle = g;
+      x.beginPath();
+      x.ellipse(cx, floor + 4, R * 0.95, R * 0.19, 0, 0, Math.PI * 2);
+      x.fill();
+
+      x.save();
+      x.strokeStyle = 'rgba(255, 232, 245, 0.24)';
+      x.lineWidth = 1.5;
+      x.setLineDash([5, 6]);
+      x.beginPath();
+      x.ellipse(cx, floor + 4, R * 0.68, R * 0.13, 0, 0, Math.PI * 2);
+      x.stroke();
+      x.restore();
+    }
+
     function draw(dt = 0.016) {
       const k = HERO_CHARS[ch];
       const sx = (1 + 0.3 * sq) * (k.deco === 'butter' ? 0.88 : k.deco === 'peanut' ? 0.86 : 1);
@@ -814,9 +870,17 @@ export default function Home() {
           blink,
           t,
           dt,
+          jumpLift: launchLift,
+          bodyOpacity,
+          shadowOpacity,
         });
-        callouts(sx, sy, cy);
-        drawSpeechBubble(sx, sy, cy);
+        if (bodyOpacity < 0.35) {
+          drawEmptyFloorSpot();
+        }
+        if (bodyOpacity > 0.25) {
+          callouts(sx, sy, cy);
+          drawSpeechBubble(sx, sy, cy);
+        }
         sparks.forEach((s) => {
           x.globalAlpha = Math.max(0, s.l);
           x.fillStyle = s.h ? '#fff' : '#ffc4de';
@@ -829,6 +893,8 @@ export default function Home() {
       }
 
       // floor glow + shadow (2D fallback)
+      x.save();
+      x.globalAlpha = shadowOpacity;
       let g = x.createRadialGradient(cx, floor + 8, 0, cx, floor + 8, R * 1.8);
       g.addColorStop(0, 'rgba(255,225,240,.55)');
       g.addColorStop(1, 'rgba(255,225,240,0)');
@@ -840,6 +906,17 @@ export default function Home() {
       x.beginPath();
       x.ellipse(cx, floor + 6, R * (0.95 + 0.35 * sq), R * 0.17, 0, 0, 7);
       x.fill();
+      x.restore();
+
+      if (bodyOpacity < 0.35) {
+        drawEmptyFloorSpot();
+      }
+      if (bodyOpacity <= 0.01) {
+        return;
+      }
+      x.save();
+      x.translate(0, -launchLift);
+      x.globalAlpha = bodyOpacity;
 
       // decorations behind body (2D fallback if WebGL unavailable)
       const top = cy - R * sy;
@@ -1083,6 +1160,7 @@ export default function Home() {
       }
       callouts(sx, sy, cy);
       drawSpeechBubble(sx, sy, cy);
+      x.restore();
       // sparks
       sparks.forEach((s) => {
         x.globalAlpha = Math.max(0, s.l);
@@ -1113,17 +1191,51 @@ export default function Home() {
     let pageVisible = !document.hidden;
 
     function loop(now) {
-      if (!heroVisible || !pageVisible) {
+      if (!heroVisible || !pageVisible || loopPaused) {
         rafId = 0;
         return;
       }
       const dt = Math.min(0.033, (now - last) / 1000);
       last = now;
       t += dt;
-      for (let i = 0; i < 3; i += 1) step(dt / 3);
-      if (!reduce && !press && !used && Math.abs(sq) < 0.02) {
-        sq = 0.04 * Math.sin(t * 2.2);
+
+      if (roamMode === 'launching') {
+        launchElapsed += dt * 1000;
+        if (launchElapsed < 90) {
+          const p = launchElapsed / 90;
+          sq = p * 0.7;
+          launchLift = 0;
+          bodyOpacity = 1;
+          shadowOpacity = 1;
+        } else {
+          const u = Math.min(1, (launchElapsed - 90) / 130);
+          sq = 0.7 - 0.92 * u;
+          launchLift = 48 * Math.sin(u * Math.PI * 0.5);
+          bodyOpacity = Math.max(0, 1 - Math.max(0, (u - 0.15) / 0.85));
+          shadowOpacity = 1 - 0.55 * u;
+          if (u >= 0.2 && onHandoffReady) {
+            const cb = onHandoffReady;
+            onHandoffReady = null;
+            cb(getSquishyViewportMetrics());
+          }
+          if (launchElapsed >= 220) {
+            roamMode = 'away';
+            bodyOpacity = 0;
+            shadowOpacity = 0.44;
+            launchLift = 0;
+            draw(dt);
+            loopPaused = true;
+            rafId = 0;
+            return;
+          }
+        }
+      } else {
+        for (let i = 0; i < 3; i += 1) step(dt / 3);
+        if (!reduce && !press && !used && Math.abs(sq) < 0.02) {
+          sq = 0.04 * Math.sin(t * 2.2);
+        }
       }
+
       ripple();
       draw(dt);
       sbEl.style.height = `${stress}%`;
@@ -1132,7 +1244,7 @@ export default function Home() {
     }
 
     function syncLoop() {
-      if (heroVisible && pageVisible) {
+      if (heroVisible && pageVisible && !loopPaused) {
         if (!rafId) {
           last = performance.now();
           rafId = requestAnimationFrame(loop);
@@ -1142,6 +1254,62 @@ export default function Home() {
         rafId = 0;
       }
     }
+
+    heroBridgeRef.current = {
+      getMetrics: getSquishyViewportMetrics,
+      pauseLoop() {
+        loopPaused = true;
+        syncLoop();
+      },
+      resumeHome() {
+        roamMode = 'home';
+        launchElapsed = 0;
+        launchLift = 0;
+        bodyOpacity = 1;
+        shadowOpacity = 1;
+        onHandoffReady = null;
+        sq = 0.58;
+        sqv = -1.6;
+        loopPaused = false;
+        if (hintEl) hintEl.style.opacity = '0.85';
+        syncLoop();
+      },
+      launch(cb) {
+        press = false;
+        speech.timer = 0;
+        onHandoffReady = cb;
+        if (hintEl) hintEl.style.opacity = '0.92';
+        if (reduce) {
+          roamMode = 'away';
+          launchLift = 0;
+          bodyOpacity = 0;
+          shadowOpacity = 0.44;
+          draw(0.016);
+          loopPaused = true;
+          syncLoop();
+          const readyCb = onHandoffReady;
+          onHandoffReady = null;
+          readyCb?.(getSquishyViewportMetrics());
+          return;
+        }
+        roamMode = 'launching';
+        launchElapsed = 0;
+        launchLift = 0;
+        bodyOpacity = 1;
+        shadowOpacity = 1;
+        loopPaused = false;
+        syncLoop();
+      },
+      scrollHomeIntoView() {
+        const r = hero.getBoundingClientRect();
+        const inView = r.top >= -r.height * 0.25 && r.bottom <= window.innerHeight + 140;
+        if (!inView) {
+          hero.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+          return true;
+        }
+        return false;
+      },
+    };
 
     function onVisibilityChange() {
       pageVisible = !document.hidden;
@@ -1164,6 +1332,7 @@ export default function Home() {
     rafId = requestAnimationFrame(loop);
 
     return () => {
+      heroBridgeRef.current = null;
       if (rafId) cancelAnimationFrame(rafId);
       if (io) io.disconnect();
       document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -1238,11 +1407,35 @@ export default function Home() {
     return normalText;
   }
 
+  function handleToggleRoam() {
+    if (!petActive) {
+      if (petReturning) return;
+      heroBridgeRef.current?.launch((metrics) => {
+        setPetLaunchOrigin(metrics);
+        setPetReturning(false);
+        setPetActive(true);
+      });
+    } else if (!petReturning) {
+      setPetReturning(true);
+    }
+  }
+
+  function handlePetReturned() {
+    setPetActive(false);
+    setPetReturning(false);
+    setPetLaunchOrigin(null);
+    heroBridgeRef.current?.resumeHome();
+  }
+
   return (
     <div className="home-jelly">
     <>
       {/* ============ HERO ============ */}
-      <header className="hero" id="hero" ref={heroRef}>
+      <header
+        className={`hero${petActive ? ' hero--pet-out' : ''}`}
+        id="hero"
+        ref={heroRef}
+      >
         <h1 aria-label="Squeeze the stress away.">
           <span className="ln" data-t="Squeeze the">
             {[...'Squeeze the'].map((k, idx) => (
@@ -1304,8 +1497,42 @@ export default function Home() {
             <li>Low-odor</li>
           </ul>
         </div>
-        <div className="hint" id="hint" ref={hintRef}>
-          Tap to poke. Press and hold to squish.
+        <div className="hero__hint-wrap">
+          <div className="hint" id="hint" ref={hintRef}>
+            {petActive
+              ? 'It went exploring. Move around and it will follow.'
+              : 'Tap to poke. Press and hold to squish.'}
+          </div>
+          <button
+            type="button"
+            className="hero__roam-btn"
+            aria-pressed={petActive ? 'true' : 'false'}
+            onClick={handleToggleRoam}
+          >
+            <span>{petActive ? 'Call it back' : 'Let it roam'}</span>
+            <svg
+              className="hero__roam-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              {petActive ? (
+                <>
+                  <path d="M19 12H5" />
+                  <path d="m12 19-7-7 7-7" />
+                </>
+              ) : (
+                <>
+                  <path d="M7 17 17 7" />
+                  <path d="M7 7h10v10" />
+                </>
+              )}
+            </svg>
+          </button>
         </div>
         <div
           className="pick"
@@ -1636,6 +1863,16 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <PetLayer
+        active={petActive}
+        returning={petReturning}
+        character={HERO_CHARS[heroCharIdx]}
+        launchOrigin={petLaunchOrigin}
+        getHomeTarget={() => heroBridgeRef.current?.getMetrics()}
+        scrollHomeIntoView={() => heroBridgeRef.current?.scrollHomeIntoView()}
+        onReturned={handlePetReturned}
+        onRequestReturn={() => setPetReturning(true)}
+      />
     </>
     </div>
   );

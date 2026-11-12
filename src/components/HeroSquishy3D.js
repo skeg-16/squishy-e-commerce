@@ -595,6 +595,9 @@ export function createHeroSquishy3D(canvas) {
       blink,
       t,
       dt,
+      jumpLift = 0,
+      bodyOpacity = 1,
+      shadowOpacity = 1,
     } = state;
 
     if (!W || !H) return;
@@ -634,13 +637,30 @@ export function createHeroSquishy3D(canvas) {
     const sy = 1 - 0.42 * sq;
     const sz = 1 + 0.28 * sq;
 
-    const cyPx = floor - R * sy;
+    const cyPx = floor - R * sy - jumpLift;
     const worldX = (cx - W / 2) / pxPerUnit;
     const worldY = (H / 2 - cyPx) / pxPerUnit;
     const floorWorldY = (H / 2 - (floor + 6)) / pxPerUnit;
 
+    const liftShadowFactor = Math.max(0.55, 1 - jumpLift * 0.004);
     shadowMesh.position.set(worldX, floorWorldY, -0.6);
-    shadowMesh.scale.set(rWorld * (1 + 0.28 * sq), rWorld, 1);
+    shadowMesh.scale.set(
+      rWorld * (1 + 0.28 * sq) * liftShadowFactor,
+      rWorld * liftShadowFactor,
+      1
+    );
+    shadowMat.opacity = shadowOpacity;
+
+    const isBodyVisible = bodyOpacity > 0.01;
+    rootGroup.visible = isBodyVisible;
+    const needsTransparent = bodyOpacity < 0.99;
+    [bodyMaterial, knotMat, toeWhiteMat, toePinkMat, puffMat].forEach((mat) => {
+      if (mat.transparent !== needsTransparent) {
+        mat.transparent = needsTransparent;
+        mat.needsUpdate = true;
+      }
+      mat.opacity = bodyOpacity;
+    });
 
     rootGroup.position.set(worldX, worldY, 0);
     rootGroup.scale.set(rWorld * sx, rWorld * sy, rWorld * sz);
