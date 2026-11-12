@@ -1,8 +1,18 @@
-
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import {
+  formatCardExpiry,
+  formatCardNumber,
+  sanitizeCityName,
+  sanitizeDigits,
+  sanitizePersonName,
+  sanitizePhPhone,
+  validateCheckoutFields,
+  validatePhPhone,
+} from '../utils/validators';
 
 const PENDING_KEY = 'squishies-pending-checkout';
 const REGIONS = [
@@ -12,6 +22,13 @@ const REGIONS = [
   { value: 'mindanao', label: 'Mindanao (₱110 — 4–7 days)' },
 ];
 
+const REGION_TO_CODE = {
+  'Metro Manila': 'metro-manila',
+  Luzon: 'luzon',
+  Visayas: 'visayas',
+  Mindanao: 'mindanao',
+};
+
 const EMPTY_FIELDS = {
   customerEmail: '',
   customerName: '',
@@ -20,6 +37,7 @@ const EMPTY_FIELDS = {
   city: '',
   barangay: '',
   postalCode: '',
+  orderNote: '',
 };
 
 function readPending() {
@@ -35,7 +53,7 @@ function savePending(value) {
     if (value) sessionStorage.setItem(PENDING_KEY, JSON.stringify(value));
     else sessionStorage.removeItem(PENDING_KEY);
   } catch {
-    // The in-memory state still permits retrying during this page session.
+    // In-memory state permits retrying.
   }
 }
 
@@ -47,7 +65,6 @@ function ErrorMessage({ children, id }) {
   );
 }
 
-
 const FIELD_IDS = {
   customerEmail: 'ckEmail',
   customerName: 'ckName',
@@ -56,21 +73,22 @@ const FIELD_IDS = {
   city: 'ckCity',
   barangay: 'ckBarangay',
   postalCode: 'ckPostalCode',
+  orderNote: 'ckOrderNote',
 };
 
-function Field({ label, name, value, onChange, error, ...props }) {
+function Field({ label, name, value, onChange, error, optional = false, ...props }) {
   const id = FIELD_IDS[name] || name;
   return (
     <div className="form-field">
       <label htmlFor={id}>
-        {label} <span className="required-star">*</span>
+        {label} {!optional && <span className="required-star">*</span>}
       </label>
       <input
         id={id}
         name={name}
         value={value}
         onChange={onChange}
-        required
+        required={!optional}
         aria-invalid={Boolean(error)}
         {...props}
       />
@@ -79,12 +97,39 @@ function Field({ label, name, value, onChange, error, ...props }) {
   );
 }
 
+/* ── Realistic GCash / Maya / Card Interactive Payment Gateway Modal ── */
 
 function PaymentModal({ order, onClose, onUpdate, formatPeso, showToast }) {
+  const method = order.paymentMethod || 'gcash';
+  const isCard = method === 'card';
+  const isMaya = method === 'maya';
+  const brandName = isCard ? 'Credit / Debit Card' : isMaya ? 'Maya Wallet' : 'GCash Express Pay';
+
+  const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [formErr, setFormErr] = useState('');
   const [session, setSession] = useState(null);
   const [uncertainOutcome, setUncertainOutcome] = useState(null);
+
+  // Wallet inputs (GCash / Maya)
+  const [payerMobile, setPayerMobile] = useState(() =>
+    sanitizePhPhone(order.customerPhone || '09171234567')
+  );
+  const [demoOtp] = useState(() =>
+    String(Math.floor(100000 + Math.random() * 900000))
+  );
+  const [otpInput, setOtpInput] = useState('');
+  const [mpin, setMpin] = useState('');
+
+  // Card inputs
+  const [cardName, setCardName] = useState(() =>
+    sanitizePersonName(order.customerName || '')
+  );
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+
   const [sessionKey, setSessionKey] = useState(() => {
     const storageKey = `squishies-payment-${order.orderNumber}`;
     try {
@@ -95,21 +140,51 @@ function PaymentModal({ order, onClose, onUpdate, formatPeso, showToast }) {
   });
 
   const storageKey = `squishies-payment-${order.orderNumber}`;
+  const demoWalletBalance = 12450;
 
   useEffect(() => {
     try {
       sessionStorage.setItem(storageKey, sessionKey);
     } catch {
-      // In-memory retry key remains available.
+      // No-op.
     }
   }, [sessionKey, storageKey]);
 
-  async function simulate(outcome) {
-    if (busy) return;
+  function handleNextWalletStep(event) {
+    event.preventDefault();
+    setFormErr('');
+    if (step === 1) {
+      const err = validatePhPhone(payerMobile);
+      if (err) {
+        setFormErr(err);
+        return;
+      }
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
+      if (otpInput.length !== 6) {
+        setFormErr('Enter the 6-digit SMS OTP code.');
+        return;
+      }
+      if (otpInput !== demoOtp) {
+        setFormErr(`Invalid OTP code. Check the simulated SMS (${demoOtp}).`);
+        return;
+      }
+      setStep(3);
+    }
+  }
 
+  async function executeSimulation(outcome, detailsPayload = {}) {
+    if (busy) return;
     const selectedOutcome = uncertainOutcome || outcome;
     setBusy(true);
-    setMessage('Processing simulation…');
+    setFormErr('');
+    setMessage(
+      selectedOutcome === 'success'
+        ? `Authorizing ${brandName} payment...`
+        : `Simulating ${selectedOutcome} response...`
+    );
 
     try {
       const currentSession =
@@ -121,7 +196,6 @@ function PaymentModal({ order, onClose, onUpdate, formatPeso, showToast }) {
 
       setSession(currentSession);
 
-      // Recover if a prior attempt committed but its response was lost.
       if (currentSession.status !== 'pending') {
         const updatedOrder = await SquishiesAPI.getOrder(order.orderNumber);
         try {
@@ -134,10 +208,10 @@ function PaymentModal({ order, onClose, onUpdate, formatPeso, showToast }) {
         return;
       }
 
-      const result = await SquishiesAPI.simulatePayment(
-        currentSession.sessionId,
-        selectedOutcome
-      );
+      const result = await SquishiesAPI.simulatePayment(currentSession.sessionId, {
+        outcome: selectedOutcome,
+        ...detailsPayload,
+      });
 
       try {
         sessionStorage.removeItem(storageKey);
@@ -148,25 +222,64 @@ function PaymentModal({ order, onClose, onUpdate, formatPeso, showToast }) {
       onClose();
       onUpdate(result.order);
 
-      if (selectedOutcome !== 'success') {
+      if (selectedOutcome === 'success') {
+        showToast?.(`${brandName} payment confirmed! Your squishies are moving to To Ship.`);
+      } else {
         showToast?.(
-          `Payment ${selectedOutcome}. You can retry before the reservation expires.`
+          `Payment ${selectedOutcome}. You can retry safely before the reservation expires.`
         );
       }
     } catch (error) {
-      setMessage(error.message || 'Payment simulation failed.');
-
+      setMessage(error.message || 'Payment gateway request failed.');
       if (!error.status || error.status >= 500) {
         setUncertainOutcome(selectedOutcome);
       } else {
         setUncertainOutcome(null);
         setSession(null);
-        const newKey = crypto.randomUUID();
-        setSessionKey(newKey);
+        setSessionKey(crypto.randomUUID());
       }
     } finally {
       setBusy(false);
     }
+  }
+
+  function handleConfirmWalletPay(event) {
+    event.preventDefault();
+    setFormErr('');
+    if (mpin.length !== 4 || !/^\d{4}$/.test(mpin)) {
+      setFormErr('Enter your 4-digit numeric MPIN to authorize.');
+      return;
+    }
+    executeSimulation('success', {
+      payerMobile,
+      otpCode: otpInput,
+      mpin,
+    });
+  }
+
+  function handleConfirmCardPay(event) {
+    event.preventDefault();
+    setFormErr('');
+    const digits = sanitizeDigits(cardNumber, 16);
+    if (cardName.trim().length < 2) {
+      setFormErr('Enter cardholder full name.');
+      return;
+    }
+    if (digits.length < 13) {
+      setFormErr('Enter a valid 13–16 digit card number.');
+      return;
+    }
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry)) {
+      setFormErr('Enter expiry in MM/YY format.');
+      return;
+    }
+    if (cardCvv.length !== 3) {
+      setFormErr('Enter the 3-digit CVV.');
+      return;
+    }
+    executeSimulation('success', {
+      cardLast4: digits.slice(-4),
+    });
   }
 
   return (
@@ -181,19 +294,25 @@ function PaymentModal({ order, onClose, onUpdate, formatPeso, showToast }) {
       }}
     >
       <div
-        className="payment-modal"
+        className={`payment-modal payment-modal--portal payment-modal--${method}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="paymentModalTitle"
       >
         <div className="payment-modal__header">
-          <h3 id="paymentModalTitle">
-            {order.paymentMethod.toUpperCase()} — payment simulation
-          </h3>
+          <div className="payment-portal-brand">
+            <span className={`payment-portal-pill payment-portal-pill--${method}`}>
+              {isCard ? 'CARD' : isMaya ? 'MAYA' : 'GCASH'}
+            </span>
+            <div>
+              <h3 id="paymentModalTitle">{brandName}</h3>
+              <small>Merchant: SISO Squishies Collective</small>
+            </div>
+          </div>
           <button
             type="button"
             className="payment-modal__close"
-            aria-label="Close payment simulation"
+            aria-label="Close payment portal"
             onClick={onClose}
             disabled={busy}
           >
@@ -202,33 +321,350 @@ function PaymentModal({ order, onClose, onUpdate, formatPeso, showToast }) {
         </div>
 
         <div className="payment-modal__body">
-          <p>No money is transferred. Choose a test outcome for this school demonstration.</p>
-          <div className="payment-summary-box">
-            <strong>Amount: {formatPeso(order.total)}</strong>
+          <div className="payment-summary-box payment-summary-box--portal">
+            <div>
+              <span>Order {order.orderNumber}</span>
+              <small>Total Amount Due</small>
+            </div>
+            <strong>{formatPeso(order.total)}</strong>
           </div>
-          <p role="status">{message}</p>
-          <div className="payment-form">
-            <button
-              className="btn btn--pink"
-              disabled={busy && uncertainOutcome !== 'success'}
-              onClick={() => simulate('success')}
-            >
-              Simulate success
-            </button>
-            <button
-              className="btn btn--outline"
-              disabled={busy && uncertainOutcome !== 'declined'}
-              onClick={() => simulate('declined')}
-            >
-              Simulate decline
-            </button>
-            <button
-              className="btn btn--outline"
-              disabled={busy && uncertainOutcome !== 'cancelled'}
-              onClick={() => simulate('cancelled')}
-            >
-              Simulate cancellation
-            </button>
+
+          {!isCard ? (
+            <>
+              <div className="wallet-steps-bar" aria-label="Payment authorization steps">
+                <span className={step >= 1 ? 'is-active' : ''}>1. Mobile</span>
+                <span className={step >= 2 ? 'is-active' : ''}>2. SMS OTP</span>
+                <span className={step >= 3 ? 'is-active' : ''}>3. Authorize MPIN</span>
+              </div>
+
+              {step === 1 && (
+                <form className="payment-portal-form" onSubmit={handleNextWalletStep} noValidate>
+                  <div className="form-field">
+                    <label htmlFor="payWalletMobile">
+                      {isMaya ? 'Maya' : 'GCash'} Registered Mobile Number (Digits Only)
+                    </label>
+                    <input
+                      id="payWalletMobile"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={11}
+                      placeholder="09171234567"
+                      value={payerMobile}
+                      onChange={(e) => {
+                        setPayerMobile(sanitizePhPhone(e.target.value));
+                        setFormErr('');
+                      }}
+                      required
+                    />
+                  </div>
+                  {formErr && <p className="field-error" role="alert">{formErr}</p>}
+                  <button type="submit" className="btn btn--pink btn--full">
+                    Send Verification OTP →
+                  </button>
+                </form>
+              )}
+
+              {step === 2 && (
+                <form className="payment-portal-form" onSubmit={handleNextWalletStep} noValidate>
+                  <div className="sim-sms-toast" role="status">
+                    <div>
+                      <strong>Simulated SMS Inbox</strong>
+                      <span>
+                        Your {isMaya ? 'Maya' : 'GCash'} authentication code is{' '}
+                        <code className="sim-otp-code">{demoOtp}</code>
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn--outline btn--xs"
+                      onClick={() => {
+                        setOtpInput(demoOtp);
+                        setFormErr('');
+                      }}
+                    >
+                      Autofill OTP
+                    </button>
+                  </div>
+
+                  <div className="form-field">
+                    <label htmlFor="payWalletOtp">Enter 6-Digit SMS OTP (Numbers Only)</label>
+                    <input
+                      id="payWalletOtp"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="6-digit code"
+                      value={otpInput}
+                      onChange={(e) => {
+                        setOtpInput(sanitizeDigits(e.target.value, 6));
+                        setFormErr('');
+                      }}
+                      required
+                    />
+                  </div>
+                  {formErr && <p className="field-error" role="alert">{formErr}</p>}
+                  <div className="payment-portal-actions">
+                    <button type="button" className="btn btn--outline" onClick={() => setStep(1)}>
+                      ← Back
+                    </button>
+                    <button type="submit" className="btn btn--pink">
+                      Verify OTP →
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {step === 3 && (
+                <form className="payment-portal-form" onSubmit={handleConfirmWalletPay} noValidate>
+                  <div className="wallet-balance-card">
+                    <div>
+                      <span>Simulated {isMaya ? 'Maya' : 'GCash'} Balance</span>
+                      <strong>{formatPeso(demoWalletBalance)}</strong>
+                    </div>
+                    <div>
+                      <span>Remaining After Pay</span>
+                      <strong>{formatPeso(Math.max(0, demoWalletBalance - Number(order.total || 0)))}</strong>
+                    </div>
+                  </div>
+
+                  <div className="form-field">
+                    <label htmlFor="payWalletMpin">Enter 4-Digit MPIN (Any 4 Digits for Demo)</label>
+                    <input
+                      id="payWalletMpin"
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="••••"
+                      value={mpin}
+                      onChange={(e) => {
+                        setMpin(sanitizeDigits(e.target.value, 4));
+                        setFormErr('');
+                      }}
+                      required
+                    />
+                  </div>
+                  {formErr && <p className="field-error" role="alert">{formErr}</p>}
+                  {message && <p className="payment-status-msg" role="status">{message}</p>}
+                  <div className="payment-portal-actions">
+                    <button type="button" className="btn btn--outline" onClick={() => setStep(2)} disabled={busy}>
+                      ← Back
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn--pink"
+                      disabled={busy && uncertainOutcome !== 'success'}
+                    >
+                      {busy ? 'Authorizing...' : `Pay ${formatPeso(order.total)}`}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </>
+          ) : (
+            <form className="payment-portal-form" onSubmit={handleConfirmCardPay} noValidate>
+              <div className="form-field">
+                <label htmlFor="payCardName">Cardholder Name (Letters Only)</label>
+                <input
+                  id="payCardName"
+                  type="text"
+                  placeholder="JUANA DELA CRUZ"
+                  value={cardName}
+                  onChange={(e) => {
+                    setCardName(sanitizePersonName(e.target.value));
+                    setFormErr('');
+                  }}
+                  required
+                />
+              </div>
+              <div className="form-field">
+                <label htmlFor="payCardNumber">Card Number (Digits Only)</label>
+                <input
+                  id="payCardNumber"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={19}
+                  placeholder="4242 4242 4242 4242"
+                  value={cardNumber}
+                  onChange={(e) => {
+                    setCardNumber(formatCardNumber(e.target.value));
+                    setFormErr('');
+                  }}
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-field">
+                  <label htmlFor="payCardExpiry">Expiry (MM/YY)</label>
+                  <input
+                    id="payCardExpiry"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={5}
+                    placeholder="12/29"
+                    value={cardExpiry}
+                    onChange={(e) => {
+                      setCardExpiry(formatCardExpiry(e.target.value));
+                      setFormErr('');
+                    }}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label htmlFor="payCardCvv">CVV (3 Digits)</label>
+                  <input
+                    id="payCardCvv"
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={3}
+                    placeholder="123"
+                    value={cardCvv}
+                    onChange={(e) => {
+                      setCardCvv(sanitizeDigits(e.target.value, 3));
+                      setFormErr('');
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+              {formErr && <p className="field-error" role="alert">{formErr}</p>}
+              {message && <p className="payment-status-msg" role="status">{message}</p>}
+              <button
+                type="submit"
+                className="btn btn--pink btn--full"
+                disabled={busy && uncertainOutcome !== 'success'}
+              >
+                {busy ? 'Processing Card...' : `Pay ${formatPeso(order.total)} Now`}
+              </button>
+            </form>
+          )}
+
+          <details className="payment-demo-edge-controls">
+            <summary>Demo Edge-Case Simulator (Decline / Cancel)</summary>
+            <p>Test how the storefront handles wallet declines or buyer cancellations cleanly:</p>
+            <div className="payment-edge-buttons">
+              <button
+                type="button"
+                className="btn btn--outline btn--xs"
+                disabled={busy && uncertainOutcome !== 'declined'}
+                onClick={() => executeSimulation('declined')}
+              >
+                Simulate Declined
+              </button>
+              <button
+                type="button"
+                className="btn btn--outline btn--xs"
+                disabled={busy && uncertainOutcome !== 'cancelled'}
+                onClick={() => executeSimulation('cancelled')}
+              >
+                Simulate Cancelled
+              </button>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Official Digital & Printable E-Receipt Modal ────────────────────── */
+
+function DigitalReceiptModal({ order, formatPeso, onClose }) {
+  const receiptDate = order.paidAt || order.updatedAt || order.createdAt;
+  const gatewayRef = order.paymentReference || order.trackingNumber;
+  const payerAccount = order.paymentDetails?.maskedAccount;
+
+  return (
+    <div
+      className="payment-modal-overlay"
+      style={{ display: 'flex' }}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') onClose();
+      }}
+    >
+      <div
+        className="payment-modal digital-receipt-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="digitalReceiptTitle"
+      >
+        <div className="payment-modal__header">
+          <h3 id="digitalReceiptTitle">Official Squishies E-Receipt</h3>
+          <button
+            type="button"
+            className="payment-modal__close"
+            aria-label="Close e-receipt"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="digital-receipt-sheet">
+          <div className="digital-receipt-brand">
+            <strong>SISO Squishies Collective</strong>
+            <span>Authentic Slow-Rising Sensory Store • Manila, PH</span>
+            <small>Official Acknowledgement Receipt (OR-{order.orderNumber.slice(-8)})</small>
+          </div>
+
+          <div className="digital-receipt-meta">
+            <div><span>Order Number</span><strong>{order.orderNumber}</strong></div>
+            <div><span>Tracking Code</span><strong>{order.trackingNumber}</strong></div>
+            <div><span>Date Issued</span><strong>{new Date(receiptDate).toLocaleString('en-PH')}</strong></div>
+            <div><span>Order Status</span><strong>{order.status}</strong></div>
+            <div>
+              <span>Payment Method</span>
+              <strong>
+                {order.paymentMethod.toUpperCase()}
+                {payerAccount ? ` (${payerAccount})` : ''}
+              </strong>
+            </div>
+            <div><span>Payment Status</span><strong>{order.paymentStatus}</strong></div>
+            <div><span>Gateway Ref</span><strong>{gatewayRef}</strong></div>
+            <div><span>Buyer</span><strong>{order.customerName} ({order.customerPhone})</strong></div>
+          </div>
+
+          <div className="digital-receipt-items">
+            {(order.items || []).map((item, idx) => (
+              <div key={`${item.slug}-${idx}`} className="digital-receipt-item">
+                <span>{item.name} × {item.quantity}</span>
+                <strong>{formatPeso(item.subtotal)}</strong>
+              </div>
+            ))}
+          </div>
+
+          <div className="digital-receipt-totals">
+            <div><span>Merchandise Subtotal</span><span>{formatPeso(order.subtotal)}</span></div>
+            <div><span>Shipping Fee</span><span>{order.shippingFee ? formatPeso(order.shippingFee) : 'FREE'}</span></div>
+            {order.voucherDiscount > 0 && (
+              <div><span>Voucher Discount ({order.voucherCode})</span><span>−{formatPeso(order.voucherDiscount)}</span></div>
+            )}
+            <div className="is-grand">
+              <strong>Total Amount</strong>
+              <strong>{formatPeso(order.total)}</strong>
+            </div>
+          </div>
+
+          <div className="digital-receipt-footer">
+            <p>Shipped to: {order.shippingAddress}, Brgy. {order.barangay}, {order.city}, {order.postalCode}</p>
+            <div className="digital-receipt-actions">
+              <button
+                type="button"
+                className="btn btn--pink"
+                onClick={() => window.print()}
+              >
+                Print / Save PDF Receipt
+              </button>
+              <button
+                type="button"
+                className="btn btn--outline"
+                onClick={onClose}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -236,33 +672,84 @@ function PaymentModal({ order, onClose, onUpdate, formatPeso, showToast }) {
   );
 }
 
-function OrderReceipt({ order, formatPeso, onRefresh, onCancel, onPay, onReview }) {
+/* ── Shopee-Style Live Order Receipt & Courier Delivery Simulator ───── */
+
+function OrderReceipt({
+  order,
+  formatPeso,
+  onRefresh,
+  onCancel,
+  onPay,
+  onReview,
+  onAdvanceDelivery,
+  advanceBusy,
+  onOpenReceipt,
+}) {
+  const stage = order.deliveryStage || 'preparing';
+  const isCancelled = order.status === 'Cancelled' || order.status === 'Expired';
+  const hasShipped =
+    ['in_transit', 'out_for_delivery', 'delivered'].includes(stage) ||
+    order.status === 'Shipped' ||
+    order.status === 'Completed' ||
+    (order.events || []).some((e) => e.status === 'Shipped');
+  const isOutForDelivery =
+    ['out_for_delivery', 'delivered'].includes(stage) ||
+    order.status === 'Completed';
+  const isCompleted = stage === 'delivered' || order.status === 'Completed';
+  const isPaymentDone =
+    ['Paid', 'Refunded'].includes(order.paymentStatus) || order.paymentMethod === 'cod';
+
   const milestones = [
     ['Order Placed', true],
-    [
-      order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Payment',
-      ['Paid', 'Refunded'].includes(order.paymentStatus),
-    ],
-    ['Shipped', (order.events || []).some((event) => event.status === 'Shipped')],
-    ['Completed', order.status === 'Completed'],
+    [order.paymentMethod === 'cod' ? 'COD Confirmed' : 'Paid Online', isPaymentDone],
+    ['In Transit', hasShipped],
+    ['Out for Delivery', isOutForDelivery],
+    ['Completed', isCompleted],
   ];
+
+  // Determine next logical real-life Shopee delivery progression step
+  let nextDeliveryAction = null;
+  if (!isCancelled && !isCompleted) {
+    if (order.status === 'To Ship') {
+      nextDeliveryAction = {
+        stage: 'shipped',
+        label: 'Dispatch Parcel (Mark Shipped)',
+        helper: 'Hand over parcel to SISO Express / J&T courier hub.',
+      };
+    } else if (order.status === 'Shipped' && stage !== 'out_for_delivery') {
+      nextDeliveryAction = {
+        stage: 'out_for_delivery',
+        label: 'Mark Out for Delivery',
+        helper: 'Courier rider departed local delivery hub toward buyer.',
+      };
+    } else if (order.status === 'Shipped' && stage === 'out_for_delivery') {
+      nextDeliveryAction = {
+        stage: 'completed',
+        label:
+          order.paymentMethod === 'cod'
+            ? 'Confirm Delivery & Collect COD'
+            : 'Order Received (Complete Order)',
+        helper: 'Buyer receives squishies, completing transaction & unlocking verified review.',
+      };
+    }
+  }
 
   return (
     <div className="shopee-order-view">
       <div className="shopee-receipt-card">
         <div className="shopee-receipt-header">
-          <div className="shopee-status-badge badge-to-ship">
-            Order Status: {order.status}
+          <div className={`shopee-status-badge badge-${String(order.status || '').toLowerCase().replace(/\s+/g, '-')}`}>
+            Order Status: {stage === 'out_for_delivery' ? 'Out for Delivery' : order.status}
           </div>
           <p className="shopee-order-ref" style={{ overflowWrap: 'anywhere' }}>
             Order Reference: {order.orderNumber}
           </p>
           <p className="shopee-tracking-ref" style={{ overflowWrap: 'anywhere' }}>
-            Demo Tracking: {order.trackingNumber}
+            Tracking Code: {order.trackingNumber}
           </p>
         </div>
 
-        <div className="shopee-timeline">
+        <div className="shopee-timeline shopee-timeline--five">
           {milestones.map(([label, complete], index) => (
             <div
               className={`timeline-step${complete ? ' is-complete' : ''}`}
@@ -274,10 +761,34 @@ function OrderReceipt({ order, formatPeso, onRefresh, onCancel, onPay, onReview 
           ))}
         </div>
 
+        {nextDeliveryAction && (
+          <div className="delivery-simulator-bar">
+            <div className="delivery-simulator-bar__info">
+              <span className="delivery-sim-tag">Live Logistics Simulator</span>
+              <strong>
+                {order.status === 'To Ship'
+                  ? 'Ready for courier pickup'
+                  : stage === 'out_for_delivery'
+                    ? 'Rider is arriving at buyer address'
+                    : 'Parcel is moving through sortation hub'}
+              </strong>
+              <small>{nextDeliveryAction.helper}</small>
+            </div>
+            <button
+              type="button"
+              className="btn btn--pink"
+              disabled={advanceBusy}
+              onClick={() => onAdvanceDelivery(nextDeliveryAction.stage)}
+            >
+              {advanceBusy ? 'Updating Logistics...' : `${nextDeliveryAction.label} →`}
+            </button>
+          </div>
+        )}
+
         <div className="shopee-info-grid">
           <div className="shopee-info-box">
             <h4>Shipping Address</h4>
-            <p>{order.customerName} ({order.customerPhone})</p>
+            <p><strong>{order.customerName}</strong> ({order.customerPhone})</p>
             <p>
               {order.shippingAddress}, Brgy. {order.barangay}, {order.city},{' '}
               {order.postalCode}
@@ -286,10 +797,15 @@ function OrderReceipt({ order, formatPeso, onRefresh, onCancel, onPay, onReview 
 
           <div className="shopee-info-box">
             <h4>Payment Details</h4>
-            <p>Method: {order.paymentMethod.toUpperCase()}</p>
-            <p>Status: {order.paymentStatus}</p>
-            {order.paymentMethod !== 'cod' && (
-              <p>School payment simulation — no money transferred.</p>
+            <p>
+              Method: <strong>{order.paymentMethod.toUpperCase()}</strong>
+              {order.paymentDetails?.maskedAccount
+                ? ` (${order.paymentDetails.maskedAccount})`
+                : ''}
+            </p>
+            <p>Status: <strong>{order.paymentStatus}</strong></p>
+            {order.paymentReference && (
+              <p>Gateway Ref: <code>{order.paymentReference}</code></p>
             )}
             {order.canPay && order.expiresAt && (
               <p>
@@ -335,28 +851,31 @@ function OrderReceipt({ order, formatPeso, onRefresh, onCancel, onPay, onReview 
         <div className="shopee-actions">
           {order.canPay && (
             <button className="btn btn--pink" onClick={onPay}>
-              Pay / retry simulation
+              Pay Now via {order.paymentMethod.toUpperCase()} →
             </button>
           )}
+          <button type="button" className="btn btn--outline" onClick={onOpenReceipt}>
+            View / Print E-Receipt
+          </button>
           {order.canCancel && (
             <button className="btn btn--outline" onClick={onCancel}>
               Cancel Order
             </button>
           )}
           <button className="btn btn--outline" onClick={onRefresh}>
-            Refresh status
+            Refresh Status
           </button>
           <Link to="/shop.html" className="btn btn--pink">
             Continue Shopping →
           </Link>
         </div>
 
-        <details className="order-activity">
-          <summary>Order activity</summary>
+        <details className="order-activity" open>
+          <summary>Courier &amp; Order Timeline</summary>
           <ol>
             {(order.events || []).map((event, index) => (
               <li key={`${event.timestamp}-${index}`}>
-                {new Date(event.timestamp).toLocaleString('en-PH')} —{' '}
+                <strong>{event.status}</strong> — {new Date(event.timestamp).toLocaleString('en-PH')} —{' '}
                 {event.description}
               </li>
             ))}
@@ -382,7 +901,9 @@ function FinancialRow({ label, value, total = false }) {
 
 function ReviewForm({ order, onReview }) {
   const [productSlug, setProductSlug] = useState(order.items?.[0]?.slug || '');
-  const [reviewerName, setReviewerName] = useState('');
+  const [reviewerName, setReviewerName] = useState(() =>
+    sanitizePersonName(order.customerName || '')
+  );
   const [rating, setRating] = useState('5');
   const [comment, setComment] = useState('');
   const [message, setMessage] = useState('');
@@ -401,8 +922,7 @@ function ReviewForm({ order, onReview }) {
         rating: Number(rating),
         comment: comment.trim(),
       });
-      setMessage('Thank you! Your verified review was saved.');
-      setReviewerName('');
+      setMessage('Thank you! Your verified review was published.');
       setComment('');
     } catch (error) {
       setMessage(error.message || 'Could not submit your review.');
@@ -412,8 +932,8 @@ function ReviewForm({ order, onReview }) {
   }
 
   return (
-    <form className="checkout-card" onSubmit={submit}>
-      <h2>Review your purchase</h2>
+    <form className="checkout-card squishy-glass-card" onSubmit={submit}>
+      <h2>Rate Your Verified Purchase</h2>
 
       <div className="form-field">
         <label htmlFor="reviewProduct">Product</label>
@@ -433,7 +953,7 @@ function ReviewForm({ order, onReview }) {
       </div>
 
       <div className="form-field">
-        <label htmlFor="reviewName">Public display name</label>
+        <label htmlFor="reviewName">Public Display Name</label>
         <input
           id="reviewName"
           maxLength={60}
@@ -465,6 +985,7 @@ function ReviewForm({ order, onReview }) {
           id="reviewComment"
           minLength={3}
           maxLength={1000}
+          placeholder="How slow-rising was your squishy? Share with fellow collectors!"
           required
           value={comment}
           onChange={(event) => setComment(event.target.value)}
@@ -473,15 +994,18 @@ function ReviewForm({ order, onReview }) {
 
       <p role="status">{message}</p>
       <button className="btn btn--pink" type="submit" disabled={busy}>
-        {busy ? 'Submitting…' : 'Submit review'}
+        {busy ? 'Submitting…' : 'Submit Verified Review'}
       </button>
     </form>
   );
 }
 
+/* ── Main Shopee-Style Checkout & Order Tracking Page ────────────────── */
+
 export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user, authenticated } = useAuth();
   const {
     cart,
     clearCart,
@@ -499,16 +1023,61 @@ export default function Checkout() {
   const [region, setRegion] = useState('metro-manila');
   const [voucherText, setVoucherText] = useState('');
   const [appliedVoucher, setAppliedVoucher] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [paymentMethod, setPaymentMethod] = useState('gcash');
   const [quote, setQuote] = useState(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [advanceBusy, setAdvanceBusy] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('Change of mind');
   const [cancelError, setCancelError] = useState('');
   const [cancelBusy, setCancelBusy] = useState(false);
   const [voucherDirty, setVoucherDirty] = useState(false);
+
+  const prefilledForUserRef = useRef(null);
+
+  const applySavedAddress = useCallback(() => {
+    if (!user) return;
+    const saved = user.defaultAddress || {};
+    setFields((current) => ({
+      ...current,
+      customerEmail: user.email || current.customerEmail,
+      customerName: sanitizePersonName(saved.recipientName || current.customerName),
+      customerPhone: sanitizePhPhone(saved.phone || user.phone || current.customerPhone),
+      shippingAddress: saved.shippingAddress || current.shippingAddress,
+      city: sanitizeCityName(saved.city || current.city),
+      barangay: saved.barangay || current.barangay,
+      postalCode: sanitizeDigits(saved.postalCode || current.postalCode, 4),
+    }));
+    if (saved.region && ['metro-manila', 'luzon', 'visayas', 'mindanao'].includes(saved.region)) {
+      setRegion(saved.region);
+    } else if (saved.region && REGION_TO_CODE[saved.region]) {
+      setRegion(REGION_TO_CODE[saved.region]);
+    }
+    setFieldErrors({});
+  }, [user]);
+
+  // Auto-prefill Shopee address once when user logs in and form is untouched
+  useEffect(() => {
+    if (!authenticated || !user) return;
+    if (prefilledForUserRef.current === user.id) return;
+    prefilledForUserRef.current = user.id;
+
+    const isFormEmpty =
+      !fields.customerEmail &&
+      !fields.customerName &&
+      !fields.customerPhone &&
+      !fields.shippingAddress &&
+      !fields.city &&
+      !fields.barangay &&
+      !fields.postalCode;
+
+    if (isFormEmpty) {
+      applySavedAddress();
+    }
+  }, [authenticated, user, fields, applySavedAddress]);
 
   const cartSignature = useMemo(
     () => JSON.stringify((cart || []).map((item) => ({
@@ -552,9 +1121,9 @@ export default function Checkout() {
 
   useEffect(() => {
     if (orderNumber || pending || voucherDirty || !(cart || []).length) {
-        setQuote(null);
-        setQuoteLoading(false);
-        return;
+      setQuote(null);
+      setQuoteLoading(false);
+      return;
     }
 
     let cancelled = false;
@@ -577,8 +1146,8 @@ export default function Checkout() {
         setPaymentMethod((current) =>
           result.paymentMethods?.includes(current)
             ? current
-            : result.paymentMethods?.includes('cod')
-              ? 'cod'
+            : result.paymentMethods?.includes('gcash')
+              ? 'gcash'
               : result.paymentMethods?.[0] || 'cod'
         );
       })
@@ -594,11 +1163,28 @@ export default function Checkout() {
     return () => {
       cancelled = true;
     };
-  }, [orderNumber, pending, cartSignature, region, appliedVoucher]); // cartSignature tracks cart changes.
+  }, [orderNumber, pending, cartSignature, region, appliedVoucher, voucherDirty, cart]);
 
+  /**
+   * Strict per-field sanitization: prevents invalid chars from ever appearing
+   * in phone numbers, zip/postal codes, recipient names, and city inputs.
+   */
   const updateField = useCallback((event) => {
     const { name, value } = event.target;
-    setFields((current) => ({ ...current, [name]: value }));
+    let cleaned = value;
+    if (name === 'customerPhone') {
+      cleaned = sanitizePhPhone(value);
+    } else if (name === 'postalCode') {
+      cleaned = sanitizeDigits(value, 4);
+    } else if (name === 'customerName') {
+      cleaned = sanitizePersonName(value);
+    } else if (name === 'city') {
+      cleaned = sanitizeCityName(value);
+    } else if (name === 'orderNote') {
+      cleaned = String(value || '').slice(0, 240);
+    }
+
+    setFields((current) => ({ ...current, [name]: cleaned }));
     setFieldErrors((current) => {
       const next = { ...current };
       delete next[name];
@@ -638,6 +1224,9 @@ export default function Checkout() {
     clearCart();
     setOrder(acceptedOrder);
     setError('');
+    if (acceptedOrder.canPay && acceptedOrder.paymentMethod !== 'cod') {
+      setPaymentOpen(true);
+    }
     navigate(`/checkout.html?order=${encodeURIComponent(acceptedOrder.orderNumber)}`, {
       replace: true,
     });
@@ -662,11 +1251,37 @@ export default function Checkout() {
       return;
     }
 
+    // Strict client-side verification mirroring server/validation.js
+    const rawErrors = validateCheckoutFields({
+      name: fields.customerName,
+      email: fields.customerEmail,
+      phone: fields.customerPhone,
+      address: fields.shippingAddress,
+      city: fields.city,
+      barangay: fields.barangay,
+      postalCode: fields.postalCode,
+    });
+
+    const mappedErrors = {};
+    if (rawErrors.name) mappedErrors.customerName = rawErrors.name;
+    if (rawErrors.email) mappedErrors.customerEmail = rawErrors.email;
+    if (rawErrors.phone) mappedErrors.customerPhone = rawErrors.phone;
+    if (rawErrors.address) mappedErrors.shippingAddress = rawErrors.address;
+    if (rawErrors.city) mappedErrors.city = rawErrors.city;
+    if (rawErrors.barangay) mappedErrors.barangay = rawErrors.barangay;
+    if (rawErrors.postalCode) mappedErrors.postalCode = rawErrors.postalCode;
+
+    if (Object.keys(mappedErrors).length > 0) {
+      setFieldErrors(mappedErrors);
+      setError(Object.values(mappedErrors)[0]);
+      return;
+    }
+
     const payload = {
       quoteId: quote.quoteId,
       paymentMethod,
       ...Object.fromEntries(
-        Object.entries(fields).map(([key, value]) => [key, value.trim()])
+        Object.entries(fields).map(([key, value]) => [key, String(value || '').trim()])
       ),
     };
 
@@ -718,6 +1333,27 @@ export default function Checkout() {
     }
   }
 
+  async function advanceDelivery(targetStage) {
+    if (!order || advanceBusy) return;
+    setAdvanceBusy(true);
+    setError('');
+    try {
+      const updated = await SquishiesAPI.advanceDemoDelivery(order.orderNumber, targetStage);
+      setOrder(updated);
+      showToast?.(
+        targetStage === 'completed'
+          ? 'Order marked Completed! Digital Official Receipt & verified review are now unlocked.'
+          : targetStage === 'out_for_delivery'
+            ? 'Rider is Out for Delivery!'
+            : 'Parcel dispatched to courier hub!'
+      );
+    } catch (advError) {
+      setError(advError.message || 'Could not advance delivery status.');
+    } finally {
+      setAdvanceBusy(false);
+    }
+  }
+
   async function cancelOrder(event) {
     event.preventDefault();
     setCancelBusy(true);
@@ -765,6 +1401,9 @@ export default function Checkout() {
             onCancel={() => setCancelOpen(true)}
             onPay={() => setPaymentOpen(true)}
             onReview={submitReview}
+            onAdvanceDelivery={advanceDelivery}
+            advanceBusy={advanceBusy}
+            onOpenReceipt={() => setReceiptOpen(true)}
           />
 
           {paymentOpen && (
@@ -774,6 +1413,14 @@ export default function Checkout() {
               showToast={showToast}
               onClose={() => setPaymentOpen(false)}
               onUpdate={(updated) => setOrder(updated)}
+            />
+          )}
+
+          {receiptOpen && (
+            <DigitalReceiptModal
+              order={order}
+              formatPeso={formatPeso}
+              onClose={() => setReceiptOpen(false)}
             />
           )}
 
@@ -870,23 +1517,10 @@ export default function Checkout() {
 
   const PAYMENT_METHODS_DATA = [
     {
-      value: 'cod',
-      title: 'Cash on Delivery',
-      badge: 'Pay on Arrival',
-      desc: 'Inspect your parcel first and pay cash directly upon delivery.',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" strokeWidth="1.8" />
-          <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.8" />
-          <path d="M6 8h.01M18 16h.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-      ),
-    },
-    {
       value: 'gcash',
       title: 'GCash',
-      badge: 'Instant QR',
-      desc: 'Philippine mobile wallet simulation with instant confirmation.',
+      badge: 'Recommended',
+      desc: 'Interactive Philippine e-wallet flow with SMS OTP & MPIN.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" strokeWidth="1.8" />
@@ -896,10 +1530,23 @@ export default function Checkout() {
       ),
     },
     {
+      value: 'cod',
+      title: 'Cash on Delivery',
+      badge: 'Pay on Arrival',
+      desc: 'Inspect your parcel first and pay cash directly to the rider.',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" strokeWidth="1.8" />
+          <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M6 8h.01M18 16h.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
       value: 'maya',
       title: 'Maya',
       badge: 'Fast Wallet',
-      desc: 'Maya app or dynamic QR checkout (School Demo simulator).',
+      desc: 'Maya mobile wallet OTP & MPIN simulator.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
@@ -911,7 +1558,7 @@ export default function Checkout() {
       value: 'card',
       title: 'Credit / Debit Card',
       badge: 'Visa / MC / JCB',
-      desc: '256-bit encrypted simulated card gateway (School Demo).',
+      desc: 'Simulated 16-digit card checkout gateway.',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="2" y="5" width="20" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
@@ -924,7 +1571,6 @@ export default function Checkout() {
   return (
     <main className="checkout-jelly">
       <div className="container checkout-page">
-        {/* Visual Stepper Header */}
         <div className="checkout-stepper-wrap">
           <div className="checkout-stepper-step is-complete">
             <span className="stepper-dot">
@@ -937,7 +1583,7 @@ export default function Checkout() {
           <span className="stepper-line is-active" />
           <div className="checkout-stepper-step is-active">
             <span className="stepper-dot">2</span>
-            <span className="stepper-label">Delivery & Payment</span>
+            <span className="stepper-label">Delivery &amp; Payment</span>
           </div>
           <span className="stepper-line" />
           <div className="checkout-stepper-step">
@@ -949,8 +1595,45 @@ export default function Checkout() {
         <div className="checkout-page__head">
           <span className="checkout-badge-pill">Express Sensory Checkout</span>
           <h1>Finalize Your Squishy Drop</h1>
-          <p>Complete your shipping and payment details — safe packaging & slow-rising delight guaranteed.</p>
+          <p>Shopee-style saved delivery, strict address verification, and instant GCash / courier tracking.</p>
         </div>
+
+        {authenticated && user ? (
+          <div className="checkout-shopee-address-strip" role="status">
+            <div>
+              <span className="address-strip-tag">Collector Account Signed In</span>
+              <strong>@{user.username}</strong>
+              {user.defaultAddress?.shippingAddress ? (
+                <small>
+                  Saved: {user.defaultAddress.shippingAddress}, Brgy. {user.defaultAddress.barangay}, {user.defaultAddress.city} ({user.defaultAddress.postalCode})
+                </small>
+              ) : (
+                <small>No saved default address yet — fill below or save in Account Profile.</small>
+              )}
+            </div>
+            <div className="address-strip-actions">
+              {user.defaultAddress?.shippingAddress && (
+                <button type="button" className="btn btn--outline btn--xs" onClick={applySavedAddress}>
+                  Re-fill Saved Address
+                </button>
+              )}
+              <Link to="/account?mode=profile" className="btn btn--outline btn--xs">
+                Manage Address
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="checkout-shopee-address-strip checkout-shopee-address-strip--guest">
+            <div>
+              <span className="address-strip-tag">Guest Express Checkout</span>
+              <strong>Checking out without signing in</strong>
+              <small>Want saved Shopee-style addresses &amp; full purchase history across devices?</small>
+            </div>
+            <Link to="/account?mode=login&next=/checkout.html" className="btn btn--pink btn--xs">
+              Log In / Create Account →
+            </Link>
+          </div>
+        )}
 
         {pending && (
           <div className="checkout-pending-notice" role="status">
@@ -958,27 +1641,27 @@ export default function Checkout() {
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
               <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
-            <span>A previous checkout request was unconfirmed. Submitting now will recover your reserved items without duplicate billing.</span>
+            <span>A previous checkout request was unconfirmed. Submitting now recovers your reserved items cleanly.</span>
           </div>
         )}
         {error && <p className="field-error checkout-global-error" role="alert">{error}</p>}
 
-        <form onSubmit={placeOrder}>
+        <form onSubmit={placeOrder} noValidate>
           <div className="checkout-page__layout">
             <div className="checkout-main-col">
-              {/* Unified Card 1: Delivery & Contact */}
+              {/* Card 1: Delivery & Contact */}
               <div className="checkout-card squishy-glass-card">
                 <div className="checkout-card__header">
                   <span className="checkout-card__step-orb">1</span>
                   <div>
-                    <h2>Shipping & Contact Details</h2>
-                    <p className="checkout-card__subtitle">Where should our courier deliver your squishies?</p>
+                    <h2>Delivery Address &amp; Contact Details</h2>
+                    <p className="checkout-card__subtitle">Strictly validated PH phone &amp; 4-digit postal inputs.</p>
                   </div>
                 </div>
 
                 <div className="form-row">
                   <Field
-                    label="Recipient Full Name"
+                    label="Recipient Full Name (Letters Only)"
                     name="customerName"
                     placeholder="Juana Dela Cruz"
                     autoComplete="name"
@@ -988,9 +1671,10 @@ export default function Checkout() {
                     disabled={Boolean(pending) || submitting}
                   />
                   <Field
-                    label="Mobile Phone Number"
+                    label="Mobile Phone (11 Digits Only)"
                     name="customerPhone"
                     type="tel"
+                    inputMode="numeric"
                     placeholder="09171234567"
                     autoComplete="tel"
                     maxLength={11}
@@ -1003,7 +1687,7 @@ export default function Checkout() {
 
                 <div className="form-row">
                   <Field
-                    label="Email Address (Tracking Updates)"
+                    label="Email Address (Receipt &amp; Updates)"
                     name="customerEmail"
                     type="email"
                     placeholder="you@email.com"
@@ -1015,7 +1699,7 @@ export default function Checkout() {
                   />
                   <div className="form-field">
                     <label htmlFor="ckRegion">
-                      Delivery Region & Transit Zone <span className="required-star">*</span>
+                      Delivery Region &amp; Transit Zone <span className="required-star">*</span>
                     </label>
                     <div className="form-select-wrap">
                       <select
@@ -1079,7 +1763,7 @@ export default function Checkout() {
                   </div>
 
                   <div className="form-field form-field--postal">
-                    <label htmlFor="ckPostalCode">Postal Code <span className="required-star">*</span></label>
+                    <label htmlFor="ckPostalCode">ZIP / Postal Code (4 Digits) <span className="required-star">*</span></label>
                     <input
                       id="ckPostalCode"
                       name="postalCode"
@@ -1097,7 +1781,18 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                {/* High-Contrast, Compact Delivery Badge */}
+                <Field
+                  label="Message for SISO Seller / Rider (Optional)"
+                  name="orderNote"
+                  optional
+                  maxLength={240}
+                  placeholder="e.g., Leave parcel at guardhouse or call upon arrival"
+                  value={fields.orderNote}
+                  onChange={updateField}
+                  error={fieldErrors.orderNote}
+                  disabled={Boolean(pending) || submitting}
+                />
+
                 <div className="squishy-delivery-badge">
                   <div className="delivery-badge-icon" aria-hidden="true">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -1122,13 +1817,13 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Card 2: Payment Method (Compact 2x2 Grid) */}
+              {/* Card 2: Payment Method */}
               <div className="checkout-card squishy-glass-card">
                 <div className="checkout-card__header">
                   <span className="checkout-card__step-orb">2</span>
                   <div>
                     <h2>Choose Payment Method</h2>
-                    <p className="checkout-card__subtitle">Instant confirmation & secure checkout.</p>
+                    <p className="checkout-card__subtitle">GCash / Maya / Card open a realistic authorization modal upon Place Order.</p>
                   </div>
                 </div>
 
@@ -1201,7 +1896,6 @@ export default function Checkout() {
                   ))}
                 </div>
 
-                {/* Voucher Section with Clickable Quick Pills */}
                 <div className="voucher-box squishy-voucher-box">
                   <div className="voucher-header">
                     <label htmlFor="ckVoucherCode">
@@ -1223,7 +1917,6 @@ export default function Checkout() {
                     )}
                   </div>
 
-                  {/* One-click quick vouchers */}
                   <div className="quick-vouchers-strip" aria-label="Available promotional vouchers">
                     {QUICK_VOUCHERS.map((v) => {
                       const isActive = appliedVoucher === v.code;
@@ -1275,7 +1968,6 @@ export default function Checkout() {
                   )}
                 </div>
 
-                {/* Order Summary Pricing Breakdown */}
                 <div className="order-summary__rows">
                   <div className="order-summary__row">
                     <span>Merchandise Subtotal</span>
@@ -1326,7 +2018,7 @@ export default function Checkout() {
                   <div className="order-summary__row order-summary__row--total">
                     <div className="total-label-wrap">
                       <span>Total Amount</span>
-                      <small>Taxes & handling included</small>
+                      <small>Taxes &amp; handling included</small>
                     </div>
                     <strong className="final-total-display">
                       {quote ? formatPeso(quote.total) : '—'}
@@ -1334,7 +2026,6 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                {/* Primary Action Button */}
                 <button
                   className="checkout-place-order-btn"
                   type="submit"
@@ -1362,7 +2053,6 @@ export default function Checkout() {
                   ← Back to Shop Catalog
                 </Link>
 
-                {/* Sensory Buyer Protection Ribbon */}
                 <div className="checkout-trust-guarantee">
                   <div className="trust-point">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">

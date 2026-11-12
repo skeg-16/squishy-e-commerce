@@ -1,560 +1,1569 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { SquishiesAPI } from '../services/api';
+import {
+  getPasswordStrength,
+  sanitizeCityName,
+  sanitizeDigits,
+  sanitizePersonName,
+  sanitizePhPhone,
+  sanitizeUsername,
+  validateProfileFields,
+  validateRegisterFields,
+  validateResetPasswordFields,
+} from '../utils/validators';
 
-import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+const PH_REGIONS = [
+  { value: 'metro-manila', label: 'Metro Manila' },
+  { value: 'luzon', label: 'Luzon' },
+  { value: 'visayas', label: 'Visayas' },
+  { value: 'mindanao', label: 'Mindanao' },
+];
 
-// ============================================================
-// BACKEND TEAM / AI CODING ASSISTANT — READ THIS BEFORE EDITING
-//
-// THIS IS A FRONTEND-ONLY DEVELOPMENT PREVIEW.
-// THIS IS NOT REAL AUTHENTICATION.
-//
-// The Account Settings dashboard is intentionally visible by
-// default so the frontend design can be reviewed.
-//
-// BEFORE PRODUCTION, YOU MUST:
-//
-// 1. Connect this page to the backend authentication/session API.
-// 2. Show Login/Register when the backend confirms the user is
-//    NOT authenticated.
-// 3. Show Account Settings ONLY when the backend confirms the
-//    user has a valid authenticated session.
-// 4. Connect username changes to an authenticated backend API.
-// 5. Connect password changes to a secure backend API.
-//    The backend must verify the current password.
-// 6. Connect birthday changes to an authenticated backend API.
-// 7. Implement logout using the backend session mechanism.
-// 8. Implement account deletion through the backend, with
-//    server-side ownership checks and explicit confirmation.
-// 9. NEVER treat React state, local state, or this preview as
-//    proof that a user is authenticated.
-// 10. NEVER allow frontend-only checks to authorize account
-//     changes or account deletion.
-//
-// The preview controls below do NOT save data, authenticate
-// users, log users out, or delete accounts.
-//
-// Replace the preview behavior with real backend integration
-// before deploying this feature to production.
-// ============================================================
+const ORDER_TABS = [
+  { id: 'all', label: 'All' },
+  { id: 'To Pay', label: 'To Pay' },
+  { id: 'To Ship', label: 'To Ship' },
+  { id: 'Shipped', label: 'Shipped' },
+  { id: 'Completed', label: 'Completed' },
+  { id: 'Cancelled', label: 'Cancelled' },
+];
+
+function formatPhp(amount) {
+  const num = Number(amount || 0);
+  const decimals = Number.isInteger(num) ? 0 : 2;
+  return `₱${num.toLocaleString('en-PH', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function EyeIcon({ visible }) {
+  return visible ? (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+      <path d="m1 1 22 22" />
+    </svg>
+  ) : (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function PasswordInput({
+  id,
+  name,
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+  required = true,
+  hasError = false,
+}) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div className="account-input-wrap">
+      <input
+        id={id}
+        name={name}
+        type={visible ? 'text' : 'password'}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        required={required}
+        className={hasError ? 'is-invalid' : ''}
+      />
+      <button
+        type="button"
+        className="account-eye-btn"
+        onClick={() => setVisible((prev) => !prev)}
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-pressed={visible}
+      >
+        <EyeIcon visible={visible} />
+      </button>
+    </div>
+  );
+}
+
+function PasswordStrengthMeter({ password }) {
+  const strength = getPasswordStrength(password);
+  if (!password) return null;
+
+  return (
+    <div className={`password-meter password-meter--${strength.tone}`}>
+      <div className="password-meter__bars" aria-hidden="true">
+        {[1, 2, 3, 4].map((bar) => (
+          <span
+            key={bar}
+            className={
+              strength.score >= bar + (bar === 4 ? 1 : 0) || (strength.score >= 2 && bar === 1)
+                ? 'is-filled'
+                : ''
+            }
+          />
+        ))}
+      </div>
+      <div className="password-meter__meta">
+        <strong>Strength: {strength.label}</strong>
+        <span>
+          {!strength.checks.minLength
+            ? '8+ characters needed'
+            : !strength.checks.hasUpper || !strength.checks.hasLower
+              ? 'Add uppercase & lowercase letters'
+              : !strength.checks.hasDigit
+                ? 'Add at least 1 number'
+                : 'Ready for your collector account'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function statusPillTone(status) {
+  switch (status) {
+    case 'Completed':
+      return 'is-completed';
+    case 'Shipped':
+      return 'is-shipped';
+    case 'To Ship':
+      return 'is-toship';
+    case 'To Pay':
+      return 'is-topay';
+    case 'Cancelled':
+    case 'Expired':
+      return 'is-cancelled';
+    default:
+      return '';
+  }
+}
 
 export default function Account() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user, authenticated, loading, login, register, logout, setUser } = useAuth();
+
   const modeParam = searchParams.get('mode');
+  const nextRedirect = searchParams.get('next');
 
-  // Default to 'login' unless specifically set to 'account' or 'register'
-  const initialView = modeParam === 'account' ? 'account' : modeParam === 'register' ? 'register' : 'login';
-  const [view, setView] = useState(initialView);
+  const [authTab, setAuthTab] = useState(
+    modeParam === 'register' ? 'register' : modeParam === 'forgot' ? 'forgot' : 'login'
+  );
+  const [hubTab, setHubTab] = useState('orders');
+  const [orderFilter, setOrderFilter] = useState('all');
+
   const [submitting, setSubmitting] = useState(false);
-  const [loginSuccess, setLoginSuccess] = useState(false);
-  const [message, setMessage] = useState('');
+  const [statusBanner, setStatusBanner] = useState(null); // { tone: 'success'|'error', text: string }
+  const [fieldErrors, setFieldErrors] = useState({});
 
-  // Keep view in sync when navigating or clicking header buttons
-  useEffect(() => {
-    if (modeParam === 'login' || modeParam === 'register' || modeParam === 'account') {
-      setView(modeParam);
-    }
-  }, [modeParam]);
+  // Auth form states
+  const [loginForm, setLoginForm] = useState({ identifier: '', password: '' });
+  const [registerForm, setRegisterForm] = useState({
+    username: '',
+    email: '',
+    phone: '',
+    birthday: '2004-05-29',
+    password: '',
+    confirmPassword: '',
+  });
+  const [resetForm, setResetForm] = useState({
+    username: '',
+    email: '',
+    birthday: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
-  const [username, setUsername] = useState('squishylover');
-  const [birthday, setBirthday] = useState('2004-05-29');
+  // Hub: Profile & Address state
+  const [profileForm, setProfileForm] = useState({
+    username: '',
+    email: '',
+    phone: '',
+    birthday: '',
+    defaultAddress: {
+      recipientName: '',
+      phone: '',
+      shippingAddress: '',
+      city: '',
+      barangay: '',
+      postalCode: '',
+      region: 'Metro Manila',
+    },
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  // Hub: Password & Delete state
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteWord, setDeleteWord] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
-  function switchView(nextView) {
-    setView(nextView);
-    setMessage('');
-    setSearchParams({ mode: nextView }, { replace: true });
-  }
+  // Hub: Orders state
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
-  function previewNotice(action) {
-    setMessage(
-      `${action} is a frontend preview only. Backend integration is still required.`
+  // Keep auth tab synced with URL param
+  useEffect(() => {
+    if (!authenticated) {
+      if (modeParam === 'register') setAuthTab('register');
+      else if (modeParam === 'forgot') setAuthTab('forgot');
+      else setAuthTab('login');
+    } else if (modeParam === 'profile' || modeParam === 'security' || modeParam === 'orders') {
+      setHubTab(modeParam);
+    }
+  }, [modeParam, authenticated]);
+
+  // Populate profile editor from authenticated user
+  useEffect(() => {
+    if (!user) return;
+    setProfileForm({
+      username: user.username || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      birthday: user.birthday || '',
+      defaultAddress: {
+        recipientName: user.defaultAddress?.recipientName || '',
+        phone: user.defaultAddress?.phone || user.phone || '',
+        shippingAddress: user.defaultAddress?.shippingAddress || '',
+        city: user.defaultAddress?.city || '',
+        barangay: user.defaultAddress?.barangay || '',
+        postalCode: user.defaultAddress?.postalCode || '',
+        region: user.defaultAddress?.region || 'metro-manila',
+      },
+    });
+  }, [user]);
+
+  const loadOrders = useCallback(async () => {
+    if (!authenticated) {
+      setOrders([]);
+      return;
+    }
+    setOrdersLoading(true);
+    try {
+      const list = await SquishiesAPI.fetchAccountOrders();
+      setOrders(Array.isArray(list) ? list : []);
+    } catch {
+      setOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [authenticated]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  function switchAuthTab(next) {
+    setAuthTab(next);
+    setFieldErrors({});
+    setStatusBanner(null);
+    setSearchParams(
+      nextRedirect ? { mode: next, next: nextRedirect } : { mode: next },
+      { replace: true }
     );
   }
 
-  function handleLogin(event) {
+  function applyApiFieldErrors(err, prefix = '') {
+    if (err?.fields && Array.isArray(err.fields)) {
+      const next = {};
+      for (const issue of err.fields) {
+        if (issue.field && !next[issue.field]) {
+          next[issue.field] = issue.message;
+        }
+      }
+      setFieldErrors(next);
+    }
+    setStatusBanner({
+      tone: 'error',
+      text: err?.message || `${prefix}Please review the highlighted fields.`,
+    });
+  }
+
+  async function handleLoginSubmit(event) {
     event.preventDefault();
+    setStatusBanner(null);
+    const errors = {};
+    if (!loginForm.identifier.trim()) {
+      errors.identifier = 'Enter your username or email address.';
+    }
+    if (!loginForm.password) {
+      errors.password = 'Enter your password.';
+    }
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setStatusBanner({ tone: 'error', text: 'Enter your username/email and password.' });
+      return;
+    }
+
+    setFieldErrors({});
     setSubmitting(true);
-    setMessage('');
-
-    setTimeout(() => {
+    try {
+      const loggedUser = await login({
+        identifier: loginForm.identifier.trim(),
+        password: loginForm.password,
+      });
+      setLoginForm({ identifier: '', password: '' });
+      if (nextRedirect && nextRedirect.startsWith('/')) {
+        navigate(nextRedirect, { replace: true });
+        return;
+      }
+      setSearchParams({ mode: 'account' }, { replace: true });
+      setStatusBanner({
+        tone: 'success',
+        text: `Welcome back, @${loggedUser.username}! Your collector hub is synced.`,
+      });
+    } catch (err) {
+      applyApiFieldErrors(err);
+    } finally {
       setSubmitting(false);
-      setLoginSuccess(true);
-      setMessage('Welcome back, Squishy Collector! ✨ Demo session verified.');
-
-      setTimeout(() => {
-        setView('account');
-        setLoginSuccess(false);
-        setSearchParams({ mode: 'account' }, { replace: true });
-      }, 700);
-    }, 600);
+    }
   }
 
-  function handleRegister(event) {
+  async function handleRegisterSubmit(event) {
     event.preventDefault();
-
-    const form = event.currentTarget;
-
-    if (form.password.value !== form.confirmPassword.value) {
-      setMessage('Your passwords do not match.');
+    setStatusBanner(null);
+    const errors = validateRegisterFields(registerForm);
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setStatusBanner({
+        tone: 'error',
+        text: Object.values(errors)[0],
+      });
       return;
     }
 
-    previewNotice('Registration');
+    setFieldErrors({});
+    setSubmitting(true);
+    try {
+      const created = await register({
+        username: registerForm.username.trim(),
+        email: registerForm.email.trim(),
+        phone: registerForm.phone.trim(),
+        birthday: registerForm.birthday,
+        password: registerForm.password,
+        confirmPassword: registerForm.confirmPassword,
+      });
+      setRegisterForm({
+        username: '',
+        email: '',
+        phone: '',
+        birthday: '2004-05-29',
+        password: '',
+        confirmPassword: '',
+      });
+      if (nextRedirect && nextRedirect.startsWith('/')) {
+        navigate(nextRedirect, { replace: true });
+        return;
+      }
+      setSearchParams({ mode: 'account' }, { replace: true });
+      setStatusBanner({
+        tone: 'success',
+        text: `Account @${created.username} created and signed in!`,
+      });
+    } catch (err) {
+      applyApiFieldErrors(err);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  function handleUsername(event) {
+  async function handleResetSubmit(event) {
     event.preventDefault();
-    previewNotice('Username update');
-  }
-
-  function handlePassword(event) {
-    event.preventDefault();
-
-    const form = event.currentTarget;
-
-    if (form.newPassword.value !== form.confirmPassword.value) {
-      setMessage('Your new passwords do not match.');
+    setStatusBanner(null);
+    const errors = validateResetPasswordFields(resetForm);
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setStatusBanner({ tone: 'error', text: Object.values(errors)[0] });
       return;
     }
 
-    previewNotice('Password update');
+    setFieldErrors({});
+    setSubmitting(true);
+    try {
+      await SquishiesAPI.resetPassword({
+        username: resetForm.username.trim(),
+        email: resetForm.email.trim(),
+        birthday: resetForm.birthday,
+        newPassword: resetForm.newPassword,
+        confirmPassword: resetForm.confirmPassword,
+      });
+      const recoveredUsername = resetForm.username.trim();
+      setResetForm({
+        username: '',
+        email: '',
+        birthday: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+      setLoginForm({ identifier: recoveredUsername, password: '' });
+      switchAuthTab('login');
+      setStatusBanner({
+        tone: 'success',
+        text: `Password reset for @${recoveredUsername}. Sign in with your new password.`,
+      });
+    } catch (err) {
+      applyApiFieldErrors(err);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  function handleBirthday(event) {
+  async function handleSaveProfile(event) {
     event.preventDefault();
-    previewNotice('Birthday update');
+    setStatusBanner(null);
+
+    const addr = profileForm.defaultAddress;
+    const hasAnyAddress = Boolean(
+      addr.shippingAddress.trim() || addr.city.trim() || addr.barangay.trim() || addr.postalCode.trim()
+    );
+    const errors = validateProfileFields(profileForm, { withAddress: hasAnyAddress });
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setStatusBanner({ tone: 'error', text: Object.values(errors)[0] });
+      return;
+    }
+
+    setFieldErrors({});
+    setProfileSaving(true);
+    try {
+      const payload = {
+        username: profileForm.username.trim(),
+        email: profileForm.email.trim(),
+        phone: profileForm.phone.trim(),
+        birthday: profileForm.birthday,
+        defaultAddress: hasAnyAddress
+          ? {
+              recipientName: addr.recipientName.trim() || profileForm.username.trim(),
+              phone: addr.phone.trim() || profileForm.phone.trim(),
+              shippingAddress: addr.shippingAddress.trim(),
+              city: addr.city.trim(),
+              barangay: addr.barangay.trim(),
+              postalCode: addr.postalCode.trim(),
+              region: addr.region,
+            }
+          : null,
+      };
+      const res = await SquishiesAPI.updateAccountProfile(payload);
+      setUser(res.user);
+      setStatusBanner({
+        tone: 'success',
+        text: 'Profile & default delivery address saved to your collector account.',
+      });
+    } catch (err) {
+      applyApiFieldErrors(err);
+    } finally {
+      setProfileSaving(false);
+    }
   }
 
-  function handleLogout() {
-    setView('login');
-    setMessage('You have been logged out. See you next squish!');
+  async function handleChangePassword(event) {
+    event.preventDefault();
+    setStatusBanner(null);
+    const errors = {};
+    if (!passwordForm.currentPassword) {
+      errors.currentPassword = 'Enter your current password.';
+    }
+    const strength = getPasswordStrength(passwordForm.newPassword);
+    if (!strength.checks.minLength || !strength.checks.hasUpper || !strength.checks.hasLower || !strength.checks.hasDigit) {
+      errors.newPassword = 'Use 8+ chars with uppercase, lowercase, and at least 1 number.';
+    }
+    if (passwordForm.confirmPassword !== passwordForm.newPassword) {
+      errors.confirmPassword = 'Your new passwords do not match.';
+    }
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setStatusBanner({ tone: 'error', text: Object.values(errors)[0] });
+      return;
+    }
+
+    setFieldErrors({});
+    setPasswordSaving(true);
+    try {
+      await SquishiesAPI.changeAccountPassword(passwordForm);
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setStatusBanner({
+        tone: 'success',
+        text: 'Password updated securely. All active safety checks passed.',
+      });
+    } catch (err) {
+      applyApiFieldErrors(err);
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
+
+  async function handleLogout() {
+    setStatusBanner(null);
+    await logout();
+    setOrders([]);
     setSearchParams({ mode: 'login' }, { replace: true });
+    setStatusBanner({
+      tone: 'success',
+      text: 'Signed out cleanly. See you on your next squish drop!',
+    });
   }
 
-  function handleDelete() {
-    if (deleteConfirmation !== 'DELETE') return;
-    previewNotice('Account deletion');
-    setShowDeleteConfirm(false);
-    setDeleteConfirmation('');
+  async function handleDeleteAccount(event) {
+    event.preventDefault();
+    if (deleteWord !== 'DELETE' || !deletePassword) {
+      setStatusBanner({
+        tone: 'error',
+        text: 'Enter your current password and type DELETE in all caps to confirm.',
+      });
+      return;
+    }
+    setDeleting(true);
+    try {
+      await SquishiesAPI.deleteAccount({
+        password: deletePassword,
+        confirmation: deleteWord,
+      });
+      await logout();
+      setShowDeleteConfirm(false);
+      setDeletePassword('');
+      setDeleteWord('');
+      setSearchParams({ mode: 'register' }, { replace: true });
+      setStatusBanner({
+        tone: 'success',
+        text: 'Your collector account has been permanently removed.',
+      });
+    } catch (err) {
+      applyApiFieldErrors(err);
+    } finally {
+      setDeleting(false);
+    }
   }
 
+  const orderCounts = useMemo(() => {
+    const counts = { all: orders.length };
+    for (const o of orders) {
+      counts[o.status] = (counts[o.status] || 0) + 1;
+    }
+    return counts;
+  }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    if (orderFilter === 'all') return orders;
+    return orders.filter((o) => o.status === orderFilter);
+  }, [orders, orderFilter]);
+
+  if (loading) {
+    return (
+      <main className="account-jelly">
+        <section className="account-card account-loading-card">
+          <div className="account-loading-orb" aria-hidden="true" />
+          <h1>Loading Collector Session...</h1>
+          <p>Checking your encrypted Squishies session.</p>
+        </section>
+      </main>
+    );
+  }
+
+  // ── AUTHENTICATED COLLECTOR HUB ──────────────────────────────────
+  if (authenticated && user) {
+    return (
+      <main className="account-jelly">
+        <section className="account-card account-card--wide account-hub-card">
+          <div className="account-dashboard-heading">
+            <div>
+              <span className="account-eyebrow">SISO COLLECTOR HUB</span>
+              <h1>Welcome, @{user.username}</h1>
+              <p>
+                Track live orders, pay via GCash simulation, manage saved Shopee-style addresses, and secure your profile.
+              </p>
+            </div>
+            <div className="account-hub-right">
+              <div className="account-avatar" title={user.email}>
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+            </div>
+          </div>
+
+          <div className="account-profile-summary">
+            <div>
+              <span className="account-summary-label">SIGNED IN COLLECTOR</span>
+              <strong>@{user.username}</strong>
+              <span className="account-summary-meta">{user.email} • {user.phone || 'No mobile set'}</span>
+            </div>
+            <div className="account-summary-badges">
+              <span className="account-verified-badge">Verified Session</span>
+              <Link to="/shop.html" className="btn btn--outline btn--sm">
+                Browse Squishies
+              </Link>
+              <Link to="/checkout.html" className="btn btn--pink btn--sm">
+                Checkout Bag
+              </Link>
+            </div>
+          </div>
+
+          <div className="account-hub-tabs" role="tablist" aria-label="Account sections">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={hubTab === 'orders'}
+              className={hubTab === 'orders' ? 'is-active' : ''}
+              onClick={() => {
+                setHubTab('orders');
+                setStatusBanner(null);
+              }}
+            >
+              My Purchases ({orders.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={hubTab === 'profile'}
+              className={hubTab === 'profile' ? 'is-active' : ''}
+              onClick={() => {
+                setHubTab('profile');
+                setFieldErrors({});
+                setStatusBanner(null);
+              }}
+            >
+              Profile &amp; Saved Address
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={hubTab === 'security'}
+              className={hubTab === 'security' ? 'is-active' : ''}
+              onClick={() => {
+                setHubTab('security');
+                setFieldErrors({});
+                setStatusBanner(null);
+              }}
+            >
+              Security &amp; Session
+            </button>
+          </div>
+
+          {statusBanner && (
+            <p
+              className={`account-message account-message--${statusBanner.tone}`}
+              role={statusBanner.tone === 'error' ? 'alert' : 'status'}
+            >
+              {statusBanner.text}
+            </p>
+          )}
+
+          {hubTab === 'orders' && (
+            <div className="account-orders-panel">
+              <div className="account-order-filters" role="tablist" aria-label="Filter purchases">
+                {ORDER_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={orderFilter === tab.id}
+                    className={orderFilter === tab.id ? 'is-active' : ''}
+                    onClick={() => setOrderFilter(tab.id)}
+                  >
+                    <span>{tab.label}</span>
+                    <small>{orderCounts[tab.id] || 0}</small>
+                  </button>
+                ))}
+              </div>
+
+              {ordersLoading ? (
+                <div className="account-orders-empty">
+                  <p>Loading your orders...</p>
+                </div>
+              ) : filteredOrders.length === 0 ? (
+                <div className="account-orders-empty">
+                  <h3>No orders in {orderFilter === 'all' ? 'your account yet' : `"${orderFilter}"`}</h3>
+                  <p>
+                    Orders placed while signed in—or with your matching account email—appear here automatically with live tracking and receipts.
+                  </p>
+                  <Link to="/shop.html" className="btn btn--primary">
+                    Explore Catalog
+                  </Link>
+                </div>
+              ) : (
+                <div className="account-orders-list">
+                  {filteredOrders.map((order) => (
+                    <article key={order.orderNumber} className="account-order-card">
+                      <div className="account-order-card__top">
+                        <div>
+                          <span className="account-order-card__num">{order.orderNumber}</span>
+                          <span className="account-order-card__date">
+                            Placed {new Date(order.createdAt).toLocaleString()} • {order.paymentMethod.toUpperCase()}
+                          </span>
+                        </div>
+                        <span className={`account-order-pill ${statusPillTone(order.status)}`}>
+                          {order.deliveryStage === 'out_for_delivery' ? 'Out for Delivery' : order.status}
+                        </span>
+                      </div>
+
+                      <div className="account-order-card__items">
+                        {order.items.slice(0, 3).map((item) => (
+                          <div key={`${order.orderNumber}-${item.slug}`} className="account-order-chip">
+                            <span className="account-order-chip__badge">SQ</span>
+                            <span>
+                              {item.name} <strong>×{item.quantity}</strong>
+                            </span>
+                          </div>
+                        ))}
+                        {order.items.length > 3 && (
+                          <span className="account-order-more">+{order.items.length - 3} more</span>
+                        )}
+                      </div>
+
+                      <div className="account-order-card__bottom">
+                        <div className="account-order-card__meta">
+                          <span>Payment: <strong>{order.paymentStatus}</strong></span>
+                          <span className="account-order-card__total">Total: {formatPhp(order.total)}</span>
+                        </div>
+                        <div className="account-order-card__actions">
+                          <Link
+                            to={`/checkout.html?order=${encodeURIComponent(order.orderNumber)}`}
+                            className={`btn btn--sm ${order.status === 'To Pay' ? 'btn--pink' : 'btn--outline'}`}
+                          >
+                            {order.status === 'To Pay'
+                              ? 'Pay Now →'
+                              : order.status === 'Completed'
+                                ? 'Official Receipt & Review →'
+                                : 'Track Delivery →'}
+                          </Link>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {hubTab === 'profile' && (
+            <form className="account-profile-form" onSubmit={handleSaveProfile} noValidate>
+              <div className="account-settings-grid">
+                <section className="account-setting-section">
+                  <div className="account-section-heading">
+                    <span className="account-section-icon" aria-hidden="true">ID</span>
+                    <div>
+                      <h2>Collector Identity</h2>
+                      <p>Keep your username, contact email, mobile number, and birthday up to date.</p>
+                    </div>
+                  </div>
+                  <div className="account-form">
+                    <div className="account-field">
+                      <label htmlFor="profile-username">Username</label>
+                      <input
+                        id="profile-username"
+                        type="text"
+                        value={profileForm.username}
+                        onChange={(e) =>
+                          setProfileForm((prev) => ({
+                            ...prev,
+                            username: sanitizeUsername(e.target.value),
+                          }))
+                        }
+                        maxLength={28}
+                        className={fieldErrors.username ? 'is-invalid' : ''}
+                      />
+                      {fieldErrors.username && <small className="account-field-error">{fieldErrors.username}</small>}
+                    </div>
+
+                    <div className="account-field">
+                      <label htmlFor="profile-email">Email Address</label>
+                      <input
+                        id="profile-email"
+                        type="email"
+                        value={profileForm.email}
+                        onChange={(e) =>
+                          setProfileForm((prev) => ({ ...prev, email: e.target.value }))
+                        }
+                        className={fieldErrors.email ? 'is-invalid' : ''}
+                      />
+                      {fieldErrors.email && <small className="account-field-error">{fieldErrors.email}</small>}
+                    </div>
+
+                    <div className="account-field">
+                      <label htmlFor="profile-phone">Mobile Number (PH Digits Only)</label>
+                      <input
+                        id="profile-phone"
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={11}
+                        placeholder="09171234567"
+                        value={profileForm.phone}
+                        onChange={(e) =>
+                          setProfileForm((prev) => ({
+                            ...prev,
+                            phone: sanitizePhPhone(e.target.value),
+                          }))
+                        }
+                        className={fieldErrors.phone ? 'is-invalid' : ''}
+                      />
+                      {fieldErrors.phone && <small className="account-field-error">{fieldErrors.phone}</small>}
+                    </div>
+
+                    <div className="account-field">
+                      <label htmlFor="profile-birthday">Birthday</label>
+                      <input
+                        id="profile-birthday"
+                        type="date"
+                        value={profileForm.birthday}
+                        onChange={(e) =>
+                          setProfileForm((prev) => ({ ...prev, birthday: e.target.value }))
+                        }
+                        className={fieldErrors.birthday ? 'is-invalid' : ''}
+                      />
+                      {fieldErrors.birthday && <small className="account-field-error">{fieldErrors.birthday}</small>}
+                    </div>
+                  </div>
+                </section>
+
+                <section className="account-setting-section">
+                  <div className="account-section-heading">
+                    <span className="account-section-icon" aria-hidden="true">PH</span>
+                    <div>
+                      <h2>Default Delivery Address</h2>
+                      <p>Auto-fills Shopee-style when you open Checkout.</p>
+                    </div>
+                  </div>
+                  <div className="account-form">
+                    <div className="account-field">
+                      <label htmlFor="addr-recipient">Recipient Full Name (Letters Only)</label>
+                      <input
+                        id="addr-recipient"
+                        type="text"
+                        placeholder="Juana Dela Cruz"
+                        value={profileForm.defaultAddress.recipientName}
+                        onChange={(e) =>
+                          setProfileForm((prev) => ({
+                            ...prev,
+                            defaultAddress: {
+                              ...prev.defaultAddress,
+                              recipientName: sanitizePersonName(e.target.value),
+                            },
+                          }))
+                        }
+                        className={fieldErrors['defaultAddress.recipientName'] ? 'is-invalid' : ''}
+                      />
+                      {fieldErrors['defaultAddress.recipientName'] && (
+                        <small className="account-field-error">{fieldErrors['defaultAddress.recipientName']}</small>
+                      )}
+                    </div>
+
+                    <div className="account-field">
+                      <label htmlFor="addr-phone">Delivery Contact (11 Digits)</label>
+                      <input
+                        id="addr-phone"
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={11}
+                        placeholder="09171234567"
+                        value={profileForm.defaultAddress.phone}
+                        onChange={(e) =>
+                          setProfileForm((prev) => ({
+                            ...prev,
+                            defaultAddress: {
+                              ...prev.defaultAddress,
+                              phone: sanitizePhPhone(e.target.value),
+                            },
+                          }))
+                        }
+                        className={fieldErrors['defaultAddress.phone'] ? 'is-invalid' : ''}
+                      />
+                      {fieldErrors['defaultAddress.phone'] && (
+                        <small className="account-field-error">{fieldErrors['defaultAddress.phone']}</small>
+                      )}
+                    </div>
+
+                    <div className="account-field">
+                      <label htmlFor="addr-street">Street Address / House / Unit No.</label>
+                      <input
+                        id="addr-street"
+                        type="text"
+                        placeholder="Unit 14B, Katipunan Ave"
+                        value={profileForm.defaultAddress.shippingAddress}
+                        onChange={(e) =>
+                          setProfileForm((prev) => ({
+                            ...prev,
+                            defaultAddress: {
+                              ...prev.defaultAddress,
+                              shippingAddress: e.target.value,
+                            },
+                          }))
+                        }
+                        className={fieldErrors['defaultAddress.shippingAddress'] ? 'is-invalid' : ''}
+                      />
+                      {fieldErrors['defaultAddress.shippingAddress'] && (
+                        <small className="account-field-error">{fieldErrors['defaultAddress.shippingAddress']}</small>
+                      )}
+                    </div>
+
+                    <div className="account-field-row">
+                      <div className="account-field">
+                        <label htmlFor="addr-city">City / Municipality</label>
+                        <input
+                          id="addr-city"
+                          type="text"
+                          placeholder="Quezon City"
+                          value={profileForm.defaultAddress.city}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              defaultAddress: {
+                                ...prev.defaultAddress,
+                                city: sanitizeCityName(e.target.value),
+                              },
+                            }))
+                          }
+                          className={fieldErrors['defaultAddress.city'] ? 'is-invalid' : ''}
+                        />
+                      </div>
+
+                      <div className="account-field">
+                        <label htmlFor="addr-barangay">Barangay</label>
+                        <input
+                          id="addr-barangay"
+                          type="text"
+                          placeholder="Loyola Heights"
+                          value={profileForm.defaultAddress.barangay}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              defaultAddress: {
+                                ...prev.defaultAddress,
+                                barangay: e.target.value,
+                              },
+                            }))
+                          }
+                          className={fieldErrors['defaultAddress.barangay'] ? 'is-invalid' : ''}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="account-field-row">
+                      <div className="account-field">
+                        <label htmlFor="addr-postal">ZIP / Postal Code (4 Digits)</label>
+                        <input
+                          id="addr-postal"
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={4}
+                          placeholder="1108"
+                          value={profileForm.defaultAddress.postalCode}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              defaultAddress: {
+                                ...prev.defaultAddress,
+                                postalCode: sanitizeDigits(e.target.value, 4),
+                              },
+                            }))
+                          }
+                          className={fieldErrors['defaultAddress.postalCode'] ? 'is-invalid' : ''}
+                        />
+                        {fieldErrors['defaultAddress.postalCode'] && (
+                          <small className="account-field-error">{fieldErrors['defaultAddress.postalCode']}</small>
+                        )}
+                      </div>
+
+                      <div className="account-field">
+                        <label htmlFor="addr-region">Region</label>
+                        <select
+                          id="addr-region"
+                          value={profileForm.defaultAddress.region}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              defaultAddress: {
+                                ...prev.defaultAddress,
+                                region: e.target.value,
+                              },
+                            }))
+                          }
+                        >
+                          {PH_REGIONS.map((reg) => (
+                            <option key={reg.value} value={reg.value}>{reg.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div className="account-save-bar">
+                <button
+                  type="submit"
+                  className="btn btn--primary"
+                  disabled={profileSaving}
+                >
+                  {profileSaving ? 'Saving Changes...' : 'Save Profile & Address'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {hubTab === 'security' && (
+            <div className="account-settings-grid">
+              <section className="account-setting-section account-setting-section--full">
+                <div className="account-section-heading">
+                  <span className="account-section-icon" aria-hidden="true">KEY</span>
+                  <div>
+                    <h2>Change Password</h2>
+                    <p>Verified against your current password before hashing and saving.</p>
+                  </div>
+                </div>
+                <form className="account-form" onSubmit={handleChangePassword} noValidate>
+                  <div className="account-field">
+                    <label htmlFor="sec-current">Current Password</label>
+                    <PasswordInput
+                      id="sec-current"
+                      name="currentPassword"
+                      value={passwordForm.currentPassword}
+                      onChange={(e) =>
+                        setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))
+                      }
+                      placeholder="Current password"
+                      autoComplete="current-password"
+                      hasError={Boolean(fieldErrors.currentPassword)}
+                    />
+                    {fieldErrors.currentPassword && (
+                      <small className="account-field-error">{fieldErrors.currentPassword}</small>
+                    )}
+                  </div>
+                  <div className="account-field">
+                    <label htmlFor="sec-new">New Password</label>
+                    <PasswordInput
+                      id="sec-new"
+                      name="newPassword"
+                      value={passwordForm.newPassword}
+                      onChange={(e) =>
+                        setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))
+                      }
+                      placeholder="8+ chars, upper + lower + number"
+                      autoComplete="new-password"
+                      hasError={Boolean(fieldErrors.newPassword)}
+                    />
+                    <PasswordStrengthMeter password={passwordForm.newPassword} />
+                    {fieldErrors.newPassword && (
+                      <small className="account-field-error">{fieldErrors.newPassword}</small>
+                    )}
+                  </div>
+                  <div className="account-field">
+                    <label htmlFor="sec-confirm">Confirm New Password</label>
+                    <PasswordInput
+                      id="sec-confirm"
+                      name="confirmPassword"
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) =>
+                        setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                      }
+                      placeholder="Repeat new password"
+                      autoComplete="new-password"
+                      hasError={Boolean(fieldErrors.confirmPassword)}
+                    />
+                    {fieldErrors.confirmPassword && (
+                      <small className="account-field-error">{fieldErrors.confirmPassword}</small>
+                    )}
+                  </div>
+                  <button type="submit" className="btn btn--secondary" disabled={passwordSaving}>
+                    {passwordSaving ? 'Updating Password...' : 'Update Password'}
+                  </button>
+                </form>
+              </section>
+
+              <div className="account-logout-section">
+                <div>
+                  <h2>Sign Out</h2>
+                  <p>Ends your current authenticated browser session cleanly.</p>
+                </div>
+                <button type="button" className="btn btn--secondary" onClick={handleLogout}>
+                  Log Out
+                </button>
+              </div>
+
+              <div className="account-danger-section">
+                <div>
+                  <h2>Delete Account</h2>
+                  <p>
+                    Permanently deletes your collector profile while preserving anonymized historical order records.
+                  </p>
+                </div>
+                {!showDeleteConfirm ? (
+                  <button
+                    type="button"
+                    className="btn btn--danger-outline"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    Delete Account
+                  </button>
+                ) : (
+                  <form className="account-delete-confirm" onSubmit={handleDeleteAccount}>
+                    <p>
+                      Enter your current password and type <strong>DELETE</strong> to permanently remove @{user.username}:
+                    </p>
+                    <PasswordInput
+                      id="delete-password"
+                      name="deletePassword"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      placeholder="Current password"
+                      autoComplete="current-password"
+                    />
+                    <input
+                      type="text"
+                      value={deleteWord}
+                      onChange={(e) => setDeleteWord(e.target.value)}
+                      placeholder="Type DELETE"
+                      aria-label="Type DELETE to confirm"
+                    />
+                    <div className="account-delete-actions">
+                      <button
+                        type="submit"
+                        className="btn btn--danger"
+                        disabled={deleting || deleteWord !== 'DELETE' || !deletePassword}
+                      >
+                        {deleting ? 'Deleting...' : 'Confirm Permanent Deletion'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--ghost"
+                        onClick={() => {
+                          setShowDeleteConfirm(false);
+                          setDeleteWord('');
+                          setDeletePassword('');
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      </main>
+    );
+  }
+
+  // ── UNAUTHENTICATED LOGIN / CREATE ACCOUNT / FORGOT PASSWORD ─────
   return (
     <main className="account-jelly">
-      <section className="account-card account-card--wide">
-
-        <div className="account-preview-banner">
-          <span>DEVELOPMENT PREVIEW</span>
+      <section className="account-card account-auth-card">
+        <div className="account-heading">
+          <span className="account-eyebrow">SISO COLLECTOR ACCESS</span>
+          <h1>
+            {authTab === 'login'
+              ? 'Sign in to Squishies'
+              : authTab === 'register'
+                ? 'Create Collector Account'
+                : 'Reset Your Password'}
+          </h1>
           <p>
-            This is a frontend demonstration. Account actions are
-            not connected to the backend yet.
+            {authTab === 'login'
+              ? 'Sign in to access saved delivery addresses, GCash order history, and tracking.'
+              : authTab === 'register'
+                ? 'Unlock saved addresses, instant Shopee-style checkout, and full delivery receipts.'
+                : 'Verify your username, email, and birthday to choose a strong new password.'}
           </p>
+        </div>
+
+        <div className="account-switch" role="tablist" aria-label="Authentication mode">
           <button
             type="button"
-            onClick={() => switchView(
-              view === 'account' ? 'login' : 'account'
-            )}
+            role="tab"
+            aria-selected={authTab === 'login'}
+            className={authTab === 'login' ? 'is-active' : ''}
+            onClick={() => switchAuthTab('login')}
           >
-            {view === 'account'
-              ? 'Preview Login / Register'
-              : 'Preview Account Settings'}
+            Log In
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={authTab === 'register'}
+            className={authTab === 'register' ? 'is-active' : ''}
+            onClick={() => switchAuthTab('register')}
+          >
+            Create Account
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={authTab === 'forgot'}
+            className={authTab === 'forgot' ? 'is-active' : ''}
+            onClick={() => switchAuthTab('forgot')}
+          >
+            Reset
           </button>
         </div>
 
-        {view === 'account' ? (
-          <>
-            <div className="account-dashboard-heading">
-              <div>
-                <span className="account-eyebrow">YOUR SQUISHIES ACCOUNT</span>
-                <h1>My Account</h1>
-                <p>Manage your account details and preferences.</p>
-              </div>
-              <div className="account-avatar">
-                {username.charAt(0).toUpperCase()}
-              </div>
-            </div>
-
-            <div className="account-profile-summary">
-              <div>
-                <span className="account-summary-label">USERNAME</span>
-                <strong>{username}</strong>
-              </div>
-              <span className="account-preview-status">
-                Preview account
-              </span>
-            </div>
-
-            {message && (
-              <p className="account-message" role="status">
-                {message}
-              </p>
-            )}
-
-            <div className="account-settings-grid">
-
-              <section className="account-setting-section">
-                <div className="account-section-heading">
-                  <span className="account-section-icon">✎</span>
-                  <div>
-                    <h2>Username</h2>
-                    <p>Change how your name appears on your account.</p>
-                  </div>
-                </div>
-
-                <form className="account-form" onSubmit={handleUsername}>
-                  <div className="account-field">
-                    <label htmlFor="editUsername">Username</label>
-                    <input
-                      id="editUsername"
-                      name="username"
-                      value={username}
-                      onChange={(event) => setUsername(event.target.value)}
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="btn btn--pink">
-                    Save Username
-                  </button>
-                </form>
-              </section>
-
-              <section className="account-setting-section">
-                <div className="account-section-heading">
-                  <span className="account-section-icon">♧</span>
-                  <div>
-                    <h2>Birthday</h2>
-                    <p>Update your date of birth.</p>
-                  </div>
-                </div>
-
-                <form className="account-form" onSubmit={handleBirthday}>
-                  <div className="account-field">
-                    <label htmlFor="editBirthday">Birthday</label>
-                    <input
-                      id="editBirthday"
-                      name="birthday"
-                      type="date"
-                      value={birthday}
-                      onChange={(event) => setBirthday(event.target.value)}
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="btn btn--pink">
-                    Save Birthday
-                  </button>
-                </form>
-              </section>
-
-              <section className="account-setting-section account-setting-section--full">
-                <div className="account-section-heading">
-                  <span className="account-section-icon">⌑</span>
-                  <div>
-                    <h2>Change Password</h2>
-                    <p>Keep your account secure with an updated password.</p>
-                  </div>
-                </div>
-
-                <form className="account-form" onSubmit={handlePassword}>
-                  <div className="account-field">
-                    <label htmlFor="currentPassword">Current Password</label>
-                    <input
-                      id="currentPassword"
-                      name="currentPassword"
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                    />
-                  </div>
-
-                  <div className="account-field">
-                    <label htmlFor="newPassword">New Password</label>
-                    <input
-                      id="newPassword"
-                      name="newPassword"
-                      type="password"
-                      autoComplete="new-password"
-                      required
-                    />
-                  </div>
-
-                  <div className="account-field">
-                    <label htmlFor="confirmPassword">Confirm New Password</label>
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      autoComplete="new-password"
-                      required
-                    />
-                  </div>
-
-                  <button type="submit" className="btn btn--pink">
-                    Update Password
-                  </button>
-                </form>
-              </section>
-            </div>
-
-            <section className="account-logout-section">
-              <div>
-                <h2>Log Out</h2>
-                <p>Finished shopping? You can log out of your account.</p>
-              </div>
-              <button
-                type="button"
-                className="btn btn--outline"
-                onClick={handleLogout}
-              >
-                Log Out
-              </button>
-            </section>
-
-            <section className="account-danger-section">
-              <div>
-                <h2>Delete Account</h2>
-                <p>
-                  Permanently remove your account and associated account
-                  information. This action cannot be undone.
-                </p>
-              </div>
-
-              {!showDeleteConfirm ? (
-                <button
-                  type="button"
-                  className="btn btn--danger"
-                  onClick={() => {
-                    setShowDeleteConfirm(true);
-                    setMessage('');
-                  }}
-                >
-                  Delete My Account
-                </button>
-              ) : (
-                <div className="account-delete-confirm">
-                  <p>
-                    Type <strong>DELETE</strong> to confirm this preview action.
-                  </p>
-                  <input
-                    aria-label="Type DELETE to confirm"
-                    value={deleteConfirmation}
-                    onChange={(event) =>
-                      setDeleteConfirmation(event.target.value)
-                    }
-                    placeholder="Type DELETE"
-                  />
-                  <div className="account-delete-actions">
-                    <button
-                      type="button"
-                      className="btn btn--outline"
-                      onClick={() => {
-                        setShowDeleteConfirm(false);
-                        setDeleteConfirmation('');
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn--danger"
-                      disabled={deleteConfirmation !== 'DELETE'}
-                      onClick={handleDelete}
-                    >
-                      Confirm Deletion
-                    </button>
-                  </div>
-                </div>
-              )}
-            </section>
-          </>
-        ) : (
-          <>
-            <div className="account-heading">
-              <span className="account-eyebrow">WELCOME TO SQUISHIES</span>
-              <h1>{view === 'login' ? 'Welcome Back!' : 'Create an Account'}</h1>
-              <p>
-                {view === 'login'
-                  ? 'Log in to keep your favorite squishies and cart close.'
-                  : 'Join us and keep your squishy collection in one place.'}
-              </p>
-            </div>
-
-            <div className="account-switch">
-              <button
-                type="button"
-                className={view === 'login' ? 'is-active' : ''}
-                onClick={() => switchView('login')}
-              >
-                Log In
-              </button>
-              <button
-                type="button"
-                className={view === 'register' ? 'is-active' : ''}
-                onClick={() => switchView('register')}
-              >
-                Register
-              </button>
-            </div>
-
-            <form
-              className="account-form"
-              onSubmit={view === 'login' ? handleLogin : handleRegister}
-            >
-              <div className="account-field">
-                <label htmlFor="username">Username</label>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  placeholder="Enter your username"
-                  autoComplete="username"
-                  required
-                />
-              </div>
-
-              {view === 'register' && (
-                <div className="account-field">
-                  <label htmlFor="email">Email Address</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    autoComplete="email"
-                    required
-                  />
-                </div>
-              )}
-
-              <div className="account-field">
-                <label htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  autoComplete={
-                    view === 'login' ? 'current-password' : 'new-password'
-                  }
-                  required
-                />
-              </div>
-
-              {view === 'register' && (
-                <>
-                  <div className="account-field">
-                    <label htmlFor="confirmPassword">Confirm Password</label>
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      placeholder="Re-enter your password"
-                      autoComplete="new-password"
-                      required
-                    />
-                  </div>
-
-                  <div className="account-field">
-                    <label htmlFor="birthday">Birthday</label>
-                    <input
-                      id="birthday"
-                      name="birthday"
-                      type="date"
-                      autoComplete="bday"
-                      required
-                    />
-                  </div>
-                </>
-              )}
-
-              {view === 'login' && (
-                <div className="account-forgot">
-                  <button
-                    type="button"
-                    onClick={() => previewNotice('Password recovery')}
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-              )}
-
-              {message && (
-                <p className="account-message" role="status">{message}</p>
-              )}
-
-              <button
-                type="submit"
-                className={`btn btn--pink account-submit${submitting ? ' is-loading' : ''}${loginSuccess ? ' is-success' : ''}`}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <>
-                    <span className="submit-spinner-orb" aria-hidden="true" />
-                    <span>Squishing in…</span>
-                  </>
-                ) : loginSuccess ? (
-                  <>
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M20 6L9 17l-5-5" />
-                    </svg>
-                    <span>Welcome Back!</span>
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      width="17"
-                      height="17"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                      <polyline points="10 17 15 12 10 7" />
-                      <line x1="15" y1="12" x2="3" y2="12" />
-                    </svg>
-                    <span>{view === 'login' ? 'Log In to Squishies' : 'Create Collector Account'}</span>
-                  </>
-                )}
-              </button>
-            </form>
-
-            <p className="account-bottom">
-              {view === 'login' ? (
-                <>
-                  No account yet?{' '}
-                  <button type="button" onClick={() => switchView('register')}>
-                    Register here
-                  </button>
-                </>
-              ) : (
-                <>
-                  Already have an account?{' '}
-                  <button type="button" onClick={() => switchView('login')}>
-                    Return to Login
-                  </button>
-                </>
-              )}
-            </p>
-          </>
+        {statusBanner && (
+          <p
+            className={`account-message account-message--${statusBanner.tone}`}
+            role={statusBanner.tone === 'error' ? 'alert' : 'status'}
+          >
+            {statusBanner.text}
+          </p>
         )}
 
-        <Link to="/" className="account-back">
-          ← Back to Squishies
-        </Link>
+        {authTab === 'login' && (
+          <form className="account-form" onSubmit={handleLoginSubmit} noValidate>
+            <div className="account-field">
+              <label htmlFor="login-identifier">Username or Email Address</label>
+              <input
+                id="login-identifier"
+                name="identifier"
+                type="text"
+                placeholder="collector_name or you@email.com"
+                autoComplete="username"
+                value={loginForm.identifier}
+                onChange={(e) =>
+                  setLoginForm((prev) => ({ ...prev, identifier: e.target.value }))
+                }
+                className={fieldErrors.identifier ? 'is-invalid' : ''}
+                required
+              />
+              {fieldErrors.identifier && (
+                <small className="account-field-error">{fieldErrors.identifier}</small>
+              )}
+            </div>
+
+            <div className="account-field">
+              <label htmlFor="login-password">Password</label>
+              <PasswordInput
+                id="login-password"
+                name="password"
+                value={loginForm.password}
+                onChange={(e) =>
+                  setLoginForm((prev) => ({ ...prev, password: e.target.value }))
+                }
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                hasError={Boolean(fieldErrors.password)}
+              />
+              {fieldErrors.password && (
+                <small className="account-field-error">{fieldErrors.password}</small>
+              )}
+            </div>
+
+            <div className="account-forgot">
+              <button type="button" onClick={() => switchAuthTab('forgot')}>
+                Forgot password?
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              className={`account-submit${submitting ? ' is-loading' : ''}`}
+              disabled={submitting}
+            >
+              {submitting ? 'Signing In...' : 'Log In to Squishies'}
+            </button>
+          </form>
+        )}
+
+        {authTab === 'register' && (
+          <form className="account-form" onSubmit={handleRegisterSubmit} noValidate>
+            <div className="account-field">
+              <label htmlFor="reg-username">Username (Letters, Numbers &amp; _)</label>
+              <input
+                id="reg-username"
+                name="username"
+                type="text"
+                maxLength={28}
+                placeholder="squishy_collector"
+                autoComplete="username"
+                value={registerForm.username}
+                onChange={(e) =>
+                  setRegisterForm((prev) => ({
+                    ...prev,
+                    username: sanitizeUsername(e.target.value),
+                  }))
+                }
+                className={fieldErrors.username ? 'is-invalid' : ''}
+                required
+              />
+              {fieldErrors.username && (
+                <small className="account-field-error">{fieldErrors.username}</small>
+              )}
+            </div>
+
+            <div className="account-field">
+              <label htmlFor="reg-email">Email Address</label>
+              <input
+                id="reg-email"
+                name="email"
+                type="email"
+                placeholder="you@domain.com"
+                autoComplete="email"
+                value={registerForm.email}
+                onChange={(e) =>
+                  setRegisterForm((prev) => ({ ...prev, email: e.target.value }))
+                }
+                className={fieldErrors.email ? 'is-invalid' : ''}
+                required
+              />
+              {fieldErrors.email && (
+                <small className="account-field-error">{fieldErrors.email}</small>
+              )}
+            </div>
+
+            <div className="account-field-row">
+              <div className="account-field">
+                <label htmlFor="reg-phone">Contact Number (11 Digits Only)</label>
+                <input
+                  id="reg-phone"
+                  name="phone"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={11}
+                  placeholder="09171234567"
+                  autoComplete="tel-national"
+                  value={registerForm.phone}
+                  onChange={(e) =>
+                    setRegisterForm((prev) => ({
+                      ...prev,
+                      phone: sanitizePhPhone(e.target.value),
+                    }))
+                  }
+                  className={fieldErrors.phone ? 'is-invalid' : ''}
+                  required
+                />
+                {fieldErrors.phone && (
+                  <small className="account-field-error">{fieldErrors.phone}</small>
+                )}
+              </div>
+
+              <div className="account-field">
+                <label htmlFor="reg-birthday">Birthday</label>
+                <input
+                  id="reg-birthday"
+                  name="birthday"
+                  type="date"
+                  value={registerForm.birthday}
+                  onChange={(e) =>
+                    setRegisterForm((prev) => ({ ...prev, birthday: e.target.value }))
+                  }
+                  className={fieldErrors.birthday ? 'is-invalid' : ''}
+                  required
+                />
+                {fieldErrors.birthday && (
+                  <small className="account-field-error">{fieldErrors.birthday}</small>
+                )}
+              </div>
+            </div>
+
+            <div className="account-field">
+              <label htmlFor="reg-password">Password</label>
+              <PasswordInput
+                id="reg-password"
+                name="password"
+                value={registerForm.password}
+                onChange={(e) =>
+                  setRegisterForm((prev) => ({ ...prev, password: e.target.value }))
+                }
+                placeholder="8+ chars, upper + lower + number"
+                autoComplete="new-password"
+                hasError={Boolean(fieldErrors.password)}
+              />
+              <PasswordStrengthMeter password={registerForm.password} />
+              {fieldErrors.password && (
+                <small className="account-field-error">{fieldErrors.password}</small>
+              )}
+            </div>
+
+            <div className="account-field">
+              <label htmlFor="reg-confirm">Confirm Password</label>
+              <PasswordInput
+                id="reg-confirm"
+                name="confirmPassword"
+                value={registerForm.confirmPassword}
+                onChange={(e) =>
+                  setRegisterForm((prev) => ({
+                    ...prev,
+                    confirmPassword: e.target.value,
+                  }))
+                }
+                placeholder="Repeat password"
+                autoComplete="new-password"
+                hasError={Boolean(fieldErrors.confirmPassword)}
+              />
+              {fieldErrors.confirmPassword && (
+                <small className="account-field-error">{fieldErrors.confirmPassword}</small>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className={`account-submit${submitting ? ' is-loading' : ''}`}
+              disabled={submitting}
+            >
+              {submitting ? 'Creating Account...' : 'Create Collector Account'}
+            </button>
+          </form>
+        )}
+
+        {authTab === 'forgot' && (
+          <form className="account-form" onSubmit={handleResetSubmit} noValidate>
+            <div className="account-field">
+              <label htmlFor="reset-username">Account Username</label>
+              <input
+                id="reset-username"
+                name="username"
+                type="text"
+                maxLength={28}
+                placeholder="Your username"
+                value={resetForm.username}
+                onChange={(e) =>
+                  setResetForm((prev) => ({
+                    ...prev,
+                    username: sanitizeUsername(e.target.value),
+                  }))
+                }
+                className={fieldErrors.username ? 'is-invalid' : ''}
+                required
+              />
+              {fieldErrors.username && (
+                <small className="account-field-error">{fieldErrors.username}</small>
+              )}
+            </div>
+
+            <div className="account-field-row">
+              <div className="account-field">
+                <label htmlFor="reset-email">Registered Email</label>
+                <input
+                  id="reset-email"
+                  name="email"
+                  type="email"
+                  placeholder="you@domain.com"
+                  value={resetForm.email}
+                  onChange={(e) =>
+                    setResetForm((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  className={fieldErrors.email ? 'is-invalid' : ''}
+                  required
+                />
+                {fieldErrors.email && (
+                  <small className="account-field-error">{fieldErrors.email}</small>
+                )}
+              </div>
+
+              <div className="account-field">
+                <label htmlFor="reset-birthday">Registered Birthday</label>
+                <input
+                  id="reset-birthday"
+                  name="birthday"
+                  type="date"
+                  value={resetForm.birthday}
+                  onChange={(e) =>
+                    setResetForm((prev) => ({ ...prev, birthday: e.target.value }))
+                  }
+                  className={fieldErrors.birthday ? 'is-invalid' : ''}
+                  required
+                />
+                {fieldErrors.birthday && (
+                  <small className="account-field-error">{fieldErrors.birthday}</small>
+                )}
+              </div>
+            </div>
+
+            <div className="account-field">
+              <label htmlFor="reset-newpw">New Password</label>
+              <PasswordInput
+                id="reset-newpw"
+                name="newPassword"
+                value={resetForm.newPassword}
+                onChange={(e) =>
+                  setResetForm((prev) => ({ ...prev, newPassword: e.target.value }))
+                }
+                placeholder="8+ chars, upper + lower + number"
+                autoComplete="new-password"
+                hasError={Boolean(fieldErrors.newPassword)}
+              />
+              <PasswordStrengthMeter password={resetForm.newPassword} />
+              {fieldErrors.newPassword && (
+                <small className="account-field-error">{fieldErrors.newPassword}</small>
+              )}
+            </div>
+
+            <div className="account-field">
+              <label htmlFor="reset-confirm">Confirm New Password</label>
+              <PasswordInput
+                id="reset-confirm"
+                name="confirmPassword"
+                value={resetForm.confirmPassword}
+                onChange={(e) =>
+                  setResetForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                }
+                placeholder="Repeat new password"
+                autoComplete="new-password"
+                hasError={Boolean(fieldErrors.confirmPassword)}
+              />
+              {fieldErrors.confirmPassword && (
+                <small className="account-field-error">{fieldErrors.confirmPassword}</small>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className={`account-submit${submitting ? ' is-loading' : ''}`}
+              disabled={submitting}
+            >
+              {submitting ? 'Verifying & Updating...' : 'Reset Password'}
+            </button>
+          </form>
+        )}
+
+        <div className="account-bottom">
+          {authTab === 'login' ? (
+            <p>
+              New collector?{' '}
+              <button type="button" onClick={() => switchAuthTab('register')}>
+                Create an account
+              </button>
+            </p>
+          ) : (
+            <p>
+              Remembered your password?{' '}
+              <button type="button" onClick={() => switchAuthTab('login')}>
+                Back to Log In
+              </button>
+            </p>
+          )}
+          <Link to="/shop.html" className="account-back">
+            ← Back to Squishies Shop
+          </Link>
+        </div>
       </section>
     </main>
   );

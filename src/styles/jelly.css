@@ -7274,5 +7274,1055 @@ html[data-theme="dark"] .footer__by {
   color: #bfa1be !important;
 }
 
+/* ================================================================
+   ACCOUNT AUTH, COLLECTOR HUB, GCASH PORTAL & E-RECEIPT STYLES
+   ================================================================ */
+
+.account-jelly {
+  padding-top: 112px !important;
+}
+
+.account-dashboard-heading {
+  gap: 14px;
+}
+
+.account-avatar {
+  flex-shrink: 0;
+}
+
+@media (max-width: 540px) {
+  .account-jelly {
+    padding-top: 94px !important;
+  }
+  .account-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.25rem !important;
+  }
+}
+
+.btn--primary,
+.btn--pink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.account-card .btn--primary,
+.account-orders-empty .btn--primary {
+  background: linear-gradient(135deg, #f472b6, #db2777);
+  color: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(219, 39, 119, 0.28);
+  cursor: pointer;
+}
+
+.account-card .btn--secondary,
+.account-card .btn--outline {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.36);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.account-card .btn--secondary:hover,
+.account-card .btn--outline:hover {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.account-card .btn--danger-outline {
+  background: rgba(225, 29, 72, 0.16);
+  color: #fecdd3;
+  border: 1.5px solid rgba(253, 164, 175, 0.45);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-card .btn--danger {
+  background: #e11d48;
+  color: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-card .btn--ghost {
+  background: transparent;
+  color: #f3d5ed;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-btn__initial {
+  font-weight: 800;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.site-header--jelly-dock .account-btn--dock.is-authenticated {
+  border-color: rgba(236, 72, 153, 0.42);
+}
+
+.account-loading-card {
+  text-align: center;
+  padding: 56px 28px;
+}
+
+.account-loading-orb {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 0 auto 18px;
+  background: linear-gradient(135deg, #ff7eb8, #a855f7);
+  animation: accountPulseOrb 1.2s ease-in-out infinite;
+}
+
+@keyframes accountPulseOrb {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+.account-switch {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.account-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.account-input-wrap input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.account-eye-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--account-muted, #6f5278);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.account-eye-btn:hover {
+  background: rgba(236, 72, 153, 0.12);
+  color: #db2777;
+}
+
+.account-field select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(114, 72, 134, 0.2);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--ink, #2a1833);
+  font: inherit;
+  font-size: 0.94rem;
+}
+
+.account-field input.is-invalid,
+.account-field select.is-invalid {
+  border-color: #e11d48 !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.14);
+}
+
+.account-field-error {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.account-field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 620px) {
+  .account-field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.account-message--error {
+  background: rgba(254, 226, 226, 0.92) !important;
+  border: 1px solid rgba(225, 29, 72, 0.34) !important;
+  color: #9f1239 !important;
+}
+
+.account-message--success {
+  background: rgba(209, 250, 229, 0.92) !important;
+  border: 1px solid rgba(16, 185, 129, 0.34) !important;
+  color: #065f46 !important;
+}
+
+/* Password Strength Meter */
+.password-meter {
+  margin-top: 8px;
+}
+
+.password-meter__bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.password-meter__bars span {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(140, 110, 155, 0.22);
+  transition: background-color 0.25s ease;
+}
+
+.password-meter--weak .password-meter__bars span.is-filled { background: #ef4444; }
+.password-meter--fair .password-meter__bars span.is-filled { background: #f59e0b; }
+.password-meter--good .password-meter__bars span.is-filled { background: #10b981; }
+.password-meter--strong .password-meter__bars span.is-filled { background: #ec4899; }
+
+.password-meter__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--account-muted, #6f5278);
+}
+
+/* Account Collector Hub */
+.account-summary-meta {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--account-muted, #6f5278);
+  margin-top: 2px;
+}
+
+.account-summary-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: rgba(16, 185, 129, 0.22);
+  color: #a7f3d0;
+  border: 1px solid rgba(110, 231, 183, 0.46);
+}
+
+.account-hub-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0;
+  padding: 6px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(130, 88, 150, 0.16);
+}
+
+.account-hub-tabs button {
+  flex: 1 1 auto;
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--account-muted, #5c3d69);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-hub-tabs button.is-active {
+  background: linear-gradient(135deg, #f472b6, #db2777);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(219, 39, 119, 0.25);
+}
+
+.account-order-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.account-order-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.88);
+  color: #3e1951;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-order-filters button.is-active {
+  border-color: #f472b6;
+  background: linear-gradient(135deg, #f472b6, #db2777);
+  color: #ffffff;
+}
+
+.account-order-filters button small {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(130, 88, 150, 0.16);
+  font-size: 0.74rem;
+}
+
+.account-order-filters button.is-active small {
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+}
+
+.account-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.account-order-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(130, 88, 150, 0.2);
+  color: #2f173c;
+  box-shadow: 0 8px 22px rgba(68, 30, 84, 0.08);
+}
+
+.account-order-card .btn--outline {
+  color: #831843 !important;
+  border-color: rgba(219, 39, 119, 0.36) !important;
+  background: rgba(253, 242, 248, 0.9) !important;
+}
+
+.account-order-card .btn--outline:hover {
+  background: #fce7f3 !important;
+  border-color: #db2777 !important;
+}
+
+.account-order-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.account-order-card__num {
+  display: block;
+  font-weight: 800;
+  font-size: 0.96rem;
+  color: #2f173c;
+}
+
+.account-order-card__date {
+  display: block;
+  font-size: 0.8rem;
+  color: #6f5278;
+}
+
+.account-order-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: rgba(168, 85, 247, 0.14);
+  color: #6b21a8;
+}
+
+.account-order-pill.is-topay { background: rgba(245, 158, 11, 0.18); color: #b45309; }
+.account-order-pill.is-toship { background: rgba(59, 130, 246, 0.16); color: #1d4ed8; }
+.account-order-pill.is-shipped { background: rgba(168, 85, 247, 0.18); color: #7e22ce; }
+.account-order-pill.is-completed { background: rgba(16, 185, 129, 0.18); color: #047857; }
+.account-order-pill.is-cancelled { background: rgba(225, 29, 72, 0.14); color: #be123c; }
+
+.account-order-card__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.account-order-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  border-radius: 12px;
+  background: rgba(245, 232, 255, 0.92);
+  border: 1px solid rgba(130, 88, 150, 0.22);
+  color: #3c1650;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.account-order-chip img {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.account-order-chip__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(135deg, #f472b6, #a855f7);
+}
+
+.account-order-card__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(130, 88, 150, 0.22);
+}
+
+.account-order-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.86rem;
+}
+
+.account-order-card__total {
+  font-weight: 800;
+  font-size: 1rem;
+  color: #be185d;
+}
+
+.account-orders-empty {
+  text-align: center;
+  padding: 36px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+  border: 1.5px dashed rgba(130, 88, 150, 0.28);
+}
+
+.account-orders-empty h3 {
+  margin-bottom: 6px;
+}
+
+.account-orders-empty p {
+  margin-bottom: 16px;
+  color: var(--account-muted, #6f5278);
+}
+
+.account-save-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.btn--sm {
+  padding: 7px 14px;
+  font-size: 0.84rem;
+}
+
+.btn--xs {
+  padding: 5px 11px;
+  font-size: 0.78rem;
+}
+
+.btn--full {
+  width: 100%;
+}
+
+/* Checkout Shopee Address Strip */
+.checkout-shopee-address-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #2d163a;
+  border: 1.5px solid rgba(236, 72, 153, 0.28);
+  box-shadow: 0 8px 22px rgba(74, 34, 96, 0.08);
+}
+
+.checkout-shopee-address-strip strong {
+  color: #2d163a;
+}
+
+.checkout-shopee-address-strip .btn--outline {
+  color: #6b21a8;
+  border-color: rgba(130, 88, 150, 0.34);
+  background: rgba(250, 244, 255, 0.9);
+}
+
+.address-strip-tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(236, 72, 153, 0.14);
+  color: #be185d;
+  margin-right: 8px;
+}
+
+.checkout-shopee-address-strip small {
+  display: block;
+  margin-top: 3px;
+  color: #664a72;
+  font-size: 0.84rem;
+}
+
+.address-strip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* GCash / Maya / Card Interactive Payment Portal */
+.payment-modal--portal {
+  max-width: 470px;
+}
+
+.payment-portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.payment-portal-brand small {
+  display: block;
+  font-size: 0.76rem;
+  opacity: 0.78;
+}
+
+.payment-portal-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.payment-portal-pill--gcash { background: linear-gradient(135deg, #007dfe, #0057c2); }
+.payment-portal-pill--maya { background: linear-gradient(135deg, #10b981, #047857); }
+.payment-portal-pill--card { background: linear-gradient(135deg, #7c3aed, #db2777); }
+
+.payment-summary-box--portal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+
+.payment-summary-box--portal span,
+.payment-summary-box--portal small,
+.payment-summary-box--portal strong {
+  color: #ffffff !important;
+}
+
+.payment-modal .btn--outline {
+  color: #fff4fb !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.38) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.payment-modal .btn--outline:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.wallet-balance-card {
+  background: rgba(0, 125, 254, 0.18) !important;
+  border: 1px solid rgba(96, 165, 250, 0.42) !important;
+  color: #f8fbff !important;
+}
+
+.payment-demo-edge-controls summary {
+  color: #e9c9e4 !important;
+}
+
+.payment-summary-box--portal span {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.payment-summary-box--portal small {
+  font-size: 0.74rem;
+  opacity: 0.75;
+}
+
+.wallet-steps-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.wallet-steps-bar span {
+  text-align: center;
+  padding: 7px 6px;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: rgba(130, 88, 150, 0.1);
+  color: #6b4e79;
+}
+
+.wallet-steps-bar span.is-active {
+  background: linear-gradient(135deg, #007dfe, #0263d1);
+  color: #fff;
+}
+
+.payment-modal--maya .wallet-steps-bar span.is-active {
+  background: linear-gradient(135deg, #10b981, #047857);
+}
+
+.sim-sms-toast {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.34);
+  font-size: 0.82rem;
+}
+
+.sim-sms-toast strong {
+  display: block;
+  font-size: 0.78rem;
+}
+
+.sim-otp-code {
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.wallet-balance-card {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: rgba(0, 125, 254, 0.08);
+  border: 1px solid rgba(0, 125, 254, 0.24);
+}
+
+.wallet-balance-card span {
+  display: block;
+  font-size: 0.74rem;
+  opacity: 0.8;
+}
+
+.wallet-balance-card strong {
+  font-size: 1rem;
+}
+
+.payment-portal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.payment-demo-edge-controls {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(130, 88, 150, 0.26);
+  font-size: 0.82rem;
+}
+
+.payment-demo-edge-controls summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #6f5278;
+}
+
+.payment-edge-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+/* Delivery Simulator Bar & 5-Step Shopee Timeline */
+.shopee-timeline--five {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 8px;
+  align-items: start;
+}
+
+.shopee-timeline--five .timeline-step {
+  width: auto !important;
+  min-width: 0;
+  flex: initial !important;
+}
+
+.shopee-timeline--five .timeline-step span {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 2px rgba(20, 6, 30, 0.25);
+}
+
+.shopee-timeline--five .timeline-step.is-complete span {
+  color: #d1fae5 !important;
+  font-weight: 800;
+}
+
+.shopee-tracking-ref {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+@media (max-width: 640px) {
+  .shopee-timeline--five {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+}
+
+.delivery-simulator-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  margin: 16px 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.14), rgba(168, 85, 247, 0.14));
+  border: 1.5px solid rgba(236, 72, 153, 0.28);
+}
+
+.delivery-sim-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: #db2777;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.delivery-simulator-bar__info strong,
+.delivery-simulator-bar__info small {
+  display: block;
+}
+
+.delivery-simulator-bar__info small {
+  opacity: 0.82;
+  font-size: 0.8rem;
+}
+
+/* Official Digital E-Receipt Modal & Print Layout */
+.digital-receipt-modal {
+  max-width: 520px;
+}
+
+.digital-receipt-sheet {
+  padding: 18px 22px 22px;
+}
+
+.digital-receipt-brand {
+  text-align: center;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1.5px dashed rgba(130, 88, 150, 0.28);
+}
+
+.digital-receipt-brand strong,
+.digital-receipt-brand span,
+.digital-receipt-brand small {
+  display: block;
+}
+
+.digital-receipt-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+}
+
+.digital-receipt-meta > div {
+  min-width: 0;
+}
+
+.digital-receipt-meta > div strong {
+  display: block;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.digital-receipt-meta > div:nth-child(1),
+.digital-receipt-meta > div:nth-child(2) {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 500px) {
+  .digital-receipt-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+.digital-receipt-meta > div span {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.digital-receipt-items {
+  padding: 10px 0;
+  border-top: 1px dashed rgba(130, 88, 150, 0.25);
+  border-bottom: 1px dashed rgba(130, 88, 150, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.digital-receipt-item,
+.digital-receipt-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.86rem;
+}
+
+.digital-receipt-totals {
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.digital-receipt-totals .is-grand {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(130, 88, 150, 0.22);
+  font-size: 1rem;
+}
+
+.digital-receipt-footer {
+  margin-top: 14px;
+  font-size: 0.8rem;
+}
+
+.digital-receipt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Dark Purple-Pink Overrides for New Account, GCash & Receipt Elements */
+html[data-theme="dark"] .account-hub-tabs {
+  background: rgba(20, 7, 32, 0.7);
+  border-color: rgba(240, 162, 214, 0.26);
+}
+
+html[data-theme="dark"] .account-hub-tabs button {
+  color: #ebd0e8;
+}
+
+html[data-theme="dark"] .account-field select,
+html[data-theme="dark"] .account-order-filters button,
+html[data-theme="dark"] .account-order-card,
+html[data-theme="dark"] .account-orders-empty,
+html[data-theme="dark"] .checkout-shopee-address-strip {
+  background: rgba(24, 8, 38, 0.78) !important;
+  border-color: rgba(242, 166, 216, 0.28) !important;
+  color: #fff4fb;
+}
+
+html[data-theme="dark"] .account-order-filters button.is-active {
+  background: linear-gradient(135deg, #f472b6, #db2777) !important;
+  border-color: #f472b6 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .account-order-card__num,
+html[data-theme="dark"] .account-order-card__total {
+  color: #ffb0db;
+}
+
+html[data-theme="dark"] .account-order-card .btn--outline {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff4fb !important;
+  border-color: rgba(242, 166, 216, 0.36) !important;
+}
+
+html[data-theme="dark"] .checkout-shopee-address-strip strong {
+  color: #fff4fb !important;
+}
+
+html[data-theme="dark"] .checkout-shopee-address-strip .btn--outline {
+  color: #fff4fb !important;
+  border-color: rgba(242, 166, 216, 0.36) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-theme="dark"] .shopee-receipt-card {
+  color: #fff4fb;
+}
+
+html[data-theme="dark"] .shopee-order-ref,
+html[data-theme="dark"] .shopee-info-box h4,
+html[data-theme="dark"] .shopee-financial-box,
+html[data-theme="dark"] .financial-row,
+html[data-theme="dark"] .financial-row span,
+html[data-theme="dark"] .financial-row strong,
+html[data-theme="dark"] .order-activity summary,
+html[data-theme="dark"] .order-activity li {
+  color: #f6dff0 !important;
+}
+
+html[data-theme="dark"] .shopee-financial-box .financial-row--total strong {
+  color: #ffb0db !important;
+}
+
+html[data-theme="dark"] .shopee-status-badge {
+  background: rgba(244, 114, 182, 0.22) !important;
+  color: #ffe4f3 !important;
+  border: 1px solid rgba(244, 114, 182, 0.45);
+}
+
+html[data-theme="dark"] .shopee-actions .btn--outline {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff4fb !important;
+  border-color: rgba(242, 166, 216, 0.36) !important;
+}
+
+html[data-theme="dark"] .shopee-actions .btn--outline:hover,
+html[data-theme="dark"] .shopee-actions .btn--outline:focus,
+html[data-theme="dark"] .shopee-actions .btn--outline:focus-visible {
+  background: rgba(244, 114, 182, 0.24) !important;
+  color: #ffffff !important;
+  border-color: #f472b6 !important;
+}
+
+html[data-theme="dark"] .account-order-card__date,
+html[data-theme="dark"] .checkout-shopee-address-strip small,
+html[data-theme="dark"] .account-summary-meta {
+  color: #dfc0da;
+}
+
+html[data-theme="dark"] .account-order-chip {
+  background: rgba(42, 14, 62, 0.85);
+  border-color: rgba(242, 166, 216, 0.24);
+  color: #fff4fb;
+}
+
+html[data-theme="dark"] .account-field-error {
+  color: #fda4af;
+}
+
+html[data-theme="dark"] .wallet-steps-bar span {
+  background: rgba(48, 16, 68, 0.75);
+  color: #e4c3df;
+}
+
+html[data-theme="dark"] .sim-sms-toast {
+  background: rgba(14, 165, 233, 0.16);
+  border-color: rgba(56, 189, 248, 0.36);
+  color: #f0f9ff;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .digital-receipt-modal,
+  .digital-receipt-modal * {
+    visibility: visible;
+  }
+  .digital-receipt-modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .digital-receipt-actions,
+  .payment-modal__close {
+    display: none !important;
+  }
+}
+
 
 

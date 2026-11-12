@@ -298,15 +298,32 @@ export const SquishiesAPI = {
       key,
     }),
 
-  simulatePayment: async (id, outcome) => {
+  simulatePayment: async (id, payloadOrOutcome) => {
+    const body =
+      typeof payloadOrOutcome === 'string'
+        ? { outcome: payloadOrOutcome }
+        : { ...(payloadOrOutcome || {}) };
     const data = await protectedRequest(
       `/payments/sessions/${encodeURIComponent(id)}/simulate`,
       {
         method: 'POST',
-        body: { outcome },
+        body,
       }
     );
     invalidateApiCache('/products');
+    invalidateApiCache('/account/orders');
+    return data;
+  },
+
+  advanceDemoDelivery: async (orderNumber, stage) => {
+    const data = await protectedRequest(
+      `/orders/${encodeURIComponent(orderNumber)}/demo-advance`,
+      {
+        method: 'POST',
+        body: { stage },
+      }
+    );
+    invalidateApiCache('/account/orders');
     return data;
   },
 
@@ -326,6 +343,50 @@ export const SquishiesAPI = {
     });
     invalidateApiCache('/reviews');
     invalidateApiCache('/products');
+    return data;
+  },
+
+  /* ── Account & Authentication ───────────────────────────────── */
+
+  getAuthMe: () => request('/auth/me'),
+
+  registerAccount: async (body) => {
+    await session();
+    const data = await request('/auth/register', { method: 'POST', body });
+    invalidateApiCache('/account/orders');
+    return data;
+  },
+
+  loginAccount: async (body) => {
+    await session();
+    const data = await request('/auth/login', { method: 'POST', body });
+    invalidateApiCache('/account/orders');
+    return data;
+  },
+
+  logoutAccount: async () => {
+    const data = await request('/auth/logout', { method: 'POST', body: {} });
+    invalidateApiCache('/account/orders');
+    return data;
+  },
+
+  resetPassword: async (body) => {
+    await session();
+    return request('/auth/reset-password', { method: 'POST', body });
+  },
+
+  updateAccountProfile: (body) =>
+    request('/account/profile', { method: 'PATCH', body }),
+
+  changeAccountPassword: (body) =>
+    request('/account/password', { method: 'POST', body }),
+
+  fetchAccountOrders: (options) =>
+    cachedGet('/account/orders', { force: true, ...(options || {}) }),
+
+  deleteAccount: async (body) => {
+    const data = await request('/account', { method: 'DELETE', body });
+    invalidateApiCache('/account/orders');
     return data;
   },
 };

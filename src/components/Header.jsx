@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Header({ onOpenCart }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { totalCount } = useCart();
   const { isDark, toggleTheme } = useTheme();
+  const { user, authenticated } = useAuth();
   const { pathname } = useLocation();
 
   const isHome = pathname === '/' || pathname === '/index.html';
@@ -156,28 +158,40 @@ export default function Header({ onOpenCart }) {
             </button>
 
             <Link
-              to="/account?mode=login"
-              className={`account-btn account-btn--dock${isAccount ? ' is-active' : ''}`}
+              to={authenticated ? '/account?mode=account' : '/account?mode=login'}
+              className={`account-btn account-btn--dock${isAccount ? ' is-active' : ''}${authenticated ? ' is-authenticated' : ''}`}
               aria-current={isAccount ? 'page' : undefined}
-              title="Collector Account • Log In & Orders"
+              title={
+                authenticated
+                  ? `Signed in as @${user?.username} • Account & Orders`
+                  : 'Collector Account • Log In & Orders'
+              }
               onClick={closeMenu}
             >
               <span className="account-btn__avatar" aria-hidden="true">
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M20 21a8 8 0 0 0-16 0" />
-                </svg>
+                {authenticated && user?.username ? (
+                  <span className="account-btn__initial">
+                    {user.username.slice(0, 1).toUpperCase()}
+                  </span>
+                ) : (
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M20 21a8 8 0 0 0-16 0" />
+                  </svg>
+                )}
               </span>
-              <span className="account-btn__label">Log In</span>
+              <span className="account-btn__label">
+                {authenticated && user?.username ? `@${user.username}` : 'Log In'}
+              </span>
             </Link>
 
             <button
