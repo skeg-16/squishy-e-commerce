@@ -85,22 +85,22 @@ function PetSpriteSvg({ character, liteMode, faceRef }) {
   const rimId = `pet-rim-${deco}`;
   const clipId = `pet-clip-${deco}`;
 
-  // Chubby 3D ball-like plush silhouettes anchored near bottom y=108
-  let rx = 46;
-  let ry = 43.5;
-  let cy = 64.5;
+  // Chubby 3D ball-like plush silhouettes closely filling bounds so edge bounces kiss borders
+  let rx = 48.5;
+  let ry = 46;
+  let cy = 66;
   let isPeanut = false;
 
   if (deco === 'cheese') {
-    rx = 45.5;
-    ry = 43.5;
+    rx = 48;
+    ry = 46;
   } else if (deco === 'toast') {
-    rx = 45;
-    ry = 44;
+    rx = 47.5;
+    ry = 46.5;
   } else if (deco === 'butter') {
-    rx = 42;
-    ry = 45;
-    cy = 63;
+    rx = 44.5;
+    ry = 47.5;
+    cy = 64.5;
   } else if (deco === 'peanut') {
     isPeanut = true;
   }
@@ -1112,47 +1112,83 @@ export default function PetLayer({
         keepRunning = true;
         const tp = eng.throwPhys;
         if (!tp.settling) {
-          tp.vy += GRAVITY * dt;
-          eng.x += tp.vx * dt;
-          eng.y += tp.vy * dt;
+          const { minX, maxX, minY, maxY, petSize } = eng.vp;
+          const ballRadius = Math.max(24, petSize * 0.45);
+          const subSteps = dt > 0.018 || Math.hypot(tp.vx, tp.vy) > 950 ? 2 : 1;
+          const subDt = dt / subSteps;
 
-          // Real rolling angular velocity proportional to horizontal speed
-          eng.rollDeg = (eng.rollDeg + (tp.vx * dt * 180) / (Math.PI * (eng.vp.petSize * 0.45))) % 360;
+          let maxWallImp = 0;
+          let maxVertImp = 0;
 
-          const { minX, maxX, minY, maxY } = eng.vp;
-          let impactSpeed = 0;
+          for (let s = 0; s < subSteps; s += 1) {
+            const onFloorNow = eng.y >= maxY - 0.5 && Math.abs(tp.vy) < 42;
+            if (!onFloorNow) {
+              tp.vy += GRAVITY * subDt;
+              // Gentle aerodynamic drag in flight
+              const airDamp = Math.exp(-0.28 * subDt);
+              tp.vx *= airDamp;
+              tp.vy *= airDamp;
+            } else {
+              tp.vy = 0;
+              eng.y = maxY;
+            }
 
-          if (eng.x < minX) {
-            eng.x = minX;
-            impactSpeed = Math.max(impactSpeed, Math.abs(tp.vx));
-            tp.vx = Math.abs(tp.vx) * RESTITUTION;
-          } else if (eng.x > maxX) {
-            eng.x = maxX;
-            impactSpeed = Math.max(impactSpeed, Math.abs(tp.vx));
-            tp.vx = -Math.abs(tp.vx) * RESTITUTION;
-          }
+            const prevX = eng.x;
+            eng.x += tp.vx * subDt;
+            eng.y += tp.vy * subDt;
 
-          if (eng.y < minY) {
-            eng.y = minY;
-            impactSpeed = Math.max(impactSpeed, Math.abs(tp.vy));
-            tp.vy = Math.abs(tp.vy) * RESTITUTION;
-          } else if (eng.y > maxY) {
-            eng.y = maxY;
-            impactSpeed = Math.max(impactSpeed, Math.abs(tp.vy));
-            tp.vy = -Math.abs(tp.vy) * RESTITUTION;
-            if (Math.abs(tp.vy) < 45) tp.vy = 0;
-            tp.vx *= Math.exp(-FLOOR_FRICTION * dt);
+            // Left / Right viewport border bounce
+            if (eng.x < minX) {
+              eng.x = minX;
+              const vImp = Math.abs(tp.vx);
+              if (vImp > 35) maxWallImp = Math.max(maxWallImp, vImp);
+              tp.vx = vImp * RESTITUTION;
+            } else if (eng.x > maxX) {
+              eng.x = maxX;
+              const vImp = Math.abs(tp.vx);
+              if (vImp > 35) maxWallImp = Math.max(maxWallImp, vImp);
+              tp.vx = -vImp * RESTITUTION;
+            }
+
+            // Top / Bottom viewport border bounce
+            if (eng.y < minY) {
+              eng.y = minY;
+              const vImp = Math.abs(tp.vy);
+              if (vImp > 35) maxVertImp = Math.max(maxVertImp, vImp);
+              tp.vy = vImp * RESTITUTION;
+            } else if (eng.y >= maxY) {
+              eng.y = maxY;
+              if (tp.vy > 48) {
+                maxVertImp = Math.max(maxVertImp, tp.vy);
+                tp.vy = -tp.vy * RESTITUTION;
+              } else {
+                tp.vy = 0;
+              }
+              // Smooth cushioned rolling friction along bottom border
+              tp.vx *= Math.exp(-3.4 * subDt);
+            }
+
+            // Geometric ball circumference roll from actual horizontal displacement
+            const dxStep = eng.x - prevX;
+            eng.rollDeg = (eng.rollDeg + (dxStep / ballRadius) * (180 / Math.PI)) % 360;
           }
 
           eng.groundY = maxY;
 
-          if (impactSpeed > 65) {
-            const imp = clamp(impactSpeed / 1450, 0.08, 0.3);
-            eng.sqX = 1 + imp;
-            eng.sqY = 1 - imp * 1.15;
+          // Directional realistic border squash (side walls compress X, floor/ceiling compress Y)
+          const peakImp = Math.max(maxWallImp, maxVertImp);
+          if (peakImp > 75) {
+            const imp = clamp(peakImp / 1450, 0.08, 0.3);
+            if (maxWallImp > maxVertImp) {
+              eng.sqX = 1 - imp;
+              eng.sqY = 1 + imp * 0.85;
+            } else {
+              eng.sqX = 1 + imp;
+              eng.sqY = 1 - imp * 1.1;
+            }
             eng.sqVx = 0;
             eng.sqVy = 0;
-            if (impactSpeed > 260 && now - tp.lastBounceSoundAt > 240) {
+            if (peakImp > 260 && now - tp.lastBounceSoundAt > 240) {
               tp.lastBounceSoundAt = now;
               playPlushSqueak(true);
             }
@@ -1161,8 +1197,8 @@ export default function PetLayer({
           springSquashStep(dt);
 
           const speed = Math.hypot(tp.vx, tp.vy);
-          const onFloor = eng.y >= maxY - 1.5;
-          if (onFloor && speed < THROW_STOP_SPEED) {
+          const grounded = eng.y >= maxY - 1 && Math.abs(tp.vy) < 42;
+          if (grounded && speed < THROW_STOP_SPEED) {
             tp.vx = 0;
             tp.vy = 0;
             eng.y = maxY;
@@ -1573,15 +1609,16 @@ export default function PetLayer({
       return;
     }
 
-    const samples = eng.drag.samples;
+    const now = performance.now();
+    const recentSamples = eng.drag.samples.filter((s) => now - s.t <= 110);
     let vx = 0;
     let vy = 0;
-    if (samples.length >= 2) {
-      const first = samples[0];
-      const last = samples[samples.length - 1];
+    if (recentSamples.length >= 2) {
+      const first = recentSamples[0];
+      const last = recentSamples[recentSamples.length - 1];
       const dtSec = Math.max(0.016, (last.t - first.t) / 1000);
-      vx = clamp((last.x - first.x) / dtSec, -2200, 2200);
-      vy = clamp((last.y - first.y) / dtSec, -2200, 2200);
+      vx = clamp((last.x - first.x) / dtSec, -2400, 2400);
+      vy = clamp((last.y - first.y) / dtSec, -2400, 2400);
     }
 
     if (eng.reduced) {
