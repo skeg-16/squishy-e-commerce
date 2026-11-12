@@ -9,12 +9,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const SPA_HTML_PATHS = new Set([
   '/index.html',
+  '/shop',
   '/shop.html',
+  '/product',
   '/product.html',
+  '/checkout',
   '/checkout.html',
+  '/about',
   '/about.html',
-  '/account.html',
   '/account',
+  '/account.html',
 ]);
 
 function isPortListening(port, host = '127.0.0.1') {
