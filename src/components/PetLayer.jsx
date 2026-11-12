@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import {
+  pickCharacterLine,
+  playCharacterVoiceClip,
+  playPlushSqueak,
+} from '../utils/squishyVoice';
 import '../styles/pet-layer.css';
 
 const DESKTOP_SIZE = 96;
@@ -7,18 +12,19 @@ const MOBILE_SIZE = 72;
 const VIEWPORT_PAD = 8;
 const POINTER_OFFSET = 70;
 const FOLLOW_THRESHOLD = 140;
+const MAGNET_CALM_RADIUS = 95;
 const MAX_HOP_DIST = 160;
-const LITE_HOP_DIST = 108;
+const LITE_HOP_DIST = 112;
 const DRAG_THRESHOLD = 8;
 const GRAVITY = 2200;
 const RESTITUTION = 0.62;
-const FLOOR_FRICTION = 5.4;
+const FLOOR_FRICTION = 5.2;
 const THROW_STOP_SPEED = 30;
 const THROW_SETTLE_DELAY = 600;
 const DESKTOP_SLEEP_MS = 6000;
 const TOUCH_WANDER_MS = 3000;
 const SPARKLE_COUNT = 6;
-const LITE_FPS_INTERVAL = 1000 / 30;
+const SPEECH_DURATION_MS = 3000;
 
 const INTERACTIVE_SELECTOR =
   'a, button, input, select, textarea, label, [role="button"], [tabindex]';
@@ -30,6 +36,7 @@ const DEFAULT_CHAR = {
   c2: '#fbd9c9',
   c3: '#dfa38f',
   deco: 'dumpling',
+  lines: ['Hehe, bao-tiful squish!'],
 };
 
 function clamp(v, min, max) {
@@ -38,6 +45,10 @@ function clamp(v, min, max) {
 
 function lerp(a, b, t) {
   return a + (b - a) * t;
+}
+
+function easeOutQuad(t) {
+  return 1 - (1 - t) * (1 - t);
 }
 
 function detectStaticLiteMode() {
@@ -66,35 +77,36 @@ function getViewportMetrics() {
   return { vw, vh, petSize, ...computeBounds(vw, vh, petSize) };
 }
 
-function PetSpriteSvg({ character, liteMode }) {
+function PetSpriteSvg({ character, liteMode, faceRef }) {
   const k = character || DEFAULT_CHAR;
   const deco = k.deco || k.slug || 'dumpling';
-  const gradId = `pet-grad-${deco}`;
+  const sphereId = `pet-sphere-${deco}`;
+  const shadeId = `pet-shade-${deco}`;
+  const rimId = `pet-rim-${deco}`;
   const clipId = `pet-clip-${deco}`;
 
-  let bodyPath =
-    'M60,18 C89,18 106,39 106,66 C106,93 90,108 60,108 C30,108 14,93 14,66 C14,39 31,18 60,18 Z';
-  let glossCx = 40;
-  let glossCy = 39;
+  // Chubby 3D ball-like plush silhouettes anchored near bottom y=108
+  let rx = 46;
+  let ry = 43.5;
+  let cy = 64.5;
+  let isPeanut = false;
 
   if (deco === 'cheese') {
-    bodyPath =
-      'M60,18 C88,18 104,24 104,63 C104,97 91,108 60,108 C29,108 16,97 16,63 C16,24 32,18 60,18 Z';
+    rx = 45.5;
+    ry = 43.5;
   } else if (deco === 'toast') {
-    bodyPath =
-      'M60,18 C86,18 104,22 104,42 C104,54 101,60 101,74 C101,97 92,108 60,108 C28,108 19,97 19,74 C19,60 16,54 16,42 C16,22 34,18 60,18 Z';
+    rx = 45;
+    ry = 44;
   } else if (deco === 'butter') {
-    bodyPath =
-      'M60,16 C83,16 96,21 96,62 C96,100 86,108 60,108 C34,108 24,100 24,62 C24,21 37,16 60,16 Z';
-    glossCx = 38;
-    glossCy = 52;
+    rx = 42;
+    ry = 45;
+    cy = 63;
   } else if (deco === 'peanut') {
-    bodyPath =
-      'M60,17 C78,17 91,27 91,43 C91,53 84,58 84,64 C84,71 95,78 95,91 C95,103 80,108 60,108 C40,108 25,103 25,91 C25,78 36,71 36,64 C36,58 29,53 29,43 C29,27 42,17 60,17 Z';
-  } else if (deco === 'dumpling') {
-    bodyPath =
-      'M60,21 C86,21 105,40 106,68 C107,95 90,108 60,108 C30,108 13,95 14,68 C15,40 34,21 60,21 Z';
+    isPeanut = true;
   }
+
+  const peanutPath =
+    'M60,18 C82,18 95,30 95,46 C95,54 89,59 89,64 C89,70 98,77 98,90 C98,103 82,108 60,108 C38,108 22,103 22,90 C22,77 31,70 31,64 C31,59 25,54 25,46 C25,30 38,18 60,18 Z';
 
   return (
     <svg
@@ -104,47 +116,76 @@ function PetSpriteSvg({ character, liteMode }) {
       focusable="false"
     >
       <defs>
-        <radialGradient id={gradId} cx="34%" cy="26%" r="74%">
-          <stop offset="0%" stopColor={k.c1} />
-          <stop offset="54%" stopColor={k.c2} />
+        {/* Off-center 3D key light spherical volume gradient */}
+        <radialGradient id={sphereId} cx="34%" cy="27%" fx="29%" fy="23%" r="74%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.96" />
+          <stop offset="16%" stopColor={k.c1} />
+          <stop offset="56%" stopColor={k.c2} />
+          <stop offset="88%" stopColor={k.c3} />
           <stop offset="100%" stopColor={k.c3} />
         </radialGradient>
+
+        {/* Subsurface bottom bounce + volumetric right terminator */}
+        <radialGradient id={shadeId} cx="52%" cy="86%" r="65%">
+          <stop offset="0%" stopColor="#ffe5f3" stopOpacity="0.48" />
+          <stop offset="55%" stopColor="#802860" stopOpacity="0" />
+          <stop offset="100%" stopColor="#461642" stopOpacity="0.28" />
+        </radialGradient>
+
+        {/* Top-left 3D clearcoat rim stroke gradient */}
+        <linearGradient id={rimId} x1="15%" y1="10%" x2="88%" y2="92%">
+          <stop offset="0%" stopColor="rgba(255, 255, 255, 0.88)" />
+          <stop offset="45%" stopColor="rgba(255, 255, 255, 0.16)" />
+          <stop offset="100%" stopColor="rgba(90, 26, 72, 0.25)" />
+        </linearGradient>
+
+        {/* Dumpling / CatPaw attachment spherical gradients */}
+        <radialGradient id="pet-knot-grad" cx="35%" cy="28%" r="72%">
+          <stop offset="0%" stopColor={k.c1} />
+          <stop offset="65%" stopColor={k.c2} />
+          <stop offset="100%" stopColor={k.c3} />
+        </radialGradient>
+
         <clipPath id={clipId}>
-          <path d={bodyPath} />
+          {isPeanut ? (
+            <path d={peanutPath} />
+          ) : (
+            <ellipse cx="60" cy={cy} rx={rx} ry={ry} />
+          )}
         </clipPath>
       </defs>
 
-      {/* Behind-body character attachments */}
+      {/* Behind-ball 3D character attachments */}
       {deco === 'dumpling' && (
         <g>
           <ellipse
-            cx="48"
-            cy="21"
-            rx="6"
-            ry="7.5"
-            transform="rotate(-14 48 21)"
-            fill={k.c2}
-            stroke="rgba(210,145,120,0.45)"
-            strokeWidth="1.5"
+            cx="47"
+            cy="21.5"
+            rx="6.2"
+            ry="7.8"
+            transform="rotate(-14 47 21.5)"
+            fill="url(#pet-knot-grad)"
+            stroke="rgba(205, 138, 114, 0.38)"
+            strokeWidth="1.2"
           />
           <ellipse
-            cx="72"
-            cy="21"
-            rx="6"
-            ry="7.5"
-            transform="rotate(14 72 21)"
-            fill={k.c2}
-            stroke="rgba(210,145,120,0.45)"
-            strokeWidth="1.5"
+            cx="73"
+            cy="21.5"
+            rx="6.2"
+            ry="7.8"
+            transform="rotate(14 73 21.5)"
+            fill="url(#pet-knot-grad)"
+            stroke="rgba(205, 138, 114, 0.38)"
+            strokeWidth="1.2"
           />
           <ellipse
             cx="60"
-            cy="19"
-            rx="6.2"
-            ry="8"
-            fill={k.c1}
-            stroke="rgba(210,145,120,0.45)"
-            strokeWidth="1.5"
+            cy="18.5"
+            rx="6.8"
+            ry="8.4"
+            fill="url(#pet-knot-grad)"
+            stroke="rgba(205, 138, 114, 0.38)"
+            strokeWidth="1.2"
           />
         </g>
       )}
@@ -152,14 +193,23 @@ function PetSpriteSvg({ character, liteMode }) {
       {deco === 'catpaw' && (
         <g>
           {[
-            [33, 29, -22],
-            [50, 20, -7],
-            [70, 20, 7],
-            [87, 29, 22],
+            [31, 30, -24],
+            [49, 20, -8],
+            [71, 20, 8],
+            [89, 30, 24],
           ].map(([tx, ty, rot], idx) => (
             <g key={idx} transform={`translate(${tx}, ${ty}) rotate(${rot})`}>
-              <ellipse cx="0" cy="0" rx="8.5" ry="10.5" fill="#fff5fa" />
-              <ellipse cx="0" cy="1" rx="4.5" ry="5.8" fill="#ff94b8" />
+              <ellipse
+                cx="0"
+                cy="0"
+                rx="9"
+                ry="11"
+                fill="url(#pet-knot-grad)"
+                stroke="rgba(255,255,255,0.65)"
+                strokeWidth="1"
+              />
+              <ellipse cx="0" cy="1.2" rx="4.6" ry="5.8" fill="#ff89b6" />
+              <ellipse cx="-1.8" cy="-1.2" rx="1.6" ry="1.1" fill="rgba(255,255,255,0.75)" />
             </g>
           ))}
         </g>
@@ -169,57 +219,49 @@ function PetSpriteSvg({ character, liteMode }) {
         <ellipse
           cx="60"
           cy="17"
-          rx="10"
-          ry="5.2"
+          rx="11"
+          ry="5.5"
           transform="rotate(-6 60 17)"
-          fill="#fff8ee"
+          fill="#fff9f0"
+          stroke="rgba(220,180,120,0.35)"
+          strokeWidth="1"
         />
       )}
 
-      {deco === 'peach' && (
-        <path
-          d="M62,18 C67,7 81,7 82,16 C75,20 67,20 62,18 Z"
-          fill="#7ed48b"
-        />
+      {/* Main 3D Plush Ball */}
+      {isPeanut ? (
+        <path d={peanutPath} fill={`url(#${sphereId})`} />
+      ) : (
+        <ellipse cx="60" cy={cy} rx={rx} ry={ry} fill={`url(#${sphereId})`} />
       )}
 
-      {deco === 'chickie' && (
-        <path
-          d="M55,18 C53,9 60,7 61,15 C64,8 70,11 66,18 Z"
-          fill={k.c2}
-        />
-      )}
-
-      {deco === 'bunbun' && (
-        <g>
-          <ellipse cx="44" cy="15" rx="7.5" ry="16" fill={k.c2} />
-          <ellipse cx="44" cy="15" rx="4" ry="10" fill="#ffb3d1" />
-          <ellipse cx="76" cy="15" rx="7.5" ry="16" fill={k.c2} />
-          <ellipse cx="76" cy="15" rx="4" ry="10" fill="#ffb3d1" />
-        </g>
-      )}
-
-      {/* Main body */}
-      <path d={bodyPath} fill={`url(#${gradId})`} />
-
-      {/* Inner clipped character details */}
+      {/* Clipped 3D details & volumetric shading overlays */}
       <g clipPath={`url(#${clipId})`}>
+        {deco === 'dumpling' && (
+          <g fill="none" stroke="rgba(204, 146, 124, 0.28)" strokeWidth="1.6">
+            <path d="M46,24 C42,32 39,38 38,44" />
+            <path d="M54,22 C52,31 50,37 49,43" />
+            <path d="M66,22 C68,31 70,37 71,43" />
+            <path d="M74,24 C78,32 81,38 82,44" />
+          </g>
+        )}
+
         {deco === 'cheese' && (
           <g>
             {[
-              [50, 38, 5],
-              [84, 46, 7.8],
-              [34, 80, 6],
-              [81, 86, 6.8],
-              [66, 51, 3.8],
+              [43, 41, 5.6],
+              [82, 47, 8],
+              [34, 79, 6.2],
+              [79, 85, 7],
+              [65, 51, 3.8],
             ].map(([hx, hy, hr], i) => (
               <g key={i}>
-                <circle cx={hx} cy={hy} r={hr} fill="rgba(205, 138, 18, 0.42)" />
+                <circle cx={hx} cy={hy} r={hr} fill="rgba(182, 114, 12, 0.45)" />
                 <circle
-                  cx={hx - 1}
-                  cy={hy - 1}
-                  r={hr * 0.7}
-                  fill="rgba(255, 245, 190, 0.45)"
+                  cx={hx + 0.9}
+                  cy={hy + 1.1}
+                  r={hr * 0.78}
+                  fill="rgba(255, 224, 112, 0.72)"
                 />
               </g>
             ))}
@@ -227,29 +269,34 @@ function PetSpriteSvg({ character, liteMode }) {
         )}
 
         {deco === 'toast' && (
-          <rect
-            x="33"
-            y="29"
-            width="54"
-            height="16"
-            rx="6"
-            fill="rgba(255, 255, 255, 0.52)"
-          />
+          <g>
+            <ellipse
+              cx="60"
+              cy="34"
+              rx="34"
+              ry="14"
+              fill="rgba(255, 249, 240, 0.56)"
+            />
+            <path
+              d="M15,44 Q60,52 105,44 L105,18 L15,18 Z"
+              fill="rgba(188, 122, 52, 0.14)"
+            />
+          </g>
         )}
 
         {deco === 'butter' && (
           <g>
-            <rect x="20" y="14" width="80" height="32" fill="#ffd34d" />
+            <rect x="16" y="14" width="88" height="31" fill="#ffd34d" />
             <rect
-              x="20"
-              y="45"
-              width="80"
-              height="1.5"
-              fill="rgba(180, 130, 10, 0.2)"
+              x="16"
+              y="44"
+              width="88"
+              height="2"
+              fill="rgba(180, 128, 10, 0.24)"
             />
             <text
               x="60"
-              y="36"
+              y="37"
               textAnchor="middle"
               fill="#8a6b00"
               fontFamily="Nunito, Fredoka, sans-serif"
@@ -260,9 +307,9 @@ function PetSpriteSvg({ character, liteMode }) {
             </text>
             <text
               x="60"
-              y="91"
+              y="93"
               textAnchor="middle"
-              fill="#a98a2e"
+              fill="#9e7f24"
               fontFamily="Nunito, sans-serif"
               fontWeight="800"
               fontSize="6.5"
@@ -273,9 +320,9 @@ function PetSpriteSvg({ character, liteMode }) {
         )}
 
         {deco === 'peanut' && (
-          <g fill="none" stroke="rgba(150, 98, 42, 0.24)" strokeWidth="1.8">
-            <path d="M35,34 A22,22 0 0 0 35,56" />
-            <path d="M85,74 A22,22 0 0 1 85,96" />
+          <g fill="none" stroke="rgba(150, 98, 42, 0.25)" strokeWidth="1.8">
+            <path d="M33,34 A22,22 0 0 0 33,56" />
+            <path d="M87,74 A22,22 0 0 1 87,96" />
           </g>
         )}
 
@@ -283,110 +330,132 @@ function PetSpriteSvg({ character, liteMode }) {
           <ellipse
             cx="60"
             cy="72"
-            rx="26"
+            rx="27"
             ry="20"
-            fill="rgba(255, 148, 188, 0.25)"
+            fill="rgba(255, 138, 184, 0.28)"
           />
         )}
 
+        {/* Spherical lower subsurface bounce + ambient terminator */}
+        <rect x="10" y="12" width="100" height="102" fill={`url(#${shadeId})`} />
+
+        {/* Right-edge spherical depth shadow crescent */}
+        <path
+          d="M90,22 C110,50 107,95 66,108 L114,108 L114,16 Z"
+          fill="rgba(95, 22, 68, 0.16)"
+        />
+      </g>
+
+      {/* Outer glossy clearcoat rim light */}
+      {isPeanut ? (
+        <path
+          d={peanutPath}
+          fill="none"
+          stroke={`url(#${rimId})`}
+          strokeWidth="2.2"
+        />
+      ) : (
+        <ellipse
+          cx="60"
+          cy={cy}
+          rx={rx}
+          ry={ry}
+          fill="none"
+          stroke={`url(#${rimId})`}
+          strokeWidth="2.2"
+        />
+      )}
+
+      {/* High-clearcoat 3D spherical gloss highlight */}
+      <ellipse
+        className="pet-gloss"
+        cx={deco === 'butter' ? 38 : 40}
+        cy={deco === 'butter' ? 50 : 39}
+        rx="10"
+        ry="5.1"
+        transform={`rotate(-34 ${deco === 'butter' ? 38 : 40} ${
+          deco === 'butter' ? 50 : 39
+        })`}
+        fill={liteMode ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.84)'}
+      />
+      <circle
+        cx={deco === 'butter' ? 49 : 51}
+        cy={deco === 'butter' ? 42 : 31}
+        r="2.2"
+        fill="rgba(255,255,255,0.82)"
+      />
+
+      {/* Interactive 2.5D spherical face layer (parallax shifts inside sphere clip) */}
+      <g clipPath={`url(#${clipId})`}>
+        <g ref={faceRef}>
         {deco === 'dumpling' && (
           <path
-            d="M60,46 C55.5,40.5 51.5,43.5 55,47.5 L60,52 L65,47.5 C68.5,43.5 64.5,40.5 60,46 Z"
+            d="M60,46.5 C55.5,41 51.5,44 55,48 L60,52.5 L65,48 C68.5,44 64.5,41 60,46.5 Z"
             fill="#e86c9a"
           />
         )}
 
-        {/* Right-bottom soft rim depth */}
-        <path
-          d="M95,28 C108,52 106,96 70,108 L112,108 L112,24 Z"
-          fill="rgba(120, 30, 80, 0.14)"
-        />
-      </g>
+        {/* Cheeks */}
+        <ellipse cx="38.5" cy="74" rx="5.8" ry="3.6" fill="rgba(255, 90, 130, 0.58)" />
+        <ellipse cx="81.5" cy="74" rx="5.8" ry="3.6" fill="rgba(255, 90, 130, 0.58)" />
 
-      {/* Soft translucent outer rim */}
-      <path
-        d={bodyPath}
-        fill="none"
-        stroke="rgba(255, 255, 255, 0.45)"
-        strokeWidth="2"
-      />
-
-      {/* Gloss ellipse top-left */}
-      <ellipse
-        className="pet-gloss"
-        cx={glossCx}
-        cy={glossCy}
-        rx="8.5"
-        ry="4.4"
-        transform={`rotate(-36 ${glossCx} ${glossCy})`}
-        fill={liteMode ? 'rgba(255,255,255,0.68)' : 'rgba(255,255,255,0.78)'}
-      />
-      <circle cx={glossCx + 9} cy={glossCy - 7} r="2" fill="rgba(255,255,255,0.72)" />
-
-      {/* Cheeks */}
-      <ellipse cx="39" cy="74" rx="5.2" ry="3.3" fill="rgba(255, 90, 130, 0.55)" />
-      <ellipse cx="81" cy="74" rx="5.2" ry="3.3" fill="rgba(255, 90, 130, 0.55)" />
-
-      {/* Chickie beak if present */}
-      {deco === 'chickie' && (
-        <polygon points="56,70 64,70 60,76" fill="#ff9f43" />
-      )}
-
-      {/* AWAKE face */}
-      <g className="pet-face pet-face--awake">
-        <g className="pet-eye-open">
-          <ellipse cx="47" cy="67" rx="2.7" ry="3.2" fill="#3d1f3d" />
-          <circle cx="46.1" cy="65.8" r="0.95" fill="#ffffff" />
-          <ellipse cx="73" cy="67" rx="2.7" ry="3.2" fill="#3d1f3d" />
-          <circle cx="72.1" cy="65.8" r="0.95" fill="#ffffff" />
+        {/* AWAKE eyes + cute smile */}
+        <g className="pet-face pet-face--awake">
+          <g className="pet-eye-open">
+            <ellipse cx="47" cy="67" rx="3" ry="3.5" fill="#3d1f3d" />
+            <circle cx="46" cy="65.7" r="1.1" fill="#ffffff" />
+            <ellipse cx="73" cy="67" rx="3" ry="3.5" fill="#3d1f3d" />
+            <circle cx="72" cy="65.7" r="1.1" fill="#ffffff" />
+          </g>
+          <path
+            d="M54.5,74.5 Q60,79.5 65.5,74.5"
+            fill="none"
+            stroke="#3d1f3d"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+          />
         </g>
-        <path
-          d="M55,74.5 Q60,79 65,74.5"
-          fill="none"
-          stroke="#3d1f3d"
-          strokeWidth="2.3"
-          strokeLinecap="round"
-        />
-      </g>
 
-      {/* SQUISH "> <" face */}
-      <g className="pet-face pet-face--squish">
-        <polyline
-          points="43,63.5 50,67 43,70.5"
-          fill="none"
-          stroke="#3d1f3d"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <polyline
-          points="77,63.5 70,67 77,70.5"
-          fill="none"
-          stroke="#3d1f3d"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <ellipse cx="60" cy="76.5" rx="3.8" ry="4.8" fill="#3d1f3d" />
-      </g>
+        {/* SQUISH "> <" eyes + happy open mouth */}
+        <g className="pet-face pet-face--squish">
+          <polyline
+            points="43,63.2 50,67 43,70.8"
+            fill="none"
+            stroke="#3d1f3d"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <polyline
+            points="77,63.2 70,67 77,70.8"
+            fill="none"
+            stroke="#3d1f3d"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <ellipse cx="60" cy="76.5" rx="4.2" ry="5" fill="#3d1f3d" />
+        </g>
 
-      {/* SLEEP closed-eyes face */}
-      <g className="pet-face pet-face--sleep">
-        <path
-          d="M43.5,67.5 Q47,70.2 50.5,67.5"
-          fill="none"
-          stroke="#3d1f3d"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M69.5,67.5 Q73,70.2 76.5,67.5"
-          fill="none"
-          stroke="#3d1f3d"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <circle cx="60" cy="75.5" r="2.1" fill="#3d1f3d" />
+        {/* SLEEP closed-eyes */}
+        <g className="pet-face pet-face--sleep">
+          <path
+            d="M43.5,67.5 Q47,70.2 50.5,67.5"
+            fill="none"
+            stroke="#3d1f3d"
+            strokeWidth="2.3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M69.5,67.5 Q73,70.2 76.5,67.5"
+            fill="none"
+            stroke="#3d1f3d"
+            strokeWidth="2.3"
+            strokeLinecap="round"
+          />
+          <circle cx="60" cy="75.5" r="2.2" fill="#3d1f3d" />
+        </g>
+        </g>
       </g>
     </svg>
   );
@@ -408,15 +477,37 @@ export default function PetLayer({
     Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
   );
   const [liveMsg, setLiveMsg] = useState('');
+  const [speechText, setSpeechText] = useState('');
+  const [speechVisible, setSpeechVisible] = useState(false);
 
   const petRef = useRef(null);
   const squashRef = useRef(null);
-  const flipRef = useRef(null);
+  const rollRef = useRef(null);
+  const faceRef = useRef(null);
   const shadowRef = useRef(null);
   const sparkleRefs = useRef([]);
+  const speechTimerRef = useRef(0);
+  const activeCharRef = useRef(character || DEFAULT_CHAR);
+  const prevSlugRef = useRef((character || DEFAULT_CHAR).slug);
 
   const liveMsgRef = useRef(liveMsg);
   liveMsgRef.current = liveMsg;
+
+  function showPetSpeech(customIdx, withSound = true) {
+    const ch = activeCharRef.current || DEFAULT_CHAR;
+    const { idx, phrase } = pickCharacterLine(ch, customIdx);
+    setSpeechText(phrase);
+    setSpeechVisible(true);
+    if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
+    speechTimerRef.current = window.setTimeout(() => {
+      setSpeechVisible(false);
+    }, SPEECH_DURATION_MS);
+
+    if (withSound) {
+      playPlushSqueak(false);
+      playCharacterVoiceClip(ch, idx);
+    }
+  }
 
   // Shared mutable physics & state container so rAF never triggers React re-renders
   const engineRef = useRef({
@@ -431,7 +522,9 @@ export default function PetLayer({
     y: 420,
     groundY: 420,
     opacity: 0,
-    facing: 1,
+    rollDeg: 0,
+    faceOx: 0,
+    faceOy: 0,
     sqX: 1,
     sqY: 1,
     sqVx: 0,
@@ -451,7 +544,7 @@ export default function PetLayer({
       startY: 0,
       endX: 0,
       endY: 0,
-      duration: 360,
+      duration: 340,
       elapsed: 0,
       arcH: 48,
       pauseLeft: 0,
@@ -471,6 +564,7 @@ export default function PetLayer({
       vy: 0,
       settleTimer: 0,
       settling: false,
+      lastBounceSoundAt: 0,
     },
     sparkles: Array.from({ length: SPARKLE_COUNT }, () => ({
       active: false,
@@ -481,21 +575,19 @@ export default function PetLayer({
       life: 0,
     })),
     returnFlow: {
-      phase: 'none', // 'scroll' | 'hop' | 'shrink'
+      phase: 'none',
       waitMs: 0,
       targetX: 0,
       targetY: 0,
-      shrinkMs: 0,
+      shrinkMs: 150,
     },
     frameSamples: [],
     rafId: 0,
     lastFrameTime: 0,
-    lastLiteTick: 0,
     sleepTimerId: 0,
     touchSleepPending: false,
   });
 
-  // Keep refs synced to callbacks and flags without re-binding listeners
   const callbacksRef = useRef({
     getHomeTarget,
     scrollHomeIntoView,
@@ -510,6 +602,23 @@ export default function PetLayer({
   };
 
   useEffect(() => {
+    const ch = character || DEFAULT_CHAR;
+    activeCharRef.current = ch;
+    // Speak and celebrate with a cute hop when switching character while roaming!
+    if (active && !returning && prevSlugRef.current !== ch.slug) {
+      prevSlugRef.current = ch.slug;
+      const eng = engineRef.current;
+      eng.sqX = 1.18;
+      eng.sqY = 0.82;
+      eng._applyClasses?.();
+      eng._renderDom?.();
+      showPetSpeech(0, true);
+    } else {
+      prevSlugRef.current = ch.slug;
+    }
+  }, [character, active, returning]);
+
+  useEffect(() => {
     engineRef.current.lite = liteMode;
   }, [liteMode]);
 
@@ -517,7 +626,6 @@ export default function PetLayer({
     engineRef.current.reduced = reducedMotion;
   }, [reducedMotion]);
 
-  // Listen to prefers-reduced-motion changes
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -528,12 +636,12 @@ export default function PetLayer({
     };
   }, []);
 
-  // Announce mount/return cleanly via aria-live
   useEffect(() => {
     if (active && !returning) {
       setLiveMsg('Squishy is roaming the page');
     } else if (!active && liveMsgRef.current === 'Squishy is roaming the page') {
       setLiveMsg('Squishy is back home');
+      setSpeechVisible(false);
     }
   }, [active, returning]);
 
@@ -549,6 +657,10 @@ export default function PetLayer({
         clearTimeout(engineRef.current.sleepTimerId);
         engineRef.current.sleepTimerId = 0;
       }
+      if (speechTimerRef.current) {
+        clearTimeout(speechTimerRef.current);
+        speechTimerRef.current = 0;
+      }
       return undefined;
     }
 
@@ -560,7 +672,6 @@ export default function PetLayer({
     eng.vp = getViewportMetrics();
     eng.frameSamples.length = 0;
 
-    // Position at exact hero handoff origin
     const originX = clamp(
       launchOrigin?.x ?? eng.vp.vw * 0.5,
       eng.vp.minX,
@@ -575,7 +686,9 @@ export default function PetLayer({
     eng.groundY = originGroundY;
     eng.y = launchOrigin?.y ?? originGroundY;
     eng.opacity = 1;
-    eng.facing = 1;
+    eng.rollDeg = 0;
+    eng.faceOx = 0;
+    eng.faceOy = 0;
     eng.sqX = launchOrigin?.scaleX ?? 0.92;
     eng.sqY = launchOrigin?.scaleY ?? 1.12;
     eng.sqVx = 0;
@@ -611,6 +724,9 @@ export default function PetLayer({
       eng.ptr.lastMovedAt = performance.now();
     }
 
+    // Playful greeting speech on launch
+    showPetSpeech(0, false);
+
     function applyClasses() {
       const el = petRef.current;
       const sh = shadowRef.current;
@@ -627,9 +743,10 @@ export default function PetLayer({
     function renderDom() {
       const el = petRef.current;
       const sqEl = squashRef.current;
-      const flEl = flipRef.current;
+      const rlEl = rollRef.current;
+      const fcEl = faceRef.current;
       const shEl = shadowRef.current;
-      if (!el || !sqEl || !flEl || !shEl) return;
+      if (!el || !sqEl || !rlEl || !shEl) return;
 
       el.style.transform = `translate3d(${eng.x.toFixed(1)}px, ${eng.y.toFixed(1)}px, 0)`;
       el.style.opacity = String(eng.opacity);
@@ -645,7 +762,13 @@ export default function PetLayer({
         sqEl.style.transform = `scale(${eng.sqX.toFixed(3)}, ${eng.sqY.toFixed(3)})`;
       }
 
-      flEl.style.transform = `scaleX(${eng.facing})`;
+      rlEl.style.transform = `rotate(${eng.rollDeg.toFixed(1)}deg)`;
+
+      if (fcEl) {
+        fcEl.style.transform = `translate(${eng.faceOx.toFixed(2)}px, ${eng.faceOy.toFixed(
+          2
+        )}px)`;
+      }
 
       const heightAboveGround = Math.max(0, eng.groundY - eng.y);
       const shScale = Math.max(0.45, 1 - heightAboveGround * 0.0045) * (0.9 + eng.sqX * 0.1);
@@ -672,6 +795,12 @@ export default function PetLayer({
       const dx = eng.x - eng.ptr.x;
       const dy = centerPetY - eng.ptr.y;
       const len = Math.hypot(dx, dy);
+
+      // If pointer approaches directly onto/near pet, stay still so it's easy to poke & pet!
+      if (len < MAGNET_CALM_RADIUS && !eng.ptr.isTouch) {
+        return { x: eng.x, y: eng.groundY };
+      }
+
       const ux = len > 0.5 ? dx / len : 1;
       const uy = len > 0.5 ? dy / len : 0;
       const rawX = eng.ptr.x + ux * POINTER_OFFSET;
@@ -682,17 +811,27 @@ export default function PetLayer({
       };
     }
 
+    function updateFaceParallaxFromPointer() {
+      if (!eng.ptr.hasPtr || eng.state === 'SLEEP') {
+        eng.faceOx = 0;
+        eng.faceOy = 0;
+        return;
+      }
+      const centerPetY = eng.y - eng.vp.petSize * 0.45;
+      eng.faceOx = clamp((eng.ptr.x - eng.x) / 140, -1, 1) * 5.2;
+      eng.faceOy = clamp((eng.ptr.y - centerPetY) / 140, -1, 1) * 3.2;
+    }
+
     function startHopToward(destX, destY, thenSleep = false) {
       const dx = destX - eng.x;
       const dy = destY - eng.groundY;
       const dist = Math.hypot(dx, dy);
 
       if (eng.reduced) {
-        // Reduced motion: simple short eased glide without arc
         eng.x = clamp(destX, eng.vp.minX, eng.vp.maxX);
         eng.groundY = clamp(destY, eng.vp.minY, eng.vp.maxY);
         eng.y = eng.groundY;
-        if (Math.abs(dx) > 4) eng.facing = dx < 0 ? -1 : 1;
+        eng.rollDeg = 0;
         eng.state = thenSleep ? 'SLEEP' : 'IDLE';
         applyClasses();
         renderDom();
@@ -707,16 +846,12 @@ export default function PetLayer({
       const endX = clamp(eng.x + dx * ratio, eng.vp.minX, eng.vp.maxX);
       const endY = clamp(eng.groundY + dy * ratio, eng.vp.minY, eng.vp.maxY);
 
-      if (Math.abs(dx) > 4) {
-        eng.facing = dx < 0 ? -1 : 1;
-      }
-
-      const durMin = eng.lite ? 250 : 320;
-      const durMax = eng.lite ? 310 : 420;
+      const durMin = eng.lite ? 260 : 320;
+      const durMax = eng.lite ? 320 : 410;
       const duration = Math.round(lerp(durMin, durMax, Math.min(1, stepDist / maxStep)));
       const arcH = eng.lite
-        ? clamp(stepDist * 0.24, 18, 40)
-        : clamp(stepDist * 0.36, 26, 68);
+        ? clamp(stepDist * 0.28, 22, 44)
+        : clamp(stepDist * 0.36, 26, 66);
 
       eng.hop = {
         startX: eng.x,
@@ -743,7 +878,6 @@ export default function PetLayer({
         eng.sleepTimerId = 0;
         if (!eng.active || eng.returning) return;
         if (eng.ptr.isTouch) {
-          // On touch after 3s idle: wander to bottom-right corner area, then sleep
           const cornerX = clamp(eng.vp.vw - eng.vp.halfW - 24, eng.vp.minX, eng.vp.maxX);
           const cornerY = clamp(eng.vp.vh - 24, eng.vp.minY, eng.vp.maxY);
           const distCorner = Math.hypot(cornerX - eng.x, cornerY - eng.groundY);
@@ -763,10 +897,12 @@ export default function PetLayer({
     function enterIdle() {
       eng.state = 'IDLE';
       eng.ptr.dirty = false;
+      eng.rollDeg = 0;
       eng.sqX = 1;
       eng.sqY = 1;
       eng.sqVx = 0;
       eng.sqVy = 0;
+      updateFaceParallaxFromPointer();
       applyClasses();
       renderDom();
       scheduleInactivityTimer();
@@ -780,6 +916,9 @@ export default function PetLayer({
       eng.state = 'SLEEP';
       eng.ptr.dirty = false;
       eng.touchSleepPending = false;
+      eng.rollDeg = 0;
+      eng.faceOx = 0;
+      eng.faceOy = 0;
       eng.sqX = 1;
       eng.sqY = 1;
       applyClasses();
@@ -860,7 +999,6 @@ export default function PetLayer({
       if (!eng.active || document.hidden) return;
       if (!eng.rafId) {
         eng.lastFrameTime = performance.now();
-        eng.lastLiteTick = eng.lastFrameTime;
         eng.rafId = requestAnimationFrame(tick);
       }
     }
@@ -891,20 +1029,13 @@ export default function PetLayer({
       eng.lastFrameTime = now;
       recordAdaptiveFrame(rawDeltaMs);
 
-      if (eng.lite && eng.state !== 'IDLE' && eng.state !== 'SLEEP') {
-        if (now - eng.lastLiteTick < LITE_FPS_INTERVAL * 0.85) {
-          eng.rafId = requestAnimationFrame(tick);
-          return;
-        }
-        eng.lastLiteTick = now;
-      }
-
       const dt = Math.min(0.033, Math.max(0.001, rawDeltaMs / 1000));
       let keepRunning = false;
 
       if (eng.state === 'IDLE' || eng.state === 'SLEEP') {
         if (eng.ptr.dirty) {
           eng.ptr.dirty = false;
+          updateFaceParallaxFromPointer();
           const target = computeFollowTarget();
           const dist = Math.hypot(target.x - eng.x, target.y - eng.groundY);
           if (eng.state === 'SLEEP') {
@@ -922,24 +1053,32 @@ export default function PetLayer({
         if (!eng.hop.landed) {
           eng.hop.elapsed += dt * 1000;
           const u = Math.min(1, eng.hop.elapsed / eng.hop.duration);
-          eng.x = lerp(eng.hop.startX, eng.hop.endX, u);
-          eng.groundY = lerp(eng.hop.startY, eng.hop.endY, u);
+          const eu = easeOutQuad(u);
+          eng.x = lerp(eng.hop.startX, eng.hop.endX, eu);
+          eng.groundY = lerp(eng.hop.startY, eng.hop.endY, eu);
           const lift = 4 * eng.hop.arcH * u * (1 - u);
           eng.y = eng.groundY - lift;
 
-          // Subtle mid-air elongation transitioning into landing squash
-          const airStretch = u < 0.7 ? Math.sin(u * Math.PI) * 0.08 : 0;
-          eng.sqX = 1 - airStretch * 0.7;
+          // Subtle ball roll + tilt during airborne arc
+          const dxHop = eng.hop.endX - eng.hop.startX;
+          const dir = dxHop < -2 ? -1 : dxHop > 2 ? 1 : 0;
+          eng.rollDeg = dir * Math.sin(u * Math.PI) * 14;
+          eng.faceOx = clamp(dxHop * 0.04, -5, 5);
+          eng.faceOy = lerp(-3, 2, u);
+
+          const airStretch = u < 0.72 ? Math.sin(u * Math.PI) * 0.09 : 0;
+          eng.sqX = 1 - airStretch * 0.65;
           eng.sqY = 1 + airStretch;
 
           if (u >= 1) {
             eng.hop.landed = true;
             eng.y = eng.groundY;
+            eng.rollDeg = 0;
             eng.sqX = 1.15;
             eng.sqY = 0.85;
             eng.sqVx = 0;
             eng.sqVy = 0;
-            eng.hop.pauseLeft = 80 + Math.random() * 80;
+            eng.hop.pauseLeft = 75 + Math.random() * 75;
           }
         } else {
           springSquashStep(dt);
@@ -977,6 +1116,9 @@ export default function PetLayer({
           eng.x += tp.vx * dt;
           eng.y += tp.vy * dt;
 
+          // Real rolling angular velocity proportional to horizontal speed
+          eng.rollDeg = (eng.rollDeg + (tp.vx * dt * 180) / (Math.PI * (eng.vp.petSize * 0.45))) % 360;
+
           const { minX, maxX, minY, maxY } = eng.vp;
           let impactSpeed = 0;
 
@@ -1010,8 +1152,9 @@ export default function PetLayer({
             eng.sqY = 1 - imp * 1.15;
             eng.sqVx = 0;
             eng.sqVy = 0;
-            if (Math.abs(tp.vx) > 25) {
-              eng.facing = tp.vx < 0 ? -1 : 1;
+            if (impactSpeed > 260 && now - tp.lastBounceSoundAt > 240) {
+              tp.lastBounceSoundAt = now;
+              playPlushSqueak(true);
             }
           }
 
@@ -1028,10 +1171,14 @@ export default function PetLayer({
             tp.settleTimer = THROW_SETTLE_DELAY;
           }
         } else {
+          // Ease roll back upright while resting on floor
+          const shortest = ((((eng.rollDeg % 360) + 540) % 360) - 180);
+          eng.rollDeg = eng.rollDeg - shortest * Math.min(1, dt * 10);
           springSquashStep(dt);
           tp.settleTimer -= dt * 1000;
           if (tp.settleTimer <= 0) {
             tp.settling = false;
+            eng.rollDeg = 0;
             const target = computeFollowTarget();
             const dist = Math.hypot(target.x - eng.x, target.y - eng.groundY);
             if (dist > FOLLOW_THRESHOLD) {
@@ -1070,9 +1217,6 @@ export default function PetLayer({
               rf.shrinkMs = 180;
             } else {
               const dur = clamp(240 + distHome * 0.28, 260, 440);
-              if (Math.abs(rf.targetX - eng.x) > 4) {
-                eng.facing = rf.targetX < eng.x ? -1 : 1;
-              }
               eng.hop = {
                 startX: eng.x,
                 startY: eng.groundY,
@@ -1095,9 +1239,11 @@ export default function PetLayer({
           eng.groundY = lerp(eng.hop.startY, eng.hop.endY, u);
           const lift = 4 * eng.hop.arcH * u * (1 - u);
           eng.y = eng.groundY - lift;
+          eng.rollDeg = (eng.hop.endX >= eng.hop.startX ? 1 : -1) * Math.sin(u * Math.PI) * 16;
           eng.sqX = 1 - Math.sin(u * Math.PI) * 0.08;
           eng.sqY = 1 + Math.sin(u * Math.PI) * 0.1;
           if (u >= 1) {
+            eng.rollDeg = 0;
             rf.phase = 'shrink';
             rf.shrinkMs = 150;
           }
@@ -1105,6 +1251,7 @@ export default function PetLayer({
           rf.shrinkMs -= dt * 1000;
           const p = Math.max(0, rf.shrinkMs / 150);
           eng.y = eng.groundY;
+          eng.rollDeg = 0;
           eng.sqX = 1.24 - 0.18 * p;
           eng.sqY = 0.72 + 0.15 * p;
           eng.opacity = p;
@@ -1137,7 +1284,6 @@ export default function PetLayer({
     function onDocumentPointerMove(e) {
       if (!eng.active || eng.returning || eng.drag.pressed) return;
       if (e.pointerType === 'touch') return;
-      // Passive pointermove handler: ONLY stores coordinates (all math happens inside rAF)
       eng.ptr.x = e.clientX;
       eng.ptr.y = e.clientY;
       eng.ptr.hasPtr = true;
@@ -1205,7 +1351,6 @@ export default function PetLayer({
       }
     }
 
-    // Store internal trigger helpers on engineRef so React event handlers & returning prop can invoke them
     eng._applyClasses = applyClasses;
     eng._renderDom = renderDom;
     eng._ensureRaf = ensureRaf;
@@ -1239,7 +1384,6 @@ export default function PetLayer({
     };
   }, [active, launchOrigin]);
 
-  // Trigger return home sequence when returning prop flips true
   useEffect(() => {
     if (!active || !returning) return;
     const eng = engineRef.current;
@@ -1262,7 +1406,6 @@ export default function PetLayer({
     eng._ensureRaf?.();
   }, [active, returning]);
 
-  // Sync reduced/lite class changes live
   useEffect(() => {
     if (active) {
       engineRef.current._applyClasses?.();
@@ -1276,6 +1419,8 @@ export default function PetLayer({
     if (!eng.active || eng.returning) return;
     eng._clearSleepTimer?.();
     if (navigator.vibrate) navigator.vibrate(8);
+
+    showPetSpeech(undefined, true);
 
     const el = petRef.current;
     eng.state = 'IDLE';
@@ -1299,6 +1444,7 @@ export default function PetLayer({
         el.classList.add('is-wobbling');
         window.setTimeout(() => el.classList.remove('is-wobbling'), 380);
       }
+      playPlushSqueak(true);
       eng._triggerSparkles?.();
       eng._enterIdle?.();
     }, 150);
@@ -1310,6 +1456,7 @@ export default function PetLayer({
     e.stopPropagation();
 
     eng._clearSleepTimer?.();
+    eng.ptr.dirty = false;
     eng.drag.pointerId = e.pointerId;
     eng.drag.downX = e.clientX;
     eng.drag.downY = e.clientY;
@@ -1320,6 +1467,9 @@ export default function PetLayer({
 
     if (navigator.vibrate) navigator.vibrate(8);
 
+    // Speak & squeak just like clicking the hero squishy!
+    showPetSpeech(undefined, true);
+
     if (e.currentTarget.setPointerCapture) {
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -1328,7 +1478,6 @@ export default function PetLayer({
       }
     }
 
-    // Immediate squish expression on press
     eng.sqX = 1.25;
     eng.sqY = 0.7;
     eng.state = 'IDLE';
@@ -1370,9 +1519,7 @@ export default function PetLayer({
         const speed = Math.hypot(vx, vy);
         eng.stretchAmt = eng.reduced ? 0 : Math.min(0.18, speed / 2600);
         eng.stretchAngle = (Math.atan2(vy, vx) * 180) / Math.PI;
-        if (Math.abs(vx) > 25) {
-          eng.facing = vx < 0 ? -1 : 1;
-        }
+        eng.rollDeg = clamp(vx * 0.015, -24, 24);
       }
 
       eng.x = nextX;
@@ -1408,7 +1555,6 @@ export default function PetLayer({
     }
 
     if (!wasDragging) {
-      // Tap/hold release: spring wobble + sparkles
       eng.sqX = 1;
       eng.sqY = 1;
       eng._applyClasses?.();
@@ -1421,12 +1567,12 @@ export default function PetLayer({
         el.classList.add('is-wobbling');
         window.setTimeout(() => el.classList.remove('is-wobbling'), 380);
       }
+      playPlushSqueak(true);
       eng._triggerSparkles?.();
       eng._enterIdle?.();
       return;
     }
 
-    // Compute release velocity from last up-to-5 pointer samples
     const samples = eng.drag.samples;
     let vx = 0;
     let vy = 0;
@@ -1441,6 +1587,7 @@ export default function PetLayer({
     if (eng.reduced) {
       eng.groundY = eng.vp.maxY;
       eng.y = eng.vp.maxY;
+      eng.rollDeg = 0;
       eng._enterIdle?.();
       return;
     }
@@ -1450,6 +1597,7 @@ export default function PetLayer({
       vy,
       settleTimer: 0,
       settling: false,
+      lastBounceSoundAt: 0,
     };
     eng.state = 'THROWN';
     eng._applyClasses?.();
@@ -1487,7 +1635,7 @@ export default function PetLayer({
         />
       ))}
 
-      {/* Interactive floating pet sprite */}
+      {/* Interactive 3D ball-like floating pet sprite + speech bubble */}
       <button
         ref={petRef}
         type="button"
@@ -1499,10 +1647,21 @@ export default function PetLayer({
         onPointerCancel={handlePetPointerUp}
         onKeyDown={handlePetKeyDown}
       >
+        <span
+          className={`pet-speech${speechVisible ? ' is-visible' : ''}`}
+          aria-hidden="true"
+        >
+          {speechText}
+        </span>
+
         <div ref={squashRef} className="pet-entity__squash">
           <div className="pet-entity__pose">
-            <div ref={flipRef} className="pet-entity__flip">
-              <PetSpriteSvg character={character} liteMode={liteMode} />
+            <div ref={rollRef} className="pet-entity__roll">
+              <PetSpriteSvg
+                character={character}
+                liteMode={liteMode}
+                faceRef={faceRef}
+              />
             </div>
           </div>
         </div>
@@ -1537,4 +1696,3 @@ export default function PetLayer({
     document.body
   );
 }
-

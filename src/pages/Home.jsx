@@ -6,6 +6,11 @@ import { FALLBACK_PRODUCTS } from '../data/catalogFallback';
 import { PRODUCT_MODELS } from '../data/productModels';
 import { createHeroSquishy3D } from '../components/HeroSquishy3D';
 import PetLayer from '../components/PetLayer';
+import {
+  pickCharacterLine,
+  playCharacterVoiceClip,
+  playPlushSqueak,
+} from '../utils/squishyVoice';
 
 const ProductViewer3D = lazy(() => import('../components/ProductViewer3D'));
 
@@ -394,123 +399,13 @@ export default function Home() {
     let blink = 0;
     let sparks = [];
     let used = false;
-    let lastLine = '';
     let speech = { text: 'Squish me~!', timer: 2.6, pop: 1 };
-    let audioCtx = null;
-    let activeVoiceSource = null;
-    const voiceBufferCache = new Map();
 
-    function getAudioCtx() {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) return null;
-      if (!audioCtx) audioCtx = new AudioContextClass();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
-
-    function playPlushSqueak(isRelease = false) {
-      try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        const now = ctx.currentTime;
-
-        // Soft physical rubber/plush toy air-valve squeak
-        const osc = ctx.createOscillator();
-        const filter = ctx.createBiquadFilter();
-        const gain = ctx.createGain();
-
-        osc.type = 'triangle';
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(isRelease ? 1150 : 1350, now);
-        filter.Q.setValueAtTime(4.5, now);
-
-        if (!isRelease) {
-          osc.frequency.setValueAtTime(680, now);
-          osc.frequency.exponentialRampToValueAtTime(1180, now + 0.055);
-          osc.frequency.exponentialRampToValueAtTime(890, now + 0.11);
-          gain.gain.setValueAtTime(0.001, now);
-          gain.gain.exponentialRampToValueAtTime(0.085, now + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-          osc.connect(filter);
-          filter.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.13);
-        } else {
-          // Gentle rising air-puff when the slow-rising squishy bounces back
-          osc.frequency.setValueAtTime(920, now);
-          osc.frequency.exponentialRampToValueAtTime(620, now + 0.08);
-          gain.gain.setValueAtTime(0.001, now);
-          gain.gain.exponentialRampToValueAtTime(0.045, now + 0.018);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-          osc.connect(filter);
-          filter.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.095);
-        }
-      } catch {
-        // Ignore audio context errors if blocked
-      }
-    }
-
-    async function playCuteVoice(charObj, customIdx) {
-      let idx =
-        typeof customIdx === 'number'
-          ? customIdx
-          : Math.floor(Math.random() * charObj.lines.length);
-      if (charObj.lines[idx] === lastLine && charObj.lines.length > 1) {
-        idx = (idx + 1) % charObj.lines.length;
-      }
-      const phrase = charObj.lines[idx];
-      lastLine = phrase;
+    function playCuteVoice(charObj, customIdx) {
+      const { idx, phrase } = pickCharacterLine(charObj, customIdx);
       speech = { text: phrase, timer: 3.2, pop: 0 };
-
       playPlushSqueak(false);
-
-      try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-
-        const clipUrl = `/assets/voices/${charObj.slug}-${idx}.mp3?v=3`;
-        let audioBuffer = voiceBufferCache.get(clipUrl);
-        if (!audioBuffer) {
-          const res = await fetch(clipUrl);
-          if (!res.ok) return;
-          const arrayBuf = await res.arrayBuffer();
-          audioBuffer = await ctx.decodeAudioData(arrayBuf);
-          voiceBufferCache.set(clipUrl, audioBuffer);
-        }
-
-        if (activeVoiceSource) {
-          try {
-            activeVoiceSource.stop();
-          } catch {
-            // already stopped
-          }
-        }
-
-        const source = ctx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.playbackRate.value = 1.0;
-
-        // Subtle warm filter so the voice sounds cozy inside the plush toy
-        const warmFilter = ctx.createBiquadFilter();
-        warmFilter.type = 'lowpass';
-        warmFilter.frequency.value = 7500;
-
-        const voiceGain = ctx.createGain();
-        voiceGain.gain.value = 0.95;
-
-        source.connect(warmFilter);
-        warmFilter.connect(voiceGain);
-        voiceGain.connect(ctx.destination);
-
-        activeVoiceSource = source;
-        source.start(ctx.currentTime + 0.03);
-      } catch {
-        // Ignore playback errors if audio is not yet unlocked
-      }
+      playCharacterVoiceClip(charObj, idx);
     }
 
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
