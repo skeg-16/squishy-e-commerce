@@ -5,21 +5,29 @@
 
 .siso-studio-page {
   --siso-bg: #805d83;
-  --siso-surface: #fffdf9;
-  --siso-well: #fdf7f2;
-  --siso-well-alt: #f7ebe1;
-  --siso-border: #ead9cd;
-  --siso-border-strong: #d3b8a6;
-  --siso-card-ring: rgba(255, 255, 255, 0.72);
-  --siso-ink: #2d1b3d;
-  --siso-muted: #5a4d68;
-  --siso-rose: #df3b72;
-  --siso-rose-deep: #be2659;
-  --siso-rose-soft: #fde8ef;
-  --siso-mint-ink: #0f6850;
-  --siso-mint-bg: #def6ed;
-  --siso-mint-border: #9ad8c1;
-  --siso-shadow: 0 22px 48px -12px rgba(45, 18, 60, 0.28);
+  --siso-glass:
+    radial-gradient(circle at 18% 22%, rgba(255, 228, 242, 0.22), transparent 52%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.21) 0%, rgba(255, 255, 255, 0.08) 100%);
+  --siso-surface: rgba(38, 16, 56, 0.28);
+  --siso-well: rgba(38, 16, 56, 0.26);
+  --siso-well-alt: rgba(38, 16, 56, 0.36);
+  --siso-border: rgba(255, 255, 255, 0.28);
+  --siso-border-strong: rgba(255, 255, 255, 0.44);
+  --siso-border-glass: rgba(255, 255, 255, 0.42);
+  --siso-ink: #ffffff;
+  --siso-muted: rgba(255, 244, 250, 0.88);
+  --siso-rose: #ffd6ea;
+  --siso-rose-cta: linear-gradient(180deg, #ff74aa 0%, #dc4a84 100%);
+  --siso-rose-deep: #f08cb9;
+  --siso-rose-soft: rgba(255, 194, 224, 0.22);
+  --siso-pill-active-bg: linear-gradient(135deg, #ffe2f2 0%, #f8c4e4 100%);
+  --siso-pill-active-ink: #341036;
+  --siso-mint-ink: #d6fcef;
+  --siso-mint-bg: rgba(16, 128, 92, 0.34);
+  --siso-mint-border: rgba(164, 245, 214, 0.48);
+  --siso-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.48),
+    0 22px 48px rgba(45, 18, 60, 0.22);
 
   min-height: 100vh;
   color: var(--siso-ink);
@@ -36,21 +44,29 @@
 
 html[data-theme="dark"] .siso-studio-page {
   --siso-bg: #1a0b29;
-  --siso-surface: #25103a;
-  --siso-well: #1d0c2e;
-  --siso-well-alt: #311548;
+  --siso-glass:
+    radial-gradient(circle at 18% 20%, rgba(226, 62, 146, 0.16), transparent 55%),
+    linear-gradient(145deg, rgba(44, 16, 66, 0.74) 0%, rgba(26, 9, 40, 0.84) 100%);
+  --siso-surface: rgba(20, 7, 32, 0.6);
+  --siso-well: rgba(20, 7, 32, 0.56);
+  --siso-well-alt: rgba(36, 12, 54, 0.72);
   --siso-border: rgba(242, 166, 216, 0.24);
-  --siso-border-strong: rgba(255, 166, 214, 0.5);
-  --siso-card-ring: rgba(242, 166, 216, 0.26);
+  --siso-border-strong: rgba(255, 166, 214, 0.48);
+  --siso-border-glass: rgba(242, 166, 216, 0.28);
   --siso-ink: #fff4fb;
-  --siso-muted: #e3c2da;
-  --siso-rose: #ff7fb8;
-  --siso-rose-deep: #f0599f;
-  --siso-rose-soft: rgba(240, 89, 159, 0.18);
-  --siso-mint-ink: #9bf0d1;
-  --siso-mint-bg: rgba(20, 96, 72, 0.34);
-  --siso-mint-border: rgba(132, 232, 194, 0.36);
-  --siso-shadow: 0 22px 48px -14px rgba(10, 3, 18, 0.6);
+  --siso-muted: #e6c6df;
+  --siso-rose: #ffd6ea;
+  --siso-rose-cta: linear-gradient(180deg, #ff7fb8 0%, #e04e91 100%);
+  --siso-rose-deep: #ff8dc4;
+  --siso-rose-soft: rgba(240, 89, 159, 0.22);
+  --siso-pill-active-bg: linear-gradient(135deg, #ffe2f2 0%, #f8c4e4 100%);
+  --siso-pill-active-ink: #2b0d38;
+  --siso-mint-ink: #a7f3d0;
+  --siso-mint-bg: rgba(16, 108, 78, 0.36);
+  --siso-mint-border: rgba(132, 232, 194, 0.38);
+  --siso-shadow:
+    inset 0 1px 2px rgba(255, 200, 232, 0.2),
+    0 22px 48px rgba(10, 3, 18, 0.56);
 
   background:
     radial-gradient(ellipse at 14% 12%, rgba(214, 48, 134, 0.28), transparent 48%),
@@ -83,10 +99,12 @@ html[data-theme="dark"] .siso-studio-page {
 }
 
 .siso-editorial-col {
-  background: var(--siso-surface);
-  border: 1.5px solid var(--siso-border);
+  background: var(--siso-glass);
+  border: 1.5px solid var(--siso-border-glass);
   border-radius: 26px;
   padding: 32px;
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
   box-shadow: var(--siso-shadow);
   display: flex;
   flex-direction: column;
@@ -205,13 +223,13 @@ html[data-theme="dark"] .siso-studio-page {
   gap: 8px;
   padding: 12px 22px;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--siso-rose) 0%, var(--siso-rose-deep) 100%);
+  background: var(--siso-rose-cta);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
   font-weight: 700;
   font-size: 0.95rem;
   text-decoration: none;
-  box-shadow: 0 8px 20px -6px rgba(223, 59, 114, 0.45);
+  box-shadow: 0 8px 20px -6px rgba(216, 100, 156, 0.45);
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
@@ -250,10 +268,12 @@ html[data-theme="dark"] .siso-studio-page {
 /* ================= INTERACTIVE ANATOMY & BOUNCE CARD ================= */
 
 .siso-anatomy-card {
-  background: var(--siso-surface);
-  border: 1.5px solid var(--siso-border);
+  background: var(--siso-glass);
+  border: 1.5px solid var(--siso-border-glass);
   border-radius: 26px;
   padding: 26px;
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
   box-shadow: var(--siso-shadow);
   display: flex;
   flex-direction: column;
@@ -292,15 +312,12 @@ html[data-theme="dark"] .siso-studio-page {
   padding: 6px 12px;
   border-radius: 999px;
   background: var(--siso-rose-soft);
-  color: var(--siso-rose-deep);
+  border: 1px solid rgba(255, 198, 226, 0.42);
+  color: #ffe8f4;
   font-family: Fredoka, var(--font-display);
   font-size: 0.82rem;
   font-weight: 700;
   flex-shrink: 0;
-}
-
-html[data-theme="dark"] .siso-counter-chip {
-  color: #ffc5e0;
 }
 
 .siso-blueprint-stage {
@@ -487,8 +504,8 @@ html[data-theme="dark"] .siso-svg-shadow {
 }
 
 .siso-layer-btn.is-active .siso-layer-code {
-  background: var(--siso-rose);
-  border-color: var(--siso-rose);
+  background: var(--siso-rose-cta);
+  border-color: rgba(255, 255, 255, 0.72);
   color: #ffffff;
 }
 
@@ -577,10 +594,12 @@ html[data-theme="dark"] .siso-svg-shadow {
 }
 
 .siso-panel {
-  background: var(--siso-surface);
-  border: 1.5px solid var(--siso-border);
+  background: var(--siso-glass);
+  border: 1.5px solid var(--siso-border-glass);
   border-radius: 26px;
   padding: 26px;
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
   box-shadow: var(--siso-shadow);
   display: flex;
   flex-direction: column;
@@ -705,12 +724,9 @@ html[data-theme="dark"] .siso-svg-shadow {
   padding: 2px 9px;
   border-radius: 999px;
   background: var(--siso-rose-soft);
-  color: var(--siso-rose-deep);
+  border: 1px solid rgba(255, 198, 226, 0.38);
+  color: #ffe8f4;
   margin-bottom: 4px;
-}
-
-html[data-theme="dark"] .siso-role-badge {
-  color: #ffc5e0;
 }
 
 .siso-spotlight-name {
@@ -829,13 +845,8 @@ html[data-theme="dark"] .siso-role-badge {
 }
 
 .siso-tab-chip.is-active {
-  background: var(--siso-ink);
-  color: var(--siso-surface);
-}
-
-html[data-theme="dark"] .siso-tab-chip.is-active {
-  background: linear-gradient(135deg, #ffd8ec 0%, #ff9dcf 100%);
-  color: #2b0d38;
+  background: var(--siso-pill-active-bg);
+  color: var(--siso-pill-active-ink);
 }
 
 .siso-dossier-body {
@@ -1038,7 +1049,7 @@ html[data-theme="dark"] .siso-tab-chip.is-active {
   font-weight: 800;
   padding: 2px 7px;
   border-radius: 999px;
-  background: var(--siso-rose);
+  background: var(--siso-rose-cta);
   color: #ffffff;
 }
 
@@ -1090,7 +1101,7 @@ html[data-theme="dark"] .siso-tab-chip.is-active {
   gap: 6px;
   padding: 8px 15px;
   border-radius: 999px;
-  background: var(--siso-rose);
+  background: var(--siso-rose-cta);
   color: #ffffff;
   font-family: Fredoka, var(--font-display);
   font-size: 0.84rem;
@@ -1105,10 +1116,12 @@ html[data-theme="dark"] .siso-tab-chip.is-active {
 }
 
 .siso-signature-bar {
-  background: var(--siso-surface);
-  border: 1.5px solid var(--siso-border);
+  background: var(--siso-glass);
+  border: 1.5px solid var(--siso-border-glass);
   border-radius: 20px;
   padding: 18px 24px;
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
   box-shadow: var(--siso-shadow);
   display: flex;
   flex-wrap: wrap;
@@ -1140,17 +1153,12 @@ html[data-theme="dark"] .siso-tab-chip.is-active {
   gap: 8px;
   padding: 10px 18px;
   border-radius: 999px;
-  background: var(--siso-ink);
-  color: var(--siso-surface);
+  background: var(--siso-pill-active-bg);
+  color: var(--siso-pill-active-ink);
   font-family: Fredoka, var(--font-display);
   font-size: 0.88rem;
   font-weight: 700;
   text-decoration: none;
-}
-
-html[data-theme="dark"] .siso-sig-btn {
-  background: linear-gradient(135deg, #ffd8ec 0%, #f8a9d2 100%);
-  color: #2b0d38;
 }
 
 /* ================= RESPONSIVE ================= */
