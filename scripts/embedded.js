@@ -26,14 +26,34 @@ async function embedded({ directory, port, password, persistent = false } = {}) 
   port ||= await freePort();
   password ||= randomBytes(24).toString('hex');
   const name = persistent ? 'squishies_demo' : 'squishies_test';
-  if (persistent && await isListening(port)) {
-    const client = new Client({ connectionString: `postgresql://postgres:${password}@127.0.0.1:${port}/postgres` });
-    await client.connect();
+  if (persistent && (await isListening(port))) {
+    let client;
+    let healthy = false;
     try {
+      client = new Client({
+        connectionString: `postgresql://postgres:${password}@127.0.0.1:${port}/postgres`,
+        connectionTimeoutMillis: 2500,
+      });
+      await client.connect();
       const { rowCount } = await client.query('SELECT 1 FROM pg_database WHERE datname=$1', [name]);
       if (!rowCount) await client.query(`CREATE DATABASE ${name}`);
-    } finally { await client.end(); }
-    return { url: `postgresql://postgres:${password}@127.0.0.1:${port}/${name}`, stop: async () => {} };
+      healthy = true;
+    } catch {
+      healthy = false;
+    } finally {
+      if (client) await client.end().catch(() => {});
+    }
+    if (healthy) {
+      return { url: `postgresql://postgres:${password}@127.0.0.1:${port}/${name}`, stop: async () => {} };
+    }
+    if (process.platform === 'win32') {
+      try {
+        execSync('powershell.exe -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name = \'postgres.exe\' AND SessionId != 0\\" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"', { stdio: 'ignore' });
+      } catch {
+        /* No orphaned postgres */
+      }
+    }
+    await rm(path.join(base, 'data/postmaster.pid'), { force: true });
   }
   const db = new EmbeddedPostgres({ databaseDir: path.join(base, 'data'), user: 'postgres', password,
     port, persistent: true, authMethod: 'scram-sha-256',
@@ -45,9 +65,11 @@ async function embedded({ directory, port, password, persistent = false } = {}) 
   if (!initialized) {
     await db.initialise();
   } else if (persistent) {
-    await db.stop().catch(() => {});
+    await Promise.race([db.stop().catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
     if (process.platform === 'win32' && !(await isListening(port))) {
-      try { execSync('taskkill /F /IM postgres.exe /T', { stdio: 'ignore' }); } catch { /* No orphaned postgres */ }
+      try {
+        execSync('powershell.exe -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name = \'postgres.exe\' AND SessionId != 0\\" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"', { stdio: 'ignore' });
+      } catch { /* No orphaned postgres */ }
     }
     await rm(path.join(base, 'data/postmaster.pid'), { force: true });
   }
@@ -58,9 +80,24 @@ async function embedded({ directory, port, password, persistent = false } = {}) 
     const { rowCount } = await client.query('SELECT 1 FROM pg_database WHERE datname=$1', [name]);
     if (!rowCount) await db.createDatabase(name);
   } finally { await client.end(); }
-  return { url: `postgresql://postgres:${password}@127.0.0.1:${port}/${name}`, stop: async () => {
-    await db.stop();
-    if (!persistent) await rm(base, { recursive: true, force: true });
-  } };
+  return {
+    url: `postgresql://postgres:${password}@127.0.0.1:${port}/${name}`,
+    stop: async () => {
+      try {
+        await Promise.race([
+          db.stop().catch(() => {}),
+          new Promise(r => setTimeout(r, 2000)),
+        ]);
+      } catch {}
+      if (process.platform === 'win32' && db.process?.pid) {
+        try {
+          execSync(`taskkill /F /PID ${db.process.pid} /T`, { stdio: 'ignore' });
+        } catch {}
+      }
+      if (!persistent) {
+        await rm(base, { recursive: true, force: true }).catch(() => {});
+      }
+    },
+  };
 }
 module.exports = { embedded };

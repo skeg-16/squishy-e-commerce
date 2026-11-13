@@ -56,7 +56,7 @@ function AdminPill({ children }) {
     .replace(/\s+/g, '-');
 
   return (
-    <span className={`ad-pill ad-pill--${className}`}>
+    <span className={`adm-pill adm-pill--${className}`}>
       {children}
     </span>
   );
@@ -64,12 +64,12 @@ function AdminPill({ children }) {
 
 function AdminTable({ headings, rows, emptyText }) {
   if (!rows.length) {
-    return <div className="ad-card ad-empty">{emptyText}</div>;
+    return <div className="adm-card adm-empty">{emptyText}</div>;
   }
 
   return (
-    <div className="ad-table-wrap">
-      <table className="ad-table">
+    <div className="adm-table-wrap">
+      <table className="adm-table">
         <thead>
           <tr>
             {headings.map((heading, index) => (
@@ -90,7 +90,7 @@ function AdminTable({ headings, rows, emptyText }) {
 
 function AdminField({ label, hint, children, ...props }) {
   return (
-    <label className="ad-field" {...props}>
+    <label className="adm-field" {...props}>
       <span>{label}</span>
       {children}
       {hint && <small>{hint}</small>}
@@ -203,8 +203,8 @@ function Dashboard({ request, refreshKey }) {
     };
   }, [request, refreshKey]);
 
-  if (error) return <p className="ad-error">{error}</p>;
-  if (!summary) return <p className="ad-muted">Loading dashboard...</p>;
+  if (error) return <p className="adm-error">{error}</p>;
+  if (!summary) return <p className="adm-muted">Loading dashboard...</p>;
 
   const count = (status) => summary.orders?.[status] || 0;
 
@@ -239,10 +239,10 @@ function Dashboard({ request, refreshKey }) {
 
   return (
     <>
-      <div className="ad-stats">
+      <div className="adm-stats">
         {cards.map(([label, value, tone]) => (
           <div
-            className={`ad-card ad-stat ad-stat--${tone}`}
+            className={`adm-card adm-stat adm-stat--${tone}`}
             key={label}
           >
             <strong>{value}</strong>
@@ -251,13 +251,13 @@ function Dashboard({ request, refreshKey }) {
         ))}
       </div>
 
-      <h2 className="ad-section-title">
+      <h2 className="adm-section-title">
         Low stock (10 or fewer)
       </h2>
 
       {summary.lowStock.length ? (
         <>
-          <ul className="ad-list">
+          <ul className="adm-list">
             {summary.lowStock.map((product) => (
               <li key={product.slug}>
                 <span>{product.name}</span>
@@ -269,26 +269,26 @@ function Dashboard({ request, refreshKey }) {
               </li>
             ))}
           </ul>
-          <p className="ad-muted">
+          <p className="adm-muted">
             Remember to update stock in the Products tab.
           </p>
         </>
       ) : (
-        <p className="ad-muted">
+        <p className="adm-muted">
           Everything is comfortably stocked.
         </p>
       )}
 
       {Array.isArray(summary.recentLogs) && summary.recentLogs.length > 0 && (
         <>
-          <h2 className="ad-section-title">Recent admin activity</h2>
-          <ul className="ad-list">
+          <h2 className="adm-section-title">Recent admin activity</h2>
+          <ul className="adm-list">
             {summary.recentLogs.map((log, idx) => (
               <li key={`${log.createdAt}-${idx}`}>
                 <span>
                   <strong>{log.actor}</strong> · {log.action} ({log.targetType}: {log.targetId})
                 </span>
-                <small className="ad-muted">{when(log.createdAt)}</small>
+                <small className="adm-muted">{when(log.createdAt)}</small>
               </li>
             ))}
           </ul>
@@ -386,10 +386,10 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
     );
 
     const content = (
-      <div className="ad-order">
+      <div className="adm-order">
         <div>
           <AdminPill>{order.status}</AdminPill>{' '}
-          <span className="ad-muted">
+          <span className="adm-muted">
             {order.paymentMethod.toUpperCase()} ·{' '}
             {order.paymentStatus} · placed {when(order.createdAt)}
           </span>
@@ -397,7 +397,7 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
 
         <section>
           <h3>Customer</h3>
-          <dl className="ad-kv">
+          <dl className="adm-kv">
             <dt>Name</dt><dd>{order.customerName}</dd>
             <dt>Email</dt><dd>{order.customerEmail}</dd>
             <dt>Phone</dt><dd>{order.customerPhone}</dd>
@@ -437,7 +437,7 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
             emptyText="No items."
           />
 
-          <div className="ad-totals">
+          <div className="adm-totals">
             {money('Subtotal', peso(order.subtotal))}
             {order.voucherDiscount
               ? money(
@@ -452,7 +452,7 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
 
         <section>
           <h3>History</h3>
-          <ul className="ad-events">
+          <ul className="adm-events">
             {order.events.map((event, index) => (
               <li key={`${event.timestamp}-${index}`}>
                 <strong>{event.status}</strong>
@@ -469,7 +469,7 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
           />
         )}
 
-        <div className="ad-form-actions">
+        <div className="adm-form-actions">
           {order.status === 'To Ship' && (
             <button
               className="btn btn--pink btn--sm"
@@ -503,7 +503,7 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
 
         {!canCancel && order.status !== 'To Ship' &&
           order.status !== 'Shipped' && (
-            <p className="ad-muted">
+            <p className="adm-muted">
               No further actions for this order.
             </p>
           )}
@@ -516,7 +516,7 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
   return (
     <>
       <form
-        className="ad-toolbar"
+        className="adm-toolbar"
         onSubmit={(event) => {
           event.preventDefault();
           setQuery(searchInput);
@@ -550,8 +550,8 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
         </button>
       </form>
 
-      {error && <p className="ad-error">{error}</p>}
-      {loading && <p className="ad-muted">Loading orders...</p>}
+      {error && <p className="adm-error">{error}</p>}
+      {loading && <p className="adm-muted">Loading orders...</p>}
 
       {!loading && !error && (
         <>
@@ -570,7 +570,7 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
                 <tr key={order.orderNumber}>
                   <td>
                     <button
-                      className="ad-link"
+                      className="adm-link"
                       type="button"
                       onClick={() => openOrder(order.orderNumber)}
                     >
@@ -579,7 +579,7 @@ function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToa
                   </td>
                   <td>
                     {order.customerName}
-                    <span className="ad-sub">{order.customerEmail}</span>
+                    <span className="adm-sub">{order.customerEmail}</span>
                   </td>
                   <td>{when(order.createdAt)}</td>
                   <td>
@@ -703,8 +703,8 @@ function Products({
 
   return (
     <>
-      <div className="ad-toolbar">
-        <span className="ad-spacer" />
+      <div className="adm-toolbar">
+        <span className="adm-spacer" />
         <button
           className="btn btn--pink btn--sm"
           type="button"
@@ -722,8 +722,8 @@ function Products({
         </button>
       </div>
 
-      {error && <p className="ad-error">{error}</p>}
-      {loading && <p className="ad-muted">Loading products...</p>}
+      {error && <p className="adm-error">{error}</p>}
+      {loading && <p className="adm-muted">Loading products...</p>}
 
       {!loading && !error && (
         <>
@@ -781,13 +781,13 @@ function ProductRow({ product, onSaveStock, onEdit, onDelete }) {
       </td>
       <td>
         {product.name}
-        <span className="ad-sub">{product.slug}</span>
+        <span className="adm-sub">{product.slug}</span>
       </td>
       <td>{product.kind === 'bundle' ? 'Bundle' : 'Single'}</td>
       <td className="num">{peso(product.price)}</td>
       <td>
         {product.kind === 'single' ? (
-          <span className="ad-stock">
+          <span className="adm-stock">
             <input
               type="number"
               min="0"
@@ -806,7 +806,7 @@ function ProductRow({ product, onSaveStock, onEdit, onDelete }) {
             </button>
           </span>
         ) : (
-          <span className="ad-muted">
+          <span className="adm-muted">
             {product.stock} (from parts)
           </span>
         )}
@@ -966,8 +966,8 @@ function openProductForm({
     }
 
     return (
-      <form className="ad-form" onSubmit={submit}>
-        <div className="ad-form-row">
+      <form className="adm-form" onSubmit={submit}>
+        <div className="adm-form-row">
           <AdminField label="Name">
             <input
               type="text"
@@ -1000,7 +1000,7 @@ function openProductForm({
           </AdminField>
         </div>
 
-        <div className="ad-form-row">
+        <div className="adm-form-row">
           <AdminField label="Type">
             <select
               value={kind}
@@ -1045,12 +1045,12 @@ function openProductForm({
             />
           </AdminField>
         ) : (
-          <div className="ad-field">
+          <div className="adm-field">
             <span>Bundle contents</span>
 
-            <div className="ad-comps">
+            <div className="adm-comps">
               {components.map((component, index) => (
-                <div className="ad-comp-row" key={index}>
+                <div className="adm-comp-row" key={index}>
                   <select
                     required
                     aria-label="Bundle part"
@@ -1102,7 +1102,7 @@ function openProductForm({
           </div>
         )}
 
-        <div className="ad-form-row">
+        <div className="adm-form-row">
           <AdminField label="Badge text" hint="Optional label on the product card.">
             <input
               type="text"
@@ -1165,7 +1165,7 @@ function openProductForm({
           />
         </AdminField>
 
-        <label className="ad-check">
+        <label className="adm-check">
           <input
             type="checkbox"
             checked={active}
@@ -1174,9 +1174,9 @@ function openProductForm({
           Visible in the store
         </label>
 
-        {error && <p className="ad-error" role="alert">{error}</p>}
+        {error && <p className="adm-error" role="alert">{error}</p>}
 
-        <div className="ad-form-actions">
+        <div className="adm-form-actions">
           <button
             className="btn btn--outline"
             type="button"
@@ -1257,8 +1257,8 @@ function Vouchers({
 
   return (
     <>
-      <div className="ad-toolbar">
-        <span className="ad-spacer" />
+      <div className="adm-toolbar">
+        <span className="adm-spacer" />
         <button
           className="btn btn--pink btn--sm"
           type="button"
@@ -1275,8 +1275,8 @@ function Vouchers({
         </button>
       </div>
 
-      {error && <p className="ad-error">{error}</p>}
-      {loading && <p className="ad-muted">Loading vouchers...</p>}
+      {error && <p className="adm-error">{error}</p>}
+      {loading && <p className="adm-muted">Loading vouchers...</p>}
 
       {!loading && !error && (
         <AdminTable
@@ -1293,7 +1293,7 @@ function Vouchers({
               <tr key={voucher.code}>
                 <td>
                   <strong>{voucher.code}</strong>
-                  <span className="ad-sub">{voucher.description}</span>
+                  <span className="adm-sub">{voucher.description}</span>
                 </td>
                 <td>{valueText}</td>
                 <td className="num">
@@ -1401,7 +1401,7 @@ function openVoucherForm({
     }
 
     return (
-      <form className="ad-form" onSubmit={submit}>
+      <form className="adm-form" onSubmit={submit}>
         <AdminField
           label="Code"
           hint={creating
@@ -1467,7 +1467,7 @@ function openVoucherForm({
           />
         </AdminField>
 
-        <label className="ad-check">
+        <label className="adm-check">
           <input
             type="checkbox"
             checked={active}
@@ -1476,9 +1476,9 @@ function openVoucherForm({
           Active
         </label>
 
-        {error && <p className="ad-error" role="alert">{error}</p>}
+        {error && <p className="adm-error" role="alert">{error}</p>}
 
-        <div className="ad-form-actions">
+        <div className="adm-form-actions">
           <button
             className="btn btn--outline"
             type="button"
@@ -1547,8 +1547,8 @@ function Reviews({ request, refreshKey, showToast }) {
 
   return (
     <>
-      {error && <p className="ad-error">{error}</p>}
-      {loading && <p className="ad-muted">Loading reviews...</p>}
+      {error && <p className="adm-error">{error}</p>}
+      {loading && <p className="adm-muted">Loading reviews...</p>}
 
       {!loading && !error && (
         <>
@@ -1560,7 +1560,7 @@ function Reviews({ request, refreshKey, showToast }) {
                 <tr key={review.id}>
                   <td>
                     {review.productName}
-                    <span className="ad-sub">
+                    <span className="adm-sub">
                       {review.orderNumber.slice(0, 11)}…
                     </span>
                   </td>
@@ -1570,7 +1570,7 @@ function Reviews({ request, refreshKey, showToast }) {
                   </td>
                   <td>
                     <strong>{review.reviewerName}</strong>
-                    <span className="ad-sub">{review.comment}</span>
+                    <span className="adm-sub">{review.comment}</span>
                   </td>
                   <td>{when(review.createdAt)}</td>
                   <td className="actions">
@@ -1698,7 +1698,7 @@ function Users({
   return (
     <>
       <form
-        className="ad-toolbar"
+        className="adm-toolbar"
         onSubmit={(event) => {
           event.preventDefault();
           setQuery(searchInput);
@@ -1743,7 +1743,7 @@ function Users({
           Search
         </button>
 
-        <span className="ad-spacer" />
+        <span className="adm-spacer" />
 
         <button
           className="btn btn--pink btn--sm"
@@ -1764,8 +1764,8 @@ function Users({
         </button>
       </form>
 
-      {error && <p className="ad-error">{error}</p>}
-      {loading && <p className="ad-muted">Loading users...</p>}
+      {error && <p className="adm-error">{error}</p>}
+      {loading && <p className="adm-muted">Loading users...</p>}
 
       {!loading && !error && (
         <>
@@ -1788,7 +1788,7 @@ function Users({
                   <tr key={user.id}>
                     <td>
                       <button
-                        className="ad-link"
+                        className="adm-link"
                         type="button"
                         onClick={() =>
                           openUserForm({
@@ -1804,11 +1804,11 @@ function Users({
                       >
                         {user.fullName}
                       </button>
-                      <span className="ad-sub">@{user.username}</span>
+                      <span className="adm-sub">@{user.username}</span>
                     </td>
                     <td>
                       {user.email}
-                      <span className="ad-sub">{user.phone}</span>
+                      <span className="adm-sub">{user.phone}</span>
                     </td>
                     <td>
                       <AdminPill>
@@ -1985,8 +1985,8 @@ function openUserForm({
     }
 
     return (
-      <form className="ad-form" onSubmit={submit}>
-        <div className="ad-form-row">
+      <form className="adm-form" onSubmit={submit}>
+        <div className="adm-form-row">
           <AdminField
             label="Username"
             hint="3–28 letters, numbers, or underscores."
@@ -2014,7 +2014,7 @@ function openUserForm({
           </AdminField>
         </div>
 
-        <div className="ad-form-row">
+        <div className="adm-form-row">
           <AdminField label="Email address">
             <input
               type="email"
@@ -2051,7 +2051,7 @@ function openUserForm({
           </AdminField>
         )}
 
-        <div className="ad-form-row">
+        <div className="adm-form-row">
           <AdminField label="Account role">
             <select
               value={role}
@@ -2064,7 +2064,7 @@ function openUserForm({
           </AdminField>
 
           <AdminField label="Account status">
-            <label className="ad-check" style={{ marginTop: '10px' }}>
+            <label className="adm-check" style={{ marginTop: '10px' }}>
               <input
                 type="checkbox"
                 checked={active}
@@ -2077,9 +2077,9 @@ function openUserForm({
         </div>
 
         {!creating && user?.defaultAddress && (
-          <section className="ad-order">
+          <section className="adm-order">
             <h3>Saved default address</h3>
-            <p className="ad-muted" style={{ margin: 0 }}>
+            <p className="adm-muted" style={{ margin: 0 }}>
               {user.defaultAddress.shippingAddress}, {user.defaultAddress.barangay},{' '}
               {user.defaultAddress.city} {user.defaultAddress.postalCode} ({user.defaultAddress.region})
             </p>
@@ -2087,10 +2087,10 @@ function openUserForm({
         )}
 
         {!creating && (
-          <section className="ad-order">
+          <section className="adm-order">
             <h3>Order history ({user.ordersCount || 0})</h3>
             {loadingOrders ? (
-              <p className="ad-muted">Loading user orders...</p>
+              <p className="adm-muted">Loading user orders...</p>
             ) : orders.length > 0 ? (
               <AdminTable
                 headings={['Order #', 'Placed', 'Payment', 'Status', 'Total#']}
@@ -2110,16 +2110,16 @@ function openUserForm({
                 emptyText="No orders yet."
               />
             ) : (
-              <p className="ad-muted" style={{ margin: 0 }}>
+              <p className="adm-muted" style={{ margin: 0 }}>
                 No orders placed by this user yet.
               </p>
             )}
           </section>
         )}
 
-        {error && <p className="ad-error" role="alert">{error}</p>}
+        {error && <p className="adm-error" role="alert">{error}</p>}
 
-        <div className="ad-form-actions">
+        <div className="adm-form-actions">
           <button
             className="btn btn--outline"
             type="button"
@@ -2177,8 +2177,8 @@ function openResetPasswordForm({
     }
 
     return (
-      <form className="ad-form" onSubmit={submit}>
-        <p className="ad-muted" style={{ margin: 0 }}>
+      <form className="adm-form" onSubmit={submit}>
+        <p className="adm-muted" style={{ margin: 0 }}>
           Set a new password for <strong>{user.fullName}</strong> (@{user.username}).
           All active sessions for this user will be signed out immediately.
         </p>
@@ -2197,9 +2197,9 @@ function openResetPasswordForm({
           />
         </AdminField>
 
-        {error && <p className="ad-error" role="alert">{error}</p>}
+        {error && <p className="adm-error" role="alert">{error}</p>}
 
-        <div className="ad-form-actions">
+        <div className="adm-form-actions">
           <button
             className="btn btn--outline"
             type="button"

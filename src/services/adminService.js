@@ -89,10 +89,13 @@ export async function adminApi(path, { method = 'GET', body, forceRefresh = fals
 }
 
 export function errorText(error) {
-  return error.message +
-    (error.fields
-      ? ' ' + Object.entries(error.fields)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(' ')
-      : '');
+  if (!error) return 'An unexpected error occurred.';
+  const base = error.message || String(error);
+  if (error.fields && typeof error.fields === 'object' && !Array.isArray(error.fields)) {
+    const details = Object.entries(error.fields)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(' ');
+    return details ? `${base} ${details}` : base;
+  }
+  return base;
 }

@@ -28,7 +28,7 @@ function isPortOpen(port, host = '127.0.0.1') {
   await fs.writeFile(path.join(directory, 'demo.env'), `DATABASE_URL=${database.url}\nDEMO_MODE=true\n`, { mode: 0o600 });
   require('./build').build();
   try {
-    execSync('npx vite build', { cwd: path.join(__dirname, '..'), stdio: 'ignore' });
+    execSync('node scripts/vercel-build.js', { cwd: path.join(__dirname, '..'), stdio: 'ignore' });
   } catch { /* Fallback to existing dist if vite build fails */ }
   const port = Number(process.env.PORT || 3000);
   let server = null;

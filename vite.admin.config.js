@@ -84,6 +84,10 @@ function squishiesAdminDevPlugin() {
 export default defineConfig({
   plugins: [squishiesAdminDevPlugin(), react()],
   publicDir: 'public',
+  cacheDir: 'node_modules/.vite-admin',
+  optimizeDeps: {
+    entries: ['admin.html'],
+  },
 
   server: {
     host: '127.0.0.1',

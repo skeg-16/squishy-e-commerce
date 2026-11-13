@@ -16,24 +16,24 @@ export function AdminDialog({ dialog, onClose }) {
 
   return (
     <div
-      className="ad-dialog-backdrop"
+      className="adm-dialog-backdrop"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
       <section
-        className="ad-dialog"
+        className="adm-dialog"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="ad-dialog-title"
+        aria-labelledby="adm-dialog-title"
       >
-        <div className="ad-dialog__box">
-          <header className="ad-dialog__head">
-            <h2 id="ad-dialog-title">{dialog.title}</h2>
+        <div className="adm-dialog__box">
+          <header className="adm-dialog__head">
+            <h2 id="adm-dialog-title">{dialog.title}</h2>
 
             <button
               type="button"
-              className="ad-icon-btn"
+              className="adm-icon-btn"
               onClick={onClose}
               aria-label="Close dialog"
             >
@@ -41,7 +41,7 @@ export function AdminDialog({ dialog, onClose }) {
             </button>
           </header>
 
-          <div className="ad-dialog__body">
+          <div className="adm-dialog__body">
             {dialog.content}
           </div>
         </div>
@@ -65,7 +65,7 @@ export function AdminToast({ toast, onDismiss }) {
 
   return (
     <div
-      className={`ad-toast is-visible ${isError ? 'is-error ad-toast--error' : 'ad-toast--success'}`}
+      className={`adm-toast is-visible ${isError ? 'is-error adm-toast--error' : 'adm-toast--success'}`}
       role={isError ? 'alert' : 'status'}
     >
       <span>{toast.message}</span>

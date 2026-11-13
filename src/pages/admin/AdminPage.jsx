@@ -1,10 +1,44 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Component, useCallback, useEffect, useState } from 'react';
 import { adminApi, errorText } from '../../services/adminService';
 import { adminPreviewApi } from '../../services/adminPreviewService';
 import { invalidateApiCache } from '../../services/api';
 import { AdminDialog, AdminToast } from '../../components/AdminComponents';
 import AdminViews from './AdminViews';
 import '../../styles/admin.css';
+
+class AdminErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="adm-card" role="alert">
+          <p className="adm-error">
+            Something went wrong while rendering this section: {errorText(this.state.error)}
+          </p>
+          <button
+            type="button"
+            className="btn btn--pink btn--sm"
+            onClick={() => {
+              this.setState({ error: null });
+              this.props.onReset?.();
+            }}
+          >
+            Reload view
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const PREVIEW_ADMIN_PASSWORD = 'squishy-admin';
 const PREVIEW_MODE = false;
@@ -50,8 +84,9 @@ export default function AdminPage() {
     }
 
     let active = true;
+    let retryTimer = null;
 
-    async function checkSession() {
+    async function checkSession(attempt = 0) {
       try {
         const session = await adminApi('/session', { forceRefresh: true });
 
@@ -66,10 +101,15 @@ export default function AdminPage() {
             'Admin is not configured. Set ADMIN_PASSWORD (at least 8 characters) or create an admin user account.'
           );
         }
+        setChecking(false);
       } catch (error) {
-        if (active) setLoginError(errorText(error));
-      } finally {
-        if (active) setChecking(false);
+        if (!active) return;
+        if (attempt < 5 && (!error.status || error.status >= 500)) {
+          retryTimer = window.setTimeout(() => checkSession(attempt + 1), 650);
+          return;
+        }
+        setLoginError(errorText(error));
+        setChecking(false);
       }
     }
 
@@ -77,6 +117,7 @@ export default function AdminPage() {
 
     return () => {
       active = false;
+      if (retryTimer) window.clearTimeout(retryTimer);
     };
   }, []);
 
@@ -190,20 +231,23 @@ export default function AdminPage() {
 
   if (checking) {
     return (
-      <main className="ad-login">
-        <p>Checking admin session...</p>
+      <main className="adm-login">
+        <div className="adm-card adm-login__card" role="status" aria-live="polite">
+          <h1>Squishies Admin</h1>
+          <p>Checking admin session...</p>
+        </div>
       </main>
     );
   }
 
   if (!authenticated) {
     return (
-      <main className="ad-login">
-        <form className="ad-card ad-login__card" onSubmit={handleLogin}>
+      <main className="adm-login">
+        <form className="adm-card adm-login__card" onSubmit={handleLogin}>
           <h1>Squishies Admin</h1>
           <p>Sign in to manage your store, inventory, orders, and users.</p>
 
-          <label className="ad-field" htmlFor="admin-identifier">
+          <label className="adm-field" htmlFor="admin-identifier">
             <span>Admin Username or Email (optional)</span>
             <input
               id="admin-identifier"
@@ -215,7 +259,7 @@ export default function AdminPage() {
             />
           </label>
 
-          <label className="ad-field" htmlFor="admin-password">
+          <label className="adm-field" htmlFor="admin-password">
             <span>Password</span>
             <input
               id="admin-password"
@@ -233,7 +277,7 @@ export default function AdminPage() {
           </label>
 
           {loginError && (
-            <p className="ad-error" role="alert">{loginError}</p>
+            <p className="adm-error" role="alert">{loginError}</p>
           )}
 
           <button className="btn btn--pink" type="submit">
@@ -249,19 +293,19 @@ export default function AdminPage() {
   const currentTab = TABS.find(([id]) => id === activeTab) || TABS[0];
 
   return (
-    <div className="ad-app">
-      <header className="ad-header">
-        <a href={getStorefrontUrl()} className="ad-brand">
+    <div className="adm-app">
+      <header className="adm-header">
+        <a href={getStorefrontUrl()} className="adm-brand">
           Squishies Admin
           {adminUser?.username && <small>@{adminUser.username}</small>}
         </a>
 
-        <nav className="ad-tabs" aria-label="Admin navigation">
+        <nav className="adm-tabs" aria-label="Admin navigation">
           {TABS.map(([id, label]) => (
             <button
               key={id}
               type="button"
-              className={`ad-tab ${activeTab === id ? 'active' : ''}`}
+              className={`adm-tab ${activeTab === id ? 'active' : ''}`}
               aria-current={activeTab === id ? 'page' : undefined}
               onClick={() => {
                 window.location.hash = id;
@@ -272,7 +316,7 @@ export default function AdminPage() {
           ))}
         </nav>
 
-        <div className="ad-header-actions">
+        <div className="adm-header-actions">
           <a
             className="btn btn--outline btn--sm"
             href={getStorefrontUrl()}
@@ -291,19 +335,21 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="ad-main">
-        <h1 className="ad-page-title">{currentTab[1]}</h1>
+      <main className="adm-main">
+        <h1 className="adm-page-title">{currentTab[1]}</h1>
 
-        <AdminViews
-          activeTab={activeTab}
-          request={request}
-          refreshKey={refreshKey}
-          refresh={refresh}
-          openDialog={openDialog}
-          closeDialog={closeDialog}
-          showToast={showToast}
-          adminUser={adminUser}
-        />
+        <AdminErrorBoundary key={activeTab} onReset={refresh}>
+          <AdminViews
+            activeTab={activeTab}
+            request={request}
+            refreshKey={refreshKey}
+            refresh={refresh}
+            openDialog={openDialog}
+            closeDialog={closeDialog}
+            showToast={showToast}
+            adminUser={adminUser}
+          />
+        </AdminErrorBoundary>
       </main>
 
       <AdminDialog dialog={dialog} onClose={closeDialog} />
