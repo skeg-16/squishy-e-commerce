@@ -1,66 +1,111 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { buildReceiptHtml, sendOrderReceiptEmail } = require('../server/email');
+const {
+  buildReceiptHtml,
+  buildReceiptPlainText,
+  sendOrderReceiptEmail,
+  getAppOrigin,
+} = require('../server/email');
 
-test('buildReceiptHtml formats order, items, and totals accurately', () => {
+test('buildReceiptHtml includes all order details and branding', () => {
   const sampleOrder = {
-    orderNumber: 'SQ-ABCDEF1234',
-    trackingNumber: 'DEMO-ABCDEF1234',
-    customerName: 'Maria Clara',
-    customerEmail: 'maria@example.ph',
+    orderNumber: 'SQ-ABCDEF123456',
+    trackingNumber: 'DEMO-ABCDEF123456',
+    createdAt: '2026-11-14T12:00:00.000Z',
+    customerName: 'Maria Santos',
+    customerEmail: 'maria.santos@example.com',
     customerPhone: '09171234567',
-    shippingAddress: '456 Rizal Ave',
-    barangay: 'San Lorenzo',
-    city: 'Makati City',
-    postalCode: '1223',
-    paymentMethod: 'gcash',
-    paymentStatus: 'Paid',
+    shippingAddress: 'Unit 12B, Sun Residences',
+    barangay: 'Barangay 72',
+    city: 'Manila',
+    postalCode: '1008',
+    paymentMethod: 'cod',
+    paymentStatus: 'Pending COD',
+    subtotal: 178.0,
+    shippingFee: 60.0,
+    voucherDiscount: 10.0,
+    voucherCode: 'WELCOME10',
+    total: 228.0,
+    orderNote: 'Please call before delivery',
+    delivery: { label: 'Metro Manila (1-2 days)' },
     items: [
-      { name: 'Giant Baozi Squishy', quantity: 2, priceMinor: 24900 },
-      { name: 'Matcha Mochi Cat', quantity: 1, priceMinor: 19900 },
+      { name: 'Dumpling Squishy', quantity: 2, price: 89.0, subtotal: 178.0 },
     ],
-    subtotal: 697.00,
-    shippingFee: 60.00,
-    voucherDiscount: 50.00,
-    total: 707.00,
   };
 
-  const html = buildReceiptHtml(sampleOrder);
+  const trackingUrl = 'http://localhost:5173/checkout?order=SQ-ABCDEF123456';
+  const html = buildReceiptHtml(sampleOrder, trackingUrl);
 
-  assert.ok(html.includes('SQ-ABCDEF1234'), 'Includes order number');
-  assert.ok(html.includes('DEMO-ABCDEF1234'), 'Includes tracking number');
-  assert.ok(html.includes('Maria Clara'), 'Includes customer name');
-  assert.ok(html.includes('09171234567'), 'Includes phone');
-  assert.ok(html.includes('Makati City'), 'Includes city');
-  assert.ok(html.includes('Giant Baozi Squishy'), 'Includes item name');
-  assert.ok(html.includes('Matcha Mochi Cat'), 'Includes second item');
-  assert.ok(html.includes('GCASH (Paid)'), 'Includes payment info');
-  assert.ok(html.includes('₱707.00'), 'Includes formatted grand total');
-  assert.ok(html.includes('SISO Squishies Collective'), 'Includes brand name');
+  assert.ok(html.includes('SISO Squishies Collective'), 'Branding title present');
+  assert.ok(html.includes('OR-EF123456'), 'Receipt reference present');
+  assert.ok(html.includes('SQ-ABCDEF123456'), 'Order number present');
+  assert.ok(html.includes('Maria Santos'), 'Customer name present');
+  assert.ok(html.includes('Unit 12B, Sun Residences'), 'Address present');
+  assert.ok(html.includes('Dumpling Squishy'), 'Item name present');
+  assert.ok(html.includes('₱228.00'), 'Total formatted in PHP present');
+  assert.ok(html.includes('WELCOME10'), 'Voucher code present');
+  assert.ok(html.includes('Please call before delivery'), 'Rider note present');
+  assert.ok(html.includes(trackingUrl), 'Tracking URL link present');
 });
 
-test('sendOrderReceiptEmail skips in test environment safely', async () => {
+test('buildReceiptPlainText generates clean text receipt', () => {
+  const sampleOrder = {
+    orderNumber: 'SQ-PLAIN123456',
+    trackingNumber: 'DEMO-PLAIN123456',
+    customerName: 'Juan Dela Cruz',
+    customerPhone: '09181234567',
+    shippingAddress: '456 Rizal Ave',
+    barangay: 'Barangay 10',
+    city: 'Manila',
+    postalCode: '1000',
+    paymentMethod: 'gcash',
+    paymentStatus: 'Paid',
+    paymentReference: 'GC-REF999',
+    subtotal: 89.0,
+    shippingFee: 0,
+    voucherDiscount: 0,
+    total: 89.0,
+    items: [
+      { name: 'Peanut Squishy', quantity: 1, price: 89.0, subtotal: 89.0 },
+    ],
+  };
+
+  const text = buildReceiptPlainText(sampleOrder, 'http://localhost:5173/checkout?order=SQ-PLAIN123456');
+
+  assert.ok(text.includes('SISO SQUISHIES COLLECTIVE — ORDER RECEIPT'));
+  assert.ok(text.includes('SQ-PLAIN123456'));
+  assert.ok(text.includes('GC-REF999'));
+  assert.ok(text.includes('Juan Dela Cruz'));
+  assert.ok(text.includes('Peanut Squishy x 1 = ₱89.00'));
+  assert.ok(text.includes('TOTAL AMOUNT DUE:     ₱89.00'));
+});
+
+test('sendOrderReceiptEmail handles simulation fallback gracefully', async () => {
   const result = await sendOrderReceiptEmail({
-    orderNumber: 'SQ-TEST',
-    customerEmail: 'test@example.com',
+    orderNumber: 'SQ-SIMULATED-01',
+    customerEmail: 'collector@example.com',
+    customerName: 'Collector User',
+    customerPhone: '09171234567',
+    shippingAddress: 'Sample St',
+    barangay: 'Brgy 1',
+    city: 'Manila',
+    postalCode: '1000',
+    paymentMethod: 'cod',
+    subtotal: 100,
+    shippingFee: 60,
+    voucherDiscount: 0,
+    total: 160,
+    items: [],
   });
-  assert.equal(result.sent, true);
+
+  assert.equal(result.success, true);
+  assert.equal(result.simulated, true);
+  assert.equal(result.orderNumber, 'SQ-SIMULATED-01');
+});
+
+test('sendOrderReceiptEmail skips when order has no email', async () => {
+  const result = await sendOrderReceiptEmail({ orderNumber: 'SQ-NO-EMAIL' });
   assert.equal(result.skipped, true);
+  assert.equal(result.reason, 'NO_RECIPIENT_EMAIL');
 });
 
-test('sendOrderReceiptEmail handles missing email or missing API key safely', async () => {
-  const originalKey = process.env.BREVO_API_KEY;
-  try {
-    delete process.env.BREVO_API_KEY;
-    const noKeyResult = await sendOrderReceiptEmail({ orderNumber: 'SQ-1' });
-    assert.equal(noKeyResult.sent, false);
-    assert.equal(noKeyResult.reason, 'BREVO_API_KEY not configured');
-
-    process.env.BREVO_API_KEY = 'test-key';
-    const noEmailResult = await sendOrderReceiptEmail({ orderNumber: 'SQ-1' });
-    assert.equal(noEmailResult.sent, false);
-    assert.equal(noEmailResult.reason, 'No recipient email specified');
-  } finally {
-    if (originalKey) process.env.BREVO_API_KEY = originalKey;
-  }
-});

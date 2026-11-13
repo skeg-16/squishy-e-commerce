@@ -21,6 +21,7 @@
     "demo:advance": "node --env-file-if-exists=.env scripts/demo.js",
     "demo:local": "node scripts/local-demo.js",
     "test": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/*.test.js",
+    "test:email": "node --env-file-if-exists=.env scripts/test-email.js",
     "test:browser": "node --env-file-if-exists=.env scripts/browser-check.js"
   },
   "dependencies": {
@@ -28,6 +29,7 @@
     "@react-three/fiber": "^9.8.2",
     "express": "^4.22.3",
     "helmet": "^8.1.0",
+    "nodemailer": "^10.5.0",
     "pg": "^8.23.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
