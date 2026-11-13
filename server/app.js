@@ -9,6 +9,7 @@ const { createAdmin } = require('./admin');
 const { checkDatabaseHealth, pruneExpiredRecords } = require('./db');
 const { AppError, fail } = require('./errors');
 const { parse } = require('./validation');
+const { sendOrderReceiptEmail } = require('./email');
 
 const asyncRoute = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const digest = (value) => createHash('sha256').update(value).digest('hex');
@@ -343,13 +344,19 @@ function createApp({
     '/api/orders',
     guest,
     send(
-      (req) =>
-        commerce.createOrder(
+      async (req) => {
+        const order = await commerce.createOrder(
           req.guestId,
           parse('order', req.body),
           parse('key', req.get('idempotency-key')),
           req.user?.id || null
-        ),
+        );
+        if (order && order.paymentMethod === 'cod') {
+          // Immediately send official confirmation receipt for Cash on Delivery orders
+          await sendOrderReceiptEmail(order);
+        }
+        return order;
+      },
       201
     )
   );
@@ -357,6 +364,21 @@ function createApp({
     '/api/orders/:number',
     guest,
     send((req) => commerce.getOrder(req.guestId, req.params.number, req.user?.id || null))
+  );
+  app.post(
+    '/api/orders/:number/resend-receipt',
+    guest,
+    send(async (req) => {
+      const order = await commerce.getOrder(req.guestId, req.params.number, req.user?.id || null);
+      if (!order) fail(404, 'NOT_FOUND', 'Order not found in this session.');
+      const result = await sendOrderReceiptEmail(order);
+      return {
+        orderNumber: order.orderNumber,
+        sent: result.success,
+        simulated: result.simulated || false,
+        recipient: order.customerEmail,
+      };
+    })
   );
   app.post(
     '/api/orders/:number/cancel',
@@ -399,14 +421,19 @@ function createApp({
   app.post(
     '/api/payments/sessions/:id/simulate',
     guest,
-    send((req) =>
-      commerce.simulate(
+    send(async (req) => {
+      const result = await commerce.simulate(
         req.guestId,
         parse('uuid', req.params.id),
         parse('outcome', req.body),
         req.user?.id || null
-      )
-    )
+      );
+      if (result?.order && result.status === 'success') {
+        // Send official confirmation receipt when online payment (GCash/Maya/Card) succeeds
+        await sendOrderReceiptEmail(result.order);
+      }
+      return result;
+    })
   );
   app.get(
     '/api/tracking/:number',
