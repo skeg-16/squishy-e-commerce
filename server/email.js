@@ -1,4 +1,9 @@
-const nodemailer = require('nodemailer');
+let nodemailer;
+try {
+  nodemailer = require('nodemailer');
+} catch {
+  nodemailer = null;
+}
 
 /**
  * Resolves the storefront public base URL for receipt tracking links.
@@ -332,6 +337,9 @@ async function sendViaBrevoApi({ apiKey, fromEmail, fromName, toEmail, toName, s
  * Dispatches an email using standard SMTP via Nodemailer.
  */
 async function sendViaSmtp({ host, port, user, pass, fromEmail, fromName, toEmail, toName, subject, html, text }) {
+  if (!nodemailer) {
+    throw new Error('nodemailer is not installed. Please install nodemailer or use BREVO_API_KEY.');
+  }
   const transporter = nodemailer.createTransport({
     host: host || 'smtp-relay.brevo.com',
     port: Number(port) || 587,
