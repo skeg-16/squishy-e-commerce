@@ -10,6 +10,7 @@ const Product = lazy(() => import('./pages/Product'));
 const About = lazy(() => import('./pages/About'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const Account = lazy(() => import('./pages/Account'));
+const AdminPage = lazy(() => import('./pages/admin/AdminPage'));
 
 function NotFoundPage() {
   return (
@@ -30,7 +31,8 @@ export default function App() {
 
       <Suspense fallback={<SquishyPageLoader isSuspense />}>
         <Routes>
-          {/* Storefront pages (Admin is served separately via dev:admin) */}
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin.html" element={<AdminPage />} />
           <Route element={<SiteLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/index.html" element={<Navigate to="/" replace />} />

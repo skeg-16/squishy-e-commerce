@@ -422,9 +422,19 @@ button.ad-stat:hover { transform: translateY(-2px); }
 
 .ad-pill--cancelled,
 .ad-pill--expired,
-.ad-pill--hidden {
+.ad-pill--hidden,
+.ad-pill--suspended {
   color: rgba(255,255,255,.72);
   background: rgba(255,255,255,.10);
+}
+
+.ad-pill--admin {
+  background: rgba(255, 167, 207, .32);
+  border-color: rgba(255, 213, 233, .45);
+}
+
+.ad-pill--customer {
+  background: rgba(190, 167, 255, .24);
 }
 
 /* Forms */
@@ -565,6 +575,26 @@ button.ad-stat:hover { transform: translateY(-2px); }
   color: #713b61;
   background: linear-gradient(145deg, #ffd5e9, #f5a6ca);
   box-shadow: 0 10px 30px rgba(25,15,45,.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 1200;
+}
+
+.ad-toast.is-visible {
+  pointer-events: auto;
+}
+
+.ad-toast button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 50%;
 }
 
 .ad-toast.is-error {

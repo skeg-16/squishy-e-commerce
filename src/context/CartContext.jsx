@@ -43,12 +43,29 @@ const bundleImages = {
   'party-pack': 'peanut',
 };
 
+const fallbackMap = new Map(
+  FALLBACK_PRODUCTS.map((product) => [product.slug, product])
+);
+
+const SLUG_PATTERN = /^[a-z][a-z0-9-]{0,59}$/;
+const SAFE_IMAGE_PATTERN = /^(\/?assets\/images\/[a-zA-Z0-9._/-]+|https?:\/\/[^\s"'<>]+)$/;
+
 function imageFor(slug) {
+  const known = fallbackMap.get(slug);
+  if (known?.image) {
+    return known.image;
+  }
   if (slug === 'collectors-box') {
     return 'assets/images/hero-collage.svg';
   }
-
   return `assets/images/product-${bundleImages[slug] || slug}.svg`;
+}
+
+function safeImage(image, slug) {
+  if (typeof image === 'string' && SAFE_IMAGE_PATTERN.test(image.trim())) {
+    return image.trim();
+  }
+  return imageFor(slug);
 }
 
 function readSavedCart() {
@@ -60,12 +77,15 @@ function readSavedCart() {
     const migrated = new Map();
 
     for (const item of saved) {
-      const slug =
-        item && Object.hasOwn(names, item.slug)
-          ? item.slug
-          : item && Object.hasOwn(legacy, item.name)
-            ? legacy[item.name]
-            : null;
+      const hasValidSlug =
+        item &&
+        typeof item.slug === 'string' &&
+        SLUG_PATTERN.test(item.slug);
+      const slug = hasValidSlug
+        ? item.slug
+        : item && Object.hasOwn(legacy, item.name)
+          ? legacy[item.name]
+          : null;
 
       if (
         !slug ||
@@ -76,16 +96,31 @@ function readSavedCart() {
         continue;
       }
 
+      const fallback = fallbackMap.get(slug);
       const existing = migrated.get(slug);
 
       if (existing) {
         existing.qty = Math.min(99, existing.qty + item.qty);
       } else {
+        const resolvedName =
+          fallback?.name ||
+          names[slug] ||
+          (typeof item.name === 'string' && item.name.trim()
+            ? item.name.trim().slice(0, 100)
+            : slug);
+        const resolvedPrice =
+          fallback?.price ??
+          bundlePrices[slug] ??
+          (Number.isFinite(Number(item.price)) && Number(item.price) >= 0
+            ? Number(item.price)
+            : 89);
         migrated.set(slug, {
           slug,
-          name: names[slug],
-          price: bundlePrices[slug] || 89,
-          image: imageFor(slug),
+          name: resolvedName,
+          price: resolvedPrice,
+          image: hasValidSlug
+            ? safeImage(item.image, slug)
+            : imageFor(slug),
           qty: item.qty,
         });
       }
@@ -176,10 +211,16 @@ export function CartProvider({ children }) {
         return false;
       }
 
-      if (!product || !Object.hasOwn(names, product.slug)) {
+      if (
+        !product ||
+        typeof product.slug !== 'string' ||
+        !SLUG_PATTERN.test(product.slug)
+      ) {
         showToast('This product could not be loaded. Please refresh.');
         return false;
       }
+
+      catalog.current.set(product.slug, product);
 
       const existing = cart.find((item) => item.slug === product.slug);
       const total = (existing?.qty || 0) + qty;

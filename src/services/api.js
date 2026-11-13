@@ -155,8 +155,9 @@ async function request(path, { method = 'GET', body, key } = {}) {
   }
 }
 
-async function cachedGet(path, { forceRefresh = false } = {}) {
-  if (!forceRefresh) {
+async function cachedGet(path, { forceRefresh = false, force = false } = {}) {
+  const bypassCache = Boolean(forceRefresh || force);
+  if (!bypassCache) {
     const cached = getCacheEntry(path);
     if (cached) {
       if (!cached.isFresh && !inflightRequests.has(path)) {
@@ -260,6 +261,9 @@ export const SquishiesAPI = {
   fetchProductBySlug: (slug, options) =>
     cachedGet(`/products/${encodeURIComponent(slug)}`, options),
 
+  fetchAvailableVouchers: (options) =>
+    cachedGet('/vouchers/available', options),
+
   quote: (body) =>
     protectedRequest('/checkout/quote', {
       method: 'POST',
@@ -273,6 +277,7 @@ export const SquishiesAPI = {
       key,
     });
     invalidateApiCache('/products');
+    invalidateApiCache('/account/orders');
     return data;
   },
 
@@ -288,6 +293,7 @@ export const SquishiesAPI = {
       }
     );
     invalidateApiCache('/products');
+    invalidateApiCache('/account/orders');
     return data;
   },
 
@@ -375,8 +381,11 @@ export const SquishiesAPI = {
     return request('/auth/reset-password', { method: 'POST', body });
   },
 
-  updateAccountProfile: (body) =>
-    request('/account/profile', { method: 'PATCH', body }),
+  updateAccountProfile: async (body) => {
+    const data = await request('/account/profile', { method: 'PATCH', body });
+    invalidateApiCache('/account/orders');
+    return data;
+  },
 
   changeAccountPassword: (body) =>
     request('/account/password', { method: 'POST', body }),

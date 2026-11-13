@@ -3,12 +3,17 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SquishiesAPI } from '../services/api';
 import {
+  FIELD_LIMITS,
   getPasswordStrength,
+  sanitizeBarangayName,
   sanitizeCityName,
   sanitizeDigits,
+  sanitizeEmail,
   sanitizePersonName,
   sanitizePhPhone,
+  sanitizeStreetAddress,
   sanitizeUsername,
+  scrollToFirstInvalidField,
   validateProfileFields,
   validateRegisterFields,
   validateResetPasswordFields,
@@ -296,12 +301,26 @@ export default function Account() {
     );
   }
 
-  function applyApiFieldErrors(err, prefix = '') {
-    if (err?.fields && Array.isArray(err.fields)) {
-      const next = {};
-      for (const issue of err.fields) {
-        if (issue.field && !next[issue.field]) {
-          next[issue.field] = issue.message;
+  function applyApiFieldErrors(err, prefix = '', fieldOrder = [], fieldIdMap = {}) {
+    const next = {};
+    if (err?.fields) {
+      if (Array.isArray(err.fields)) {
+        for (const issue of err.fields) {
+          if (issue?.field && !next[issue.field]) {
+            next[issue.field] = issue.message;
+          }
+        }
+      } else if (typeof err.fields === 'object') {
+        for (const [field, message] of Object.entries(err.fields)) {
+          if (field && typeof message === 'string') {
+            const shortKey = field.includes('.') ? field.split('.').pop() : field;
+            if (!next[shortKey]) {
+              next[shortKey] = message;
+            }
+            if (!next[field]) {
+              next[field] = message;
+            }
+          }
         }
       }
       setFieldErrors(next);
@@ -310,11 +329,14 @@ export default function Account() {
       tone: 'error',
       text: err?.message || `${prefix}Please review the highlighted fields.`,
     });
+    scrollToFirstInvalidField(next, fieldOrder, fieldIdMap, '.account-message--error');
   }
 
   async function handleLoginSubmit(event) {
     event.preventDefault();
     setStatusBanner(null);
+    const loginOrder = ['identifier', 'password'];
+    const loginIdMap = { identifier: 'login-identifier', password: 'login-password' };
     const errors = {};
     if (!loginForm.identifier.trim()) {
       errors.identifier = 'Enter your username or email address.';
@@ -325,6 +347,7 @@ export default function Account() {
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setStatusBanner({ tone: 'error', text: 'Enter your username/email and password.' });
+      scrollToFirstInvalidField(errors, loginOrder, loginIdMap, '.account-message--error');
       return;
     }
 
@@ -346,7 +369,7 @@ export default function Account() {
         text: `Welcome back, @${loggedUser.username}! Your collector hub is synced.`,
       });
     } catch (err) {
-      applyApiFieldErrors(err);
+      applyApiFieldErrors(err, '', loginOrder, loginIdMap);
     } finally {
       setSubmitting(false);
     }
@@ -355,6 +378,15 @@ export default function Account() {
   async function handleRegisterSubmit(event) {
     event.preventDefault();
     setStatusBanner(null);
+    const regOrder = ['username', 'email', 'phone', 'birthday', 'password', 'confirmPassword'];
+    const regIdMap = {
+      username: 'reg-username',
+      email: 'reg-email',
+      phone: 'reg-phone',
+      birthday: 'reg-birthday',
+      password: 'reg-password',
+      confirmPassword: 'reg-confirm',
+    };
     const errors = validateRegisterFields(registerForm);
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
@@ -362,6 +394,7 @@ export default function Account() {
         tone: 'error',
         text: Object.values(errors)[0],
       });
+      scrollToFirstInvalidField(errors, regOrder, regIdMap, '.account-message--error');
       return;
     }
 
@@ -394,7 +427,7 @@ export default function Account() {
         text: `Account @${created.username} created and signed in!`,
       });
     } catch (err) {
-      applyApiFieldErrors(err);
+      applyApiFieldErrors(err, '', regOrder, regIdMap);
     } finally {
       setSubmitting(false);
     }
@@ -403,10 +436,19 @@ export default function Account() {
   async function handleResetSubmit(event) {
     event.preventDefault();
     setStatusBanner(null);
+    const resetOrder = ['username', 'email', 'birthday', 'newPassword', 'confirmPassword'];
+    const resetIdMap = {
+      username: 'reset-username',
+      email: 'reset-email',
+      birthday: 'reset-birthday',
+      newPassword: 'reset-newpw',
+      confirmPassword: 'reset-confirm',
+    };
     const errors = validateResetPasswordFields(resetForm);
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setStatusBanner({ tone: 'error', text: Object.values(errors)[0] });
+      scrollToFirstInvalidField(errors, resetOrder, resetIdMap, '.account-message--error');
       return;
     }
 
@@ -435,7 +477,7 @@ export default function Account() {
         text: `Password reset for @${recoveredUsername}. Sign in with your new password.`,
       });
     } catch (err) {
-      applyApiFieldErrors(err);
+      applyApiFieldErrors(err, '', resetOrder, resetIdMap);
     } finally {
       setSubmitting(false);
     }
@@ -444,6 +486,40 @@ export default function Account() {
   async function handleSaveProfile(event) {
     event.preventDefault();
     setStatusBanner(null);
+    const profileOrder = [
+      'username',
+      'email',
+      'phone',
+      'birthday',
+      'defaultAddress.recipientName',
+      'defaultAddress.phone',
+      'defaultAddress.shippingAddress',
+      'defaultAddress.city',
+      'defaultAddress.barangay',
+      'defaultAddress.postalCode',
+      'recipientName',
+      'shippingAddress',
+      'city',
+      'barangay',
+      'postalCode',
+    ];
+    const profileIdMap = {
+      username: 'profile-username',
+      email: 'profile-email',
+      phone: 'profile-phone',
+      birthday: 'profile-birthday',
+      'defaultAddress.recipientName': 'addr-recipient',
+      recipientName: 'addr-recipient',
+      'defaultAddress.phone': 'addr-phone',
+      'defaultAddress.shippingAddress': 'addr-street',
+      shippingAddress: 'addr-street',
+      'defaultAddress.city': 'addr-city',
+      city: 'addr-city',
+      'defaultAddress.barangay': 'addr-barangay',
+      barangay: 'addr-barangay',
+      'defaultAddress.postalCode': 'addr-postal',
+      postalCode: 'addr-postal',
+    };
 
     const addr = profileForm.defaultAddress;
     const hasAnyAddress = Boolean(
@@ -453,6 +529,7 @@ export default function Account() {
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setStatusBanner({ tone: 'error', text: Object.values(errors)[0] });
+      scrollToFirstInvalidField(errors, profileOrder, profileIdMap, '.account-message--error');
       return;
     }
 
@@ -483,7 +560,7 @@ export default function Account() {
         text: 'Profile & default delivery address saved to your collector account.',
       });
     } catch (err) {
-      applyApiFieldErrors(err);
+      applyApiFieldErrors(err, '', profileOrder, profileIdMap);
     } finally {
       setProfileSaving(false);
     }
@@ -492,6 +569,12 @@ export default function Account() {
   async function handleChangePassword(event) {
     event.preventDefault();
     setStatusBanner(null);
+    const pwOrder = ['currentPassword', 'newPassword', 'confirmPassword'];
+    const pwIdMap = {
+      currentPassword: 'sec-current',
+      newPassword: 'sec-new',
+      confirmPassword: 'sec-confirm',
+    };
     const errors = {};
     if (!passwordForm.currentPassword) {
       errors.currentPassword = 'Enter your current password.';
@@ -506,6 +589,7 @@ export default function Account() {
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setStatusBanner({ tone: 'error', text: Object.values(errors)[0] });
+      scrollToFirstInvalidField(errors, pwOrder, pwIdMap, '.account-message--error');
       return;
     }
 
@@ -519,7 +603,7 @@ export default function Account() {
         text: 'Password updated securely. All active safety checks passed.',
       });
     } catch (err) {
-      applyApiFieldErrors(err);
+      applyApiFieldErrors(err, '', pwOrder, pwIdMap);
     } finally {
       setPasswordSaving(false);
     }
@@ -619,7 +703,14 @@ export default function Account() {
               <span className="account-summary-meta">{user.email} • {user.phone || 'No mobile set'}</span>
             </div>
             <div className="account-summary-badges">
-              <span className="account-verified-badge">Verified Session</span>
+              <span className="account-verified-badge">
+                {user.role === 'admin' ? 'Admin Account' : 'Verified Session'}
+              </span>
+              {user.role === 'admin' && (
+                <Link to="/admin" className="btn btn--outline btn--sm">
+                  Admin Console
+                </Link>
+              )}
               <Link to="/shop.html" className="btn btn--outline btn--sm">
                 Browse Squishies
               </Link>
@@ -801,9 +892,13 @@ export default function Account() {
                       <input
                         id="profile-email"
                         type="email"
+                        maxLength={FIELD_LIMITS.email}
                         value={profileForm.email}
                         onChange={(e) =>
-                          setProfileForm((prev) => ({ ...prev, email: e.target.value }))
+                          setProfileForm((prev) => ({
+                            ...prev,
+                            email: sanitizeEmail(e.target.value),
+                          }))
                         }
                         className={fieldErrors.email ? 'is-invalid' : ''}
                       />
@@ -816,7 +911,7 @@ export default function Account() {
                         id="profile-phone"
                         type="tel"
                         inputMode="numeric"
-                        maxLength={11}
+                        maxLength={FIELD_LIMITS.phone}
                         placeholder="09171234567"
                         value={profileForm.phone}
                         onChange={(e) =>
@@ -860,6 +955,7 @@ export default function Account() {
                       <input
                         id="addr-recipient"
                         type="text"
+                        maxLength={FIELD_LIMITS.name}
                         placeholder="Juana Dela Cruz"
                         value={profileForm.defaultAddress.recipientName}
                         onChange={(e) =>
@@ -884,7 +980,7 @@ export default function Account() {
                         id="addr-phone"
                         type="tel"
                         inputMode="numeric"
-                        maxLength={11}
+                        maxLength={FIELD_LIMITS.phone}
                         placeholder="09171234567"
                         value={profileForm.defaultAddress.phone}
                         onChange={(e) =>
@@ -908,6 +1004,7 @@ export default function Account() {
                       <input
                         id="addr-street"
                         type="text"
+                        maxLength={FIELD_LIMITS.address}
                         placeholder="Unit 14B, Katipunan Ave"
                         value={profileForm.defaultAddress.shippingAddress}
                         onChange={(e) =>
@@ -915,7 +1012,7 @@ export default function Account() {
                             ...prev,
                             defaultAddress: {
                               ...prev.defaultAddress,
-                              shippingAddress: e.target.value,
+                              shippingAddress: sanitizeStreetAddress(e.target.value),
                             },
                           }))
                         }
@@ -932,6 +1029,7 @@ export default function Account() {
                         <input
                           id="addr-city"
                           type="text"
+                          maxLength={FIELD_LIMITS.city}
                           placeholder="Quezon City"
                           value={profileForm.defaultAddress.city}
                           onChange={(e) =>
@@ -945,6 +1043,9 @@ export default function Account() {
                           }
                           className={fieldErrors['defaultAddress.city'] ? 'is-invalid' : ''}
                         />
+                        {fieldErrors['defaultAddress.city'] && (
+                          <small className="account-field-error">{fieldErrors['defaultAddress.city']}</small>
+                        )}
                       </div>
 
                       <div className="account-field">
@@ -952,6 +1053,7 @@ export default function Account() {
                         <input
                           id="addr-barangay"
                           type="text"
+                          maxLength={FIELD_LIMITS.barangay}
                           placeholder="Loyola Heights"
                           value={profileForm.defaultAddress.barangay}
                           onChange={(e) =>
@@ -959,12 +1061,15 @@ export default function Account() {
                               ...prev,
                               defaultAddress: {
                                 ...prev.defaultAddress,
-                                barangay: e.target.value,
+                                barangay: sanitizeBarangayName(e.target.value),
                               },
                             }))
                           }
                           className={fieldErrors['defaultAddress.barangay'] ? 'is-invalid' : ''}
                         />
+                        {fieldErrors['defaultAddress.barangay'] && (
+                          <small className="account-field-error">{fieldErrors['defaultAddress.barangay']}</small>
+                        )}
                       </div>
                     </div>
 
@@ -1244,11 +1349,15 @@ export default function Account() {
                 id="login-identifier"
                 name="identifier"
                 type="text"
+                maxLength={FIELD_LIMITS.email}
                 placeholder="collector_name or you@email.com"
                 autoComplete="username"
                 value={loginForm.identifier}
                 onChange={(e) =>
-                  setLoginForm((prev) => ({ ...prev, identifier: e.target.value }))
+                  setLoginForm((prev) => ({
+                    ...prev,
+                    identifier: sanitizeEmail(e.target.value),
+                  }))
                 }
                 className={fieldErrors.identifier ? 'is-invalid' : ''}
                 required
@@ -1324,11 +1433,15 @@ export default function Account() {
                 id="reg-email"
                 name="email"
                 type="email"
+                maxLength={FIELD_LIMITS.email}
                 placeholder="you@domain.com"
                 autoComplete="email"
                 value={registerForm.email}
                 onChange={(e) =>
-                  setRegisterForm((prev) => ({ ...prev, email: e.target.value }))
+                  setRegisterForm((prev) => ({
+                    ...prev,
+                    email: sanitizeEmail(e.target.value),
+                  }))
                 }
                 className={fieldErrors.email ? 'is-invalid' : ''}
                 required
@@ -1465,10 +1578,14 @@ export default function Account() {
                   id="reset-email"
                   name="email"
                   type="email"
+                  maxLength={FIELD_LIMITS.email}
                   placeholder="you@domain.com"
                   value={resetForm.email}
                   onChange={(e) =>
-                    setResetForm((prev) => ({ ...prev, email: e.target.value }))
+                    setResetForm((prev) => ({
+                      ...prev,
+                      email: sanitizeEmail(e.target.value),
+                    }))
                   }
                   className={fieldErrors.email ? 'is-invalid' : ''}
                   required

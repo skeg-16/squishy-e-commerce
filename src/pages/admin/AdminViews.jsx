@@ -106,33 +106,29 @@ export default function AdminViews({
   openDialog,
   closeDialog,
   showToast,
+  adminUser,
 }) {
-//   const request = useAdminRequest(onSessionExpired);
-//   const [refreshKey, setRefreshKey] = useState(0);
-
-//   const refresh = useCallback(() => {
-//     setRefreshKey((value) => value + 1);
-//   }, []);
-
   switch (activeTab) {
     case 'dashboard':
       return (
         <Dashboard
           request={request}
+          refreshKey={refreshKey}
           refresh={refresh}
         />
       );
 
     case 'orders':
-        return (
-            <Orders
-            request={request}
-            refresh={refresh}
-            openDialog={openDialog}
-            closeDialog={closeDialog}
-            showToast={showToast}
-            />
-        );
+      return (
+        <Orders
+          request={request}
+          refreshKey={refreshKey}
+          refresh={refresh}
+          openDialog={openDialog}
+          closeDialog={closeDialog}
+          showToast={showToast}
+        />
+      );
 
     case 'products':
       return (
@@ -167,6 +163,19 @@ export default function AdminViews({
         />
       );
 
+    case 'users':
+      return (
+        <Users
+          request={request}
+          refreshKey={refreshKey}
+          refresh={refresh}
+          openDialog={openDialog}
+          closeDialog={closeDialog}
+          showToast={showToast}
+          adminUser={adminUser}
+        />
+      );
+
     default:
       return <p>Page not found.</p>;
   }
@@ -174,7 +183,7 @@ export default function AdminViews({
 
 // ---------------------------------------------------------------- Dashboard
 
-function Dashboard({ request }) {
+function Dashboard({ request, refreshKey }) {
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState('');
 
@@ -192,7 +201,7 @@ function Dashboard({ request }) {
     return () => {
       active = false;
     };
-  }, [request]);
+  }, [request, refreshKey]);
 
   if (error) return <p className="ad-error">{error}</p>;
   if (!summary) return <p className="ad-muted">Loading dashboard...</p>;
@@ -214,12 +223,24 @@ function Dashboard({ request }) {
       `${summary.products.active} / ${summary.products.total}`,
       'lavender',
     ],
+    ...(summary.users
+      ? [
+          [
+            `Registered users (${summary.users.admins || 0} admins)`,
+            `${summary.users.active} / ${summary.users.total}`,
+            'pink',
+          ],
+        ]
+      : []),
+    ...(typeof summary.reviewsCount === 'number'
+      ? [['Verified reviews', summary.reviewsCount, 'peach']]
+      : []),
   ];
 
   return (
     <>
       <div className="ad-stats">
-        {cards.map(([label, value, tone, status]) => (
+        {cards.map(([label, value, tone]) => (
           <div
             className={`ad-card ad-stat ad-stat--${tone}`}
             key={label}
@@ -257,13 +278,29 @@ function Dashboard({ request }) {
           Everything is comfortably stocked.
         </p>
       )}
+
+      {Array.isArray(summary.recentLogs) && summary.recentLogs.length > 0 && (
+        <>
+          <h2 className="ad-section-title">Recent admin activity</h2>
+          <ul className="ad-list">
+            {summary.recentLogs.map((log, idx) => (
+              <li key={`${log.createdAt}-${idx}`}>
+                <span>
+                  <strong>{log.actor}</strong> · {log.action} ({log.targetType}: {log.targetId})
+                </span>
+                <small className="ad-muted">{when(log.createdAt)}</small>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </>
   );
 }
 
 // ------------------------------------------------------------------- Orders
 
-function Orders({ request, refresh, openDialog, closeDialog, showToast }) {
+function Orders({ request, refreshKey, refresh, openDialog, closeDialog, showToast }) {
   const [orders, setOrders] = useState([]);
   const [status, setStatus] = useState('');
   const [query, setQuery] = useState('');
@@ -294,7 +331,7 @@ function Orders({ request, refresh, openDialog, closeDialog, showToast }) {
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, refreshKey]);
 
   async function openOrder(number) {
     let order;
@@ -370,6 +407,12 @@ function Orders({ request, refresh, openDialog, closeDialog, showToast }) {
               {order.city} {order.postalCode}
             </dd>
             <dt>Region</dt><dd>{order.region}</dd>
+            {order.trackingNumber && (
+              <>
+                <dt>Tracking #</dt>
+                <dd>{order.trackingNumber}</dd>
+              </>
+            )}
             {order.cancellationReason && (
               <>
                 <dt>Cancelled</dt>
@@ -434,6 +477,16 @@ function Orders({ request, refresh, openDialog, closeDialog, showToast }) {
               onClick={() => performAction('ship')}
             >
               Mark as shipped
+            </button>
+          )}
+
+          {order.status === 'Shipped' && order.deliveryStage !== 'out_for_delivery' && (
+            <button
+              className="btn btn--outline btn--sm"
+              type="button"
+              onClick={() => performAction('out_for_delivery')}
+            >
+              Mark out for delivery
             </button>
           )}
 
@@ -628,6 +681,26 @@ function Products({
     }
   }
 
+  async function deleteProduct(product) {
+    if (
+      !window.confirm(
+        `Delete product "${product.name}"? Products with past orders cannot be deleted (hide them instead).`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await request(`/products/${encodeURIComponent(product.slug)}`, {
+        method: 'DELETE',
+      });
+      showToast(`Deleted ${product.name}.`);
+      refresh();
+    } catch (err) {
+      showToast(errorText(err), true);
+    }
+  }
+
   return (
     <>
       <div className="ad-toolbar">
@@ -672,6 +745,7 @@ function Products({
                     showToast,
                     refresh,
                   })}
+                  onDelete={() => deleteProduct(product)}
                 />
               ))}
             emptyText="No products yet."
@@ -693,7 +767,7 @@ function Products({
   );
 }
 
-function ProductRow({ product, onSaveStock, onEdit }) {
+function ProductRow({ product, onSaveStock, onEdit, onDelete }) {
   const [stock, setStock] = useState(String(product.stock));
 
   useEffect(() => {
@@ -747,6 +821,13 @@ function ProductRow({ product, onSaveStock, onEdit }) {
           onClick={onEdit}
         >
           Edit
+        </button>
+        <button
+          className="btn btn--danger btn--sm"
+          type="button"
+          onClick={onDelete}
+        >
+          Delete
         </button>
       </td>
     </tr>
@@ -1521,3 +1602,619 @@ function Reviews({ request, refreshKey, showToast }) {
     </>
   );
 }
+
+// -------------------------------------------------------------------- Users
+
+function Users({
+  request,
+  refreshKey,
+  refresh,
+  openDialog,
+  closeDialog,
+  showToast,
+  adminUser,
+}) {
+  const [users, setUsers] = useState([]);
+  const [role, setRole] = useState('');
+  const [status, setStatus] = useState('');
+  const [query, setQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 8;
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const params = new URLSearchParams({
+        role,
+        status,
+        q: query,
+      });
+      setUsers(await request('/users?' + params));
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [request, role, status, query]);
+
+  useEffect(() => {
+    load();
+  }, [load, refreshKey]);
+
+  async function toggleUserStatus(user) {
+    const nextActive = !user.active;
+    const actionLabel = nextActive ? 'Activate' : 'Suspend';
+    if (
+      !window.confirm(
+        `${actionLabel} account @${user.username}?${
+          !nextActive ? ' Any active sessions will be signed out immediately.' : ''
+        }`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await request(`/users/${encodeURIComponent(user.id)}`, {
+        method: 'PATCH',
+        body: { active: nextActive },
+      });
+      showToast(
+        nextActive
+          ? `Activated @${user.username}.`
+          : `Suspended @${user.username}.`
+      );
+      refresh();
+    } catch (err) {
+      showToast(errorText(err), true);
+    }
+  }
+
+  async function deleteUser(user) {
+    if (
+      !window.confirm(
+        `Delete user @${user.username} (${user.email})? Historical orders will remain in the store ledger.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await request(`/users/${encodeURIComponent(user.id)}`, {
+        method: 'DELETE',
+      });
+      showToast(`Deleted @${user.username}.`);
+      refresh();
+    } catch (err) {
+      showToast(errorText(err), true);
+    }
+  }
+
+  return (
+    <>
+      <form
+        className="ad-toolbar"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setQuery(searchInput);
+          setPage(1);
+        }}
+      >
+        <select
+          aria-label="Filter by role"
+          value={role}
+          onChange={(event) => {
+            setRole(event.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">All roles</option>
+          <option value="customer">Customers</option>
+          <option value="admin">Admins</option>
+        </select>
+
+        <select
+          aria-label="Filter by account status"
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+        </select>
+
+        <input
+          type="search"
+          placeholder="Search username, email, name or phone"
+          aria-label="Search users"
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+        />
+
+        <button className="btn btn--outline btn--sm" type="submit">
+          Search
+        </button>
+
+        <span className="ad-spacer" />
+
+        <button
+          className="btn btn--pink btn--sm"
+          type="button"
+          onClick={() =>
+            openUserForm({
+              user: null,
+              request,
+              openDialog,
+              closeDialog,
+              showToast,
+              refresh,
+              adminUser,
+            })
+          }
+        >
+          + Add user
+        </button>
+      </form>
+
+      {error && <p className="ad-error">{error}</p>}
+      {loading && <p className="ad-muted">Loading users...</p>}
+
+      {!loading && !error && (
+        <>
+          <AdminTable
+            headings={[
+              'User',
+              'Contact',
+              'Role',
+              'Status',
+              'Orders#',
+              'Total spent#',
+              'Joined',
+              '',
+            ]}
+            rows={users
+              .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+              .map((user) => {
+                const isSelf = adminUser?.userId && adminUser.userId === user.id;
+                return (
+                  <tr key={user.id}>
+                    <td>
+                      <button
+                        className="ad-link"
+                        type="button"
+                        onClick={() =>
+                          openUserForm({
+                            user,
+                            request,
+                            openDialog,
+                            closeDialog,
+                            showToast,
+                            refresh,
+                            adminUser,
+                          })
+                        }
+                      >
+                        {user.fullName}
+                      </button>
+                      <span className="ad-sub">@{user.username}</span>
+                    </td>
+                    <td>
+                      {user.email}
+                      <span className="ad-sub">{user.phone}</span>
+                    </td>
+                    <td>
+                      <AdminPill>
+                        {user.role === 'admin' ? 'Admin' : 'Customer'}
+                      </AdminPill>
+                    </td>
+                    <td>
+                      <AdminPill>
+                        {user.active ? 'Active' : 'Suspended'}
+                      </AdminPill>
+                    </td>
+                    <td className="num">{user.ordersCount || 0}</td>
+                    <td className="num">{peso(user.totalSpent || 0)}</td>
+                    <td>{when(user.createdAt)}</td>
+                    <td className="actions">
+                      <button
+                        className="btn btn--outline btn--sm"
+                        type="button"
+                        onClick={() =>
+                          openUserForm({
+                            user,
+                            request,
+                            openDialog,
+                            closeDialog,
+                            showToast,
+                            refresh,
+                            adminUser,
+                          })
+                        }
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn--outline btn--sm"
+                        type="button"
+                        onClick={() =>
+                          openResetPasswordForm({
+                            user,
+                            request,
+                            openDialog,
+                            closeDialog,
+                            showToast,
+                          })
+                        }
+                      >
+                        Reset password
+                      </button>
+                      {!isSelf && (
+                        <button
+                          className="btn btn--outline btn--sm"
+                          type="button"
+                          onClick={() => toggleUserStatus(user)}
+                        >
+                          {user.active ? 'Suspend' : 'Activate'}
+                        </button>
+                      )}
+                      {!isSelf && (
+                        <button
+                          className="btn btn--danger btn--sm"
+                          type="button"
+                          onClick={() => deleteUser(user)}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            emptyText="No users match."
+          />
+          {users.length > 0 && (
+            <PaginationBar
+              page={page}
+              totalPages={Math.max(1, Math.ceil(users.length / PAGE_SIZE))}
+              totalItems={users.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={(nextPage) => setPage(nextPage)}
+              itemLabel="users"
+              compact
+            />
+          )}
+        </>
+      )}
+    </>
+  );
+}
+
+function openUserForm({
+  user,
+  request,
+  openDialog,
+  closeDialog,
+  showToast,
+  refresh,
+  adminUser,
+}) {
+  const creating = !user;
+
+  function UserForm() {
+    const [username, setUsername] = useState(user?.username || '');
+    const [fullName, setFullName] = useState(user?.fullName || '');
+    const [email, setEmail] = useState(user?.email || '');
+    const [phone, setPhone] = useState(user?.phone || '');
+    const [password, setPassword] = useState('');
+    const [role, setRole] = useState(user?.role || 'customer');
+    const [active, setActive] = useState(user ? user.active : true);
+    const [orders, setOrders] = useState([]);
+    const [loadingOrders, setLoadingOrders] = useState(!creating);
+    const [error, setError] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    const isSelf = Boolean(user && adminUser?.userId === user.id);
+
+    useEffect(() => {
+      if (creating || !user?.id) return;
+      let mounted = true;
+      request(`/users/${encodeURIComponent(user.id)}`, { forceRefresh: true })
+        .then((data) => {
+          if (mounted) {
+            setOrders(data.orders || []);
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (mounted) setLoadingOrders(false);
+        });
+      return () => {
+        mounted = false;
+      };
+    }, []);
+
+    async function submit(event) {
+      event.preventDefault();
+      setError('');
+      setSaving(true);
+
+      try {
+        if (creating) {
+          await request('/users', {
+            method: 'POST',
+            body: {
+              username: username.trim(),
+              fullName: fullName.trim(),
+              email: email.trim(),
+              phone: phone.trim(),
+              password,
+              role,
+              active,
+            },
+          });
+          showToast(`Created user @${username.trim()}.`);
+        } else {
+          await request(`/users/${encodeURIComponent(user.id)}`, {
+            method: 'PATCH',
+            body: {
+              username: username.trim(),
+              fullName: fullName.trim(),
+              email: email.trim(),
+              phone: phone.trim(),
+              role,
+              active,
+            },
+          });
+          showToast(`Saved changes for @${username.trim()}.`);
+        }
+        closeDialog();
+        refresh();
+      } catch (err) {
+        setError(errorText(err));
+      } finally {
+        setSaving(false);
+      }
+    }
+
+    return (
+      <form className="ad-form" onSubmit={submit}>
+        <div className="ad-form-row">
+          <AdminField
+            label="Username"
+            hint="3–28 letters, numbers, or underscores."
+          >
+            <input
+              type="text"
+              required
+              minLength="3"
+              maxLength="28"
+              pattern="[A-Za-z0-9_]{3,28}"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+            />
+          </AdminField>
+
+          <AdminField label="Full name">
+            <input
+              type="text"
+              required
+              minLength="2"
+              maxLength="80"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+            />
+          </AdminField>
+        </div>
+
+        <div className="ad-form-row">
+          <AdminField label="Email address">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </AdminField>
+
+          <AdminField label="Mobile number (PH)">
+            <input
+              type="text"
+              required
+              placeholder="09171234567"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+            />
+          </AdminField>
+        </div>
+
+        {creating && (
+          <AdminField
+            label="Initial password"
+            hint="At least 8 characters with letters and numbers."
+          >
+            <input
+              type="password"
+              required
+              minLength="8"
+              maxLength="128"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </AdminField>
+        )}
+
+        <div className="ad-form-row">
+          <AdminField label="Account role">
+            <select
+              value={role}
+              disabled={isSelf}
+              onChange={(event) => setRole(event.target.value)}
+            >
+              <option value="customer">Customer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </AdminField>
+
+          <AdminField label="Account status">
+            <label className="ad-check" style={{ marginTop: '10px' }}>
+              <input
+                type="checkbox"
+                checked={active}
+                disabled={isSelf}
+                onChange={(event) => setActive(event.target.checked)}
+              />
+              Active account (can log in)
+            </label>
+          </AdminField>
+        </div>
+
+        {!creating && user?.defaultAddress && (
+          <section className="ad-order">
+            <h3>Saved default address</h3>
+            <p className="ad-muted" style={{ margin: 0 }}>
+              {user.defaultAddress.shippingAddress}, {user.defaultAddress.barangay},{' '}
+              {user.defaultAddress.city} {user.defaultAddress.postalCode} ({user.defaultAddress.region})
+            </p>
+          </section>
+        )}
+
+        {!creating && (
+          <section className="ad-order">
+            <h3>Order history ({user.ordersCount || 0})</h3>
+            {loadingOrders ? (
+              <p className="ad-muted">Loading user orders...</p>
+            ) : orders.length > 0 ? (
+              <AdminTable
+                headings={['Order #', 'Placed', 'Payment', 'Status', 'Total#']}
+                rows={orders.slice(0, 6).map((ord) => (
+                  <tr key={ord.orderNumber}>
+                    <td>{ord.orderNumber.slice(0, 14)}…</td>
+                    <td>{when(ord.createdAt)}</td>
+                    <td>
+                      {ord.paymentMethod.toUpperCase()} · {ord.paymentStatus}
+                    </td>
+                    <td>
+                      <AdminPill>{ord.status}</AdminPill>
+                    </td>
+                    <td className="num">{peso(ord.total)}</td>
+                  </tr>
+                ))}
+                emptyText="No orders yet."
+              />
+            ) : (
+              <p className="ad-muted" style={{ margin: 0 }}>
+                No orders placed by this user yet.
+              </p>
+            )}
+          </section>
+        )}
+
+        {error && <p className="ad-error" role="alert">{error}</p>}
+
+        <div className="ad-form-actions">
+          <button
+            className="btn btn--outline"
+            type="button"
+            onClick={closeDialog}
+          >
+            Cancel
+          </button>
+          <button className="btn btn--pink" type="submit" disabled={saving}>
+            {saving
+              ? 'Saving...'
+              : creating
+                ? 'Create user'
+                : 'Save changes'}
+          </button>
+        </div>
+      </form>
+    );
+  }
+
+  openDialog(
+    creating ? 'Add user account' : `Manage @${user.username}`,
+    <UserForm />
+  );
+}
+
+function openResetPasswordForm({
+  user,
+  request,
+  openDialog,
+  closeDialog,
+  showToast,
+}) {
+  function ResetPasswordForm() {
+    const [newPassword, setNewPassword] = useState('');
+    const [error, setError] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    async function submit(event) {
+      event.preventDefault();
+      setError('');
+      setSaving(true);
+
+      try {
+        await request(`/users/${encodeURIComponent(user.id)}/reset-password`, {
+          method: 'POST',
+          body: { newPassword },
+        });
+        closeDialog();
+        showToast(`Password reset for @${user.username}.`);
+      } catch (err) {
+        setError(errorText(err));
+      } finally {
+        setSaving(false);
+      }
+    }
+
+    return (
+      <form className="ad-form" onSubmit={submit}>
+        <p className="ad-muted" style={{ margin: 0 }}>
+          Set a new password for <strong>{user.fullName}</strong> (@{user.username}).
+          All active sessions for this user will be signed out immediately.
+        </p>
+
+        <AdminField
+          label="New password"
+          hint="At least 8 characters with letters and numbers."
+        >
+          <input
+            type="password"
+            required
+            minLength="8"
+            maxLength="128"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+          />
+        </AdminField>
+
+        {error && <p className="ad-error" role="alert">{error}</p>}
+
+        <div className="ad-form-actions">
+          <button
+            className="btn btn--outline"
+            type="button"
+            onClick={closeDialog}
+          >
+            Cancel
+          </button>
+          <button className="btn btn--pink" type="submit" disabled={saving}>
+            {saving ? 'Updating...' : 'Reset password'}
+          </button>
+        </div>
+      </form>
+    );
+  }
+
+  openDialog(`Reset password for @${user.username}`, <ResetPasswordForm />);
+}
+

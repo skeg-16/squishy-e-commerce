@@ -4,9 +4,22 @@
  * name, city, and username inputs both while typing/pasting and on form submission.
  */
 
+export const FIELD_LIMITS = {
+  name: 60,
+  email: 80,
+  phone: 11,
+  address: 100,
+  city: 50,
+  barangay: 50,
+  postalCode: 4,
+  orderNote: 200,
+  username: 28,
+  voucherCode: 30,
+};
+
 export const PERSON_NAME_REGEX = /^[A-Za-zÀ-ÿ]+(?:[ '\-.][A-Za-zÀ-ÿ]+)*$/;
-export const CITY_NAME_REGEX = /^[A-Za-zÀ-ÿ0-9]+(?:[ '\-.][A-Za-zÀ-ÿ0-9]+)*$/;
-export const BARANGAY_NAME_REGEX = /^[A-Za-zÀ-ÿ0-9.,#/\- ]+$/;
+export const CITY_NAME_REGEX = /^[A-Za-zÀ-ÿ]+(?:[ '\-.][A-Za-zÀ-ÿ]+)*$/;
+export const BARANGAY_NAME_REGEX = /^[A-Za-zÀ-ÿ0-9.,#'()/\- ]+$/;
 export const USERNAME_REGEX = /^[A-Za-z0-9_]{3,28}$/;
 export const PH_MOBILE_REGEX = /^09\d{9}$/;
 export const PH_POSTAL_REGEX = /^\d{4}$/;
@@ -34,25 +47,59 @@ export function sanitizePhPhone(value) {
   } else if (digits.startsWith('9') && digits.length === 10) {
     digits = `0${digits}`;
   }
-  return digits.slice(0, 11);
+  return digits.slice(0, FIELD_LIMITS.phone);
 }
 
 /**
- * Strips numbers and disallowed special characters from person names.
+ * Strips numbers and disallowed special characters from person names,
+ * capping length at 60 characters.
  */
-export function sanitizePersonName(value, maxLen = 100) {
+export function sanitizePersonName(value, maxLen = FIELD_LIMITS.name) {
   return String(value ?? '')
     .replace(/[^A-Za-zÀ-ÿ '\-.]/g, '')
+    .replace(/^\s+/, '')
     .replace(/\s{2,}/g, ' ')
     .slice(0, maxLen);
 }
 
 /**
- * Strips disallowed symbols from city/municipality inputs.
+ * Strips whitespace from email inputs and caps length at 80 characters.
  */
-export function sanitizeCityName(value, maxLen = 80) {
+export function sanitizeEmail(value, maxLen = FIELD_LIMITS.email) {
   return String(value ?? '')
-    .replace(/[^A-Za-zÀ-ÿ0-9 '\-.]/g, '')
+    .replace(/\s+/g, '')
+    .slice(0, maxLen);
+}
+
+/**
+ * Sanitizes street address inputs and caps length at 100 characters.
+ */
+export function sanitizeStreetAddress(value, maxLen = FIELD_LIMITS.address) {
+  return String(value ?? '')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/^\s+/, '')
+    .replace(/\s{2,}/g, ' ')
+    .slice(0, maxLen);
+}
+
+/**
+ * Strips disallowed symbols/numbers from city/municipality inputs and caps at 50 chars.
+ */
+export function sanitizeCityName(value, maxLen = FIELD_LIMITS.city) {
+  return String(value ?? '')
+    .replace(/[^A-Za-zÀ-ÿ '\-.]/g, '')
+    .replace(/^\s+/, '')
+    .replace(/\s{2,}/g, ' ')
+    .slice(0, maxLen);
+}
+
+/**
+ * Strips disallowed symbols from barangay inputs and caps at 50 chars.
+ */
+export function sanitizeBarangayName(value, maxLen = FIELD_LIMITS.barangay) {
+  return String(value ?? '')
+    .replace(/[^A-Za-zÀ-ÿ0-9.,#'()/\- ]/g, '')
+    .replace(/^\s+/, '')
     .replace(/\s{2,}/g, ' ')
     .slice(0, maxLen);
 }
@@ -60,7 +107,7 @@ export function sanitizeCityName(value, maxLen = 80) {
 /**
  * Restricts usernames strictly to ASCII letters, digits, and underscores.
  */
-export function sanitizeUsername(value, maxLen = 28) {
+export function sanitizeUsername(value, maxLen = FIELD_LIMITS.username) {
   return String(value ?? '')
     .replace(/[^A-Za-z0-9_]/g, '')
     .slice(0, maxLen);
@@ -120,6 +167,7 @@ export function getPasswordStrength(password = '') {
 export function validateEmail(value) {
   const v = String(value ?? '').trim();
   if (!v) return 'Email address is required.';
+  if (v.length > FIELD_LIMITS.email) return `Email address cannot exceed ${FIELD_LIMITS.email} characters.`;
   if (!EMAIL_REGEX.test(v)) return 'Enter a valid email address (e.g., name@domain.com).';
   return '';
 }
@@ -170,21 +218,25 @@ export function validateCheckoutFields(form) {
   const postalCode = String(form.postalCode ?? '').trim();
 
   if (name.length < 2) errors.name = 'Full name is required (at least 2 letters).';
+  else if (name.length > FIELD_LIMITS.name) errors.name = `Full name cannot exceed ${FIELD_LIMITS.name} characters.`;
   else if (!PERSON_NAME_REGEX.test(name)) errors.name = 'Use letters only for recipient full name.';
-
-  const emailErr = validateEmail(email);
-  if (emailErr) errors.email = emailErr;
 
   const phoneErr = validatePhPhone(phone);
   if (phoneErr) errors.phone = phoneErr;
 
-  if (address.length < 5) errors.address = 'Enter a complete street, unit, or house number.';
+  const emailErr = validateEmail(email);
+  if (emailErr) errors.email = emailErr;
+
+  if (address.length < 5) errors.address = 'Enter a complete street, unit, or house number (min 5 chars).';
+  else if (address.length > FIELD_LIMITS.address) errors.address = `Street address cannot exceed ${FIELD_LIMITS.address} characters.`;
   else if (!/[A-Za-z0-9]{2,}/.test(address)) errors.address = 'Enter a valid street address.';
 
   if (city.length < 2) errors.city = 'City / Municipality is required.';
-  else if (!CITY_NAME_REGEX.test(city)) errors.city = 'Enter a valid city name.';
+  else if (city.length > FIELD_LIMITS.city) errors.city = `City / Municipality cannot exceed ${FIELD_LIMITS.city} characters.`;
+  else if (!CITY_NAME_REGEX.test(city)) errors.city = 'Enter a valid city name (letters only).';
 
   if (barangay.length < 2) errors.barangay = 'Barangay is required.';
+  else if (barangay.length > FIELD_LIMITS.barangay) errors.barangay = `Barangay cannot exceed ${FIELD_LIMITS.barangay} characters.`;
   else if (!BARANGAY_NAME_REGEX.test(barangay)) errors.barangay = 'Enter a valid barangay name.';
 
   const postalErr = validatePostalCode(postalCode);
@@ -265,8 +317,14 @@ export function validateProfileFields(form, { withAddress = false } = {}) {
     const barangay = String(addr.barangay ?? '').trim();
     const postalCode = String(addr.postalCode ?? '').trim();
 
-    if (recipientName && !PERSON_NAME_REGEX.test(recipientName)) {
-      errors['defaultAddress.recipientName'] = 'Use letters only for recipient name.';
+    if (recipientName) {
+      if (recipientName.length < 2) {
+        errors['defaultAddress.recipientName'] = 'Recipient name must be at least 2 letters.';
+      } else if (recipientName.length > FIELD_LIMITS.name) {
+        errors['defaultAddress.recipientName'] = `Recipient name cannot exceed ${FIELD_LIMITS.name} characters.`;
+      } else if (!PERSON_NAME_REGEX.test(recipientName)) {
+        errors['defaultAddress.recipientName'] = 'Use letters only for recipient name.';
+      }
     }
     if (addrPhone) {
       const pErr = validatePhPhone(addrPhone);
@@ -274,17 +332,81 @@ export function validateProfileFields(form, { withAddress = false } = {}) {
     }
     if (shippingAddress.length < 5) {
       errors['defaultAddress.shippingAddress'] = 'Complete street address is required (min 5 chars).';
+    } else if (shippingAddress.length > FIELD_LIMITS.address) {
+      errors['defaultAddress.shippingAddress'] = `Street address cannot exceed ${FIELD_LIMITS.address} characters.`;
     }
-    if (city.length < 2 || !CITY_NAME_REGEX.test(city)) {
-      errors['defaultAddress.city'] = 'Enter a valid city / municipality.';
+    if (city.length < 2 || city.length > FIELD_LIMITS.city || !CITY_NAME_REGEX.test(city)) {
+      errors['defaultAddress.city'] = 'Enter a valid city / municipality (letters only, max 50 chars).';
     }
-    if (barangay.length < 2 || !BARANGAY_NAME_REGEX.test(barangay)) {
-      errors['defaultAddress.barangay'] = 'Enter a valid barangay.';
+    if (barangay.length < 2 || barangay.length > FIELD_LIMITS.barangay || !BARANGAY_NAME_REGEX.test(barangay)) {
+      errors['defaultAddress.barangay'] = 'Enter a valid barangay (max 50 chars).';
     }
     const zipErr = validatePostalCode(postalCode);
     if (zipErr) errors['defaultAddress.postalCode'] = zipErr;
   }
 
   return errors;
+}
+
+/**
+ * Smoothly scrolls the viewport to the first invalid form field, focuses it,
+ * and triggers a brief visual attention pulse so the user immediately sees
+ * which field prevented form submission.
+ */
+export function scrollToFirstInvalidField(
+  errorsObj = {},
+  fieldOrder = [],
+  fieldIdMap = {},
+  fallbackSelector = '[role="alert"]'
+) {
+  if (typeof document === 'undefined') return;
+  const errorKeys = Object.keys(errorsObj).filter((k) => Boolean(errorsObj[k]));
+  const orderedKey =
+    fieldOrder.find((key) => errorKeys.includes(key)) || errorKeys[0] || null;
+
+  const scheduleFocusAndScroll = () => {
+    let targetEl = null;
+    if (orderedKey) {
+      const domId = fieldIdMap[orderedKey] || orderedKey;
+      targetEl =
+        document.getElementById(domId) ||
+        document.querySelector(`[name="${orderedKey}"]`);
+    }
+    if (!targetEl && fallbackSelector) {
+      targetEl = document.querySelector(fallbackSelector);
+    }
+    if (!targetEl) return;
+
+    const fieldContainer =
+      targetEl.closest('.form-field, .account-field') || targetEl;
+
+    fieldContainer.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'nearest',
+    });
+
+    if (typeof targetEl.focus === 'function') {
+      try {
+        targetEl.focus({ preventScroll: true });
+      } catch {
+        targetEl.focus();
+      }
+    }
+
+    fieldContainer.classList.remove('is-error-attention');
+    // Force reflow so repeated clicks re-trigger the animation
+    void fieldContainer.offsetWidth;
+    fieldContainer.classList.add('is-error-attention');
+    setTimeout(() => {
+      fieldContainer.classList.remove('is-error-attention');
+    }, 1400);
+  };
+
+  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(scheduleFocusAndScroll);
+  } else {
+    setTimeout(scheduleFocusAndScroll, 0);
+  }
 }
 

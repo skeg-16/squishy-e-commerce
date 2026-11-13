@@ -1,18 +1,13 @@
-
 import { useCallback, useEffect, useState } from 'react';
 import { adminApi, errorText } from '../../services/adminService';
 import { adminPreviewApi } from '../../services/adminPreviewService';
+import { invalidateApiCache } from '../../services/api';
 import { AdminDialog, AdminToast } from '../../components/AdminComponents';
 import AdminViews from './AdminViews';
 import '../../styles/admin.css';
 
-// TEMPORARY PREVIEW LOGIN:
-// Hardcoded for local frontend development only.
-// Replace with backend authentication before deployment.
 const PREVIEW_ADMIN_PASSWORD = 'squishy-admin';
-
-// The mock admin service is available only while running Vite in development.
-const PREVIEW_MODE = true;
+const PREVIEW_MODE = false;
 
 const TABS = [
   ['dashboard', 'Dashboard'],
@@ -20,6 +15,7 @@ const TABS = [
   ['products', 'Products'],
   ['vouchers', 'Vouchers'],
   ['reviews', 'Reviews'],
+  ['users', 'Users'],
 ];
 
 function getStorefrontUrl() {
@@ -36,7 +32,10 @@ function getCurrentTab() {
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [adminUser, setAdminUser] = useState(null);
+  const [demoMode, setDemoMode] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [activeTab, setActiveTab] = useState(getCurrentTab);
@@ -45,39 +44,41 @@ export default function AdminPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-  if (PREVIEW_MODE) {
-    setChecking(false);
-    return;
-  }
-
-  let active = true;
-
-  async function checkSession() {
-    try {
-      const session = await adminApi('/session');
-
-      if (!active) return;
-
-      if (session.authenticated) {
-        setAuthenticated(true);
-      } else if (!session.configured) {
-        setLoginError(
-          'Admin is not configured. Set ADMIN_PASSWORD (at least 8 characters) and restart the server.'
-        );
-      }
-    } catch (error) {
-      if (active) setLoginError(errorText(error));
-    } finally {
-      if (active) setChecking(false);
+    if (PREVIEW_MODE) {
+      setChecking(false);
+      return;
     }
-  }
 
-  checkSession();
+    let active = true;
 
-  return () => {
-    active = false;
-  };
-}, []);
+    async function checkSession() {
+      try {
+        const session = await adminApi('/session', { forceRefresh: true });
+
+        if (!active) return;
+
+        setDemoMode(Boolean(session.demoMode));
+        if (session.authenticated) {
+          setAuthenticated(true);
+          setAdminUser(session.admin || null);
+        } else if (!session.configured) {
+          setLoginError(
+            'Admin is not configured. Set ADMIN_PASSWORD (at least 8 characters) or create an admin user account.'
+          );
+        }
+      } catch (error) {
+        if (active) setLoginError(errorText(error));
+      } finally {
+        if (active) setChecking(false);
+      }
+    }
+
+    checkSession();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     function handleHashChange() {
@@ -94,10 +95,15 @@ export default function AdminPage() {
     }
 
     try {
-      return await adminApi(path, options);
+      const result = await adminApi(path, options);
+      if (options?.method && options.method !== 'GET') {
+        invalidateApiCache();
+      }
+      return result;
     } catch (error) {
       if (error.status === 401) {
         setAuthenticated(false);
+        setAdminUser(null);
         setPassword('');
         setLoginError('Your admin session has expired. Please log in again.');
       }
@@ -120,13 +126,21 @@ export default function AdminPage() {
       return;
     }
 
+    const payload = identifier.trim()
+      ? { identifier: identifier.trim(), password }
+      : { password };
+
     adminApi('/login', {
       method: 'POST',
-      body: { password },
+      body: payload,
     })
-      .then(() => {
+      .then((data) => {
         setPassword('');
         setAuthenticated(true);
+        setAdminUser(data?.admin || null);
+        if (typeof data?.demoMode === 'boolean') {
+          setDemoMode(data.demoMode);
+        }
         setRefreshKey((value) => value + 1);
       })
       .catch((error) => setLoginError(errorText(error)));
@@ -142,6 +156,7 @@ export default function AdminPage() {
     }
 
     setAuthenticated(false);
+    setAdminUser(null);
     setPassword('');
     setLoginError('');
     setDialog(null);
@@ -161,7 +176,8 @@ export default function AdminPage() {
   }
 
   function showToast(message, type = 'success') {
-    setToast({ message, type });
+    const normalizedType = type === true ? 'error' : type || 'success';
+    setToast({ message, type: normalizedType });
   }
 
   function dismissToast() {
@@ -185,19 +201,36 @@ export default function AdminPage() {
       <main className="ad-login">
         <form className="ad-card ad-login__card" onSubmit={handleLogin}>
           <h1>Squishies Admin</h1>
-          <p>Sign in to manage your store.</p>
+          <p>Sign in to manage your store, inventory, orders, and users.</p>
+
+          <label className="ad-field" htmlFor="admin-identifier">
+            <span>Admin Username or Email (optional)</span>
+            <input
+              id="admin-identifier"
+              type="text"
+              placeholder="Leave blank to use master password"
+              value={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+              autoComplete="username"
+            />
+          </label>
 
           <label className="ad-field" htmlFor="admin-password">
             <span>Password</span>
             <input
-                id="admin-password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                required
+              id="admin-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
             />
-            </label>
+            {demoMode && (
+              <small>
+                Demo mode active: master password is <code>squishy-admin</code>
+              </small>
+            )}
+          </label>
 
           {loginError && (
             <p className="ad-error" role="alert">{loginError}</p>
@@ -218,7 +251,10 @@ export default function AdminPage() {
   return (
     <div className="ad-app">
       <header className="ad-header">
-        <a href="/" className="ad-brand">Squishies Admin</a>
+        <a href={getStorefrontUrl()} className="ad-brand">
+          Squishies Admin
+          {adminUser?.username && <small>@{adminUser.username}</small>}
+        </a>
 
         <nav className="ad-tabs" aria-label="Admin navigation">
           {TABS.map(([id, label]) => (
@@ -237,7 +273,12 @@ export default function AdminPage() {
         </nav>
 
         <div className="ad-header-actions">
-          <a className="btn btn--outline btn--sm" href={getStorefrontUrl()} target="_blank" rel="noopener noreferrer">
+          <a
+            className="btn btn--outline btn--sm"
+            href={getStorefrontUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             View store
           </a>
           <button
@@ -261,6 +302,7 @@ export default function AdminPage() {
           openDialog={openDialog}
           closeDialog={closeDialog}
           showToast={showToast}
+          adminUser={adminUser}
         />
       </main>
 

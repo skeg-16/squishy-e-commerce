@@ -61,10 +61,12 @@ export function AdminToast({ toast, onDismiss }) {
 
   if (!toast) return null;
 
+  const isError = toast.type === 'error' || toast.type === true;
+
   return (
     <div
-      className={`ad-toast ad-toast--${toast.type || 'success'}`}
-      role="status"
+      className={`ad-toast is-visible ${isError ? 'is-error ad-toast--error' : 'ad-toast--success'}`}
+      role={isError ? 'alert' : 'status'}
     >
       <span>{toast.message}</span>
 

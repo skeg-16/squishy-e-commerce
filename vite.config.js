@@ -19,6 +19,8 @@ const SPA_HTML_PATHS = new Set([
   '/about.html',
   '/account',
   '/account.html',
+  '/admin',
+  '/admin.html',
 ]);
 
 function isPortListening(port, host = '127.0.0.1') {
@@ -45,10 +47,7 @@ function squishiesDevPlugin() {
       server.middlewares.use((req, _res, next) => {
         if (req.url && (req.method === 'GET' || req.method === 'HEAD')) {
           const [pathname, search = ''] = req.url.split('?');
-          if (pathname === '/admin' || pathname === '/admin.html') {
-            // Admin runs on its own separated server (port 5174); avoid serving root admin.html on storefront
-            req.url = `/_not-found${search ? `?${search}` : ''}`;
-          } else if (SPA_HTML_PATHS.has(pathname)) {
+          if (SPA_HTML_PATHS.has(pathname)) {
             req.url = `/${search ? `?${search}` : ''}`;
           }
         }

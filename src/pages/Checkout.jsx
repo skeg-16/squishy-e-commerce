@@ -4,12 +4,17 @@ import { SquishiesAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import {
+  FIELD_LIMITS,
   formatCardExpiry,
   formatCardNumber,
+  sanitizeBarangayName,
   sanitizeCityName,
   sanitizeDigits,
+  sanitizeEmail,
   sanitizePersonName,
   sanitizePhPhone,
+  sanitizeStreetAddress,
+  scrollToFirstInvalidField,
   validateCheckoutFields,
   validatePhPhone,
 } from '../utils/validators';
@@ -66,20 +71,35 @@ function ErrorMessage({ children, id }) {
 }
 
 const FIELD_IDS = {
-  customerEmail: 'ckEmail',
   customerName: 'ckName',
   customerPhone: 'ckPhone',
+  customerEmail: 'ckEmail',
+  region: 'ckRegion',
   shippingAddress: 'ckAddress',
   city: 'ckCity',
   barangay: 'ckBarangay',
   postalCode: 'ckPostalCode',
   orderNote: 'ckOrderNote',
+  voucherCode: 'ckVoucherCode',
 };
+
+const CHECKOUT_FIELD_ORDER = [
+  'customerName',
+  'customerPhone',
+  'customerEmail',
+  'region',
+  'shippingAddress',
+  'city',
+  'barangay',
+  'postalCode',
+  'orderNote',
+  'voucherCode',
+];
 
 function Field({ label, name, value, onChange, error, optional = false, ...props }) {
   const id = FIELD_IDS[name] || name;
   return (
-    <div className="form-field">
+    <div className={`form-field${error ? ' has-error' : ''}`}>
       <label htmlFor={id}>
         {label} {!optional && <span className="required-star">*</span>}
       </label>
@@ -90,6 +110,8 @@ function Field({ label, name, value, onChange, error, optional = false, ...props
         onChange={onChange}
         required={!optional}
         aria-invalid={Boolean(error)}
+        aria-describedby={error ? `err-${id}` : undefined}
+        className={error ? 'is-invalid' : ''}
         {...props}
       />
       <ErrorMessage id={`err-${id}`}>{error}</ErrorMessage>
@@ -1035,21 +1057,36 @@ export default function Checkout() {
   const [cancelError, setCancelError] = useState('');
   const [cancelBusy, setCancelBusy] = useState(false);
   const [voucherDirty, setVoucherDirty] = useState(false);
+  const [availableVouchers, setAvailableVouchers] = useState(null);
 
   const prefilledForUserRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    SquishiesAPI.fetchAvailableVouchers?.()
+      .then((list) => {
+        if (active && Array.isArray(list)) {
+          setAvailableVouchers(list);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const applySavedAddress = useCallback(() => {
     if (!user) return;
     const saved = user.defaultAddress || {};
     setFields((current) => ({
       ...current,
-      customerEmail: user.email || current.customerEmail,
+      customerEmail: sanitizeEmail(user.email || current.customerEmail),
       customerName: sanitizePersonName(saved.recipientName || current.customerName),
       customerPhone: sanitizePhPhone(saved.phone || user.phone || current.customerPhone),
-      shippingAddress: saved.shippingAddress || current.shippingAddress,
+      shippingAddress: sanitizeStreetAddress(saved.shippingAddress || current.shippingAddress),
       city: sanitizeCityName(saved.city || current.city),
-      barangay: saved.barangay || current.barangay,
-      postalCode: sanitizeDigits(saved.postalCode || current.postalCode, 4),
+      barangay: sanitizeBarangayName(saved.barangay || current.barangay),
+      postalCode: sanitizeDigits(saved.postalCode || current.postalCode, FIELD_LIMITS.postalCode),
     }));
     if (saved.region && ['metro-manila', 'luzon', 'visayas', 'mindanao'].includes(saved.region)) {
       setRegion(saved.region);
@@ -1120,17 +1157,15 @@ export default function Checkout() {
   }, [orderNumber]);
 
   useEffect(() => {
-    if (orderNumber || pending || voucherDirty || !(cart || []).length) {
+    if (orderNumber || pending || !(cart || []).length) {
       setQuote(null);
       setQuoteLoading(false);
       return;
     }
 
     let cancelled = false;
-    setQuote(null);
     setQuoteLoading(true);
     setError('');
-    setFieldErrors({});
 
     SquishiesAPI.quote({
       items: (cart || []).map((item) => ({
@@ -1143,6 +1178,12 @@ export default function Checkout() {
       .then((result) => {
         if (cancelled) return;
         setQuote(result);
+        setFieldErrors((current) => {
+          if (!current.voucherCode) return current;
+          const next = { ...current };
+          delete next.voucherCode;
+          return next;
+        });
         setPaymentMethod((current) =>
           result.paymentMethods?.includes(current)
             ? current
@@ -1151,10 +1192,34 @@ export default function Checkout() {
               : result.paymentMethods?.[0] || 'cod'
         );
       })
-      .catch((quoteError) => {
+      .catch(async (quoteError) => {
         if (cancelled) return;
-        setError(quoteError.message || 'Could not load checkout totals.');
-        setFieldErrors(quoteError.fields || {});
+        const msg = quoteError.message || 'Could not load checkout totals.';
+        if (appliedVoucher) {
+          setAppliedVoucher('');
+          setFieldErrors((current) => ({
+            ...current,
+            voucherCode: quoteError.fields?.voucherCode || msg,
+          }));
+          try {
+            const fallbackResult = await SquishiesAPI.quote({
+              items: (cart || []).map((item) => ({
+                slug: item.slug,
+                quantity: item.qty,
+              })),
+              region,
+              voucherCode: '',
+            });
+            if (!cancelled) {
+              setQuote(fallbackResult);
+            }
+          } catch {
+            // Keep error displayed if base quote also fails.
+          }
+        } else {
+          setError(msg);
+          setFieldErrors(quoteError.fields || {});
+        }
       })
       .finally(() => {
         if (!cancelled) setQuoteLoading(false);
@@ -1163,11 +1228,12 @@ export default function Checkout() {
     return () => {
       cancelled = true;
     };
-  }, [orderNumber, pending, cartSignature, region, appliedVoucher, voucherDirty, cart]);
+  }, [orderNumber, pending, cartSignature, region, appliedVoucher, cart]);
 
   /**
-   * Strict per-field sanitization: prevents invalid chars from ever appearing
-   * in phone numbers, zip/postal codes, recipient names, and city inputs.
+   * Strict per-field sanitization and max-length enforcement: prevents invalid
+   * characters or excessive string lengths in recipient name, email, phone,
+   * street address, city, barangay, postal code, and order note.
    */
   const updateField = useCallback((event) => {
     const { name, value } = event.target;
@@ -1175,17 +1241,24 @@ export default function Checkout() {
     if (name === 'customerPhone') {
       cleaned = sanitizePhPhone(value);
     } else if (name === 'postalCode') {
-      cleaned = sanitizeDigits(value, 4);
+      cleaned = sanitizeDigits(value, FIELD_LIMITS.postalCode);
     } else if (name === 'customerName') {
-      cleaned = sanitizePersonName(value);
+      cleaned = sanitizePersonName(value, FIELD_LIMITS.name);
+    } else if (name === 'customerEmail') {
+      cleaned = sanitizeEmail(value, FIELD_LIMITS.email);
+    } else if (name === 'shippingAddress') {
+      cleaned = sanitizeStreetAddress(value, FIELD_LIMITS.address);
     } else if (name === 'city') {
-      cleaned = sanitizeCityName(value);
+      cleaned = sanitizeCityName(value, FIELD_LIMITS.city);
+    } else if (name === 'barangay') {
+      cleaned = sanitizeBarangayName(value, FIELD_LIMITS.barangay);
     } else if (name === 'orderNote') {
-      cleaned = String(value || '').slice(0, 240);
+      cleaned = String(value || '').slice(0, FIELD_LIMITS.orderNote);
     }
 
     setFields((current) => ({ ...current, [name]: cleaned }));
     setFieldErrors((current) => {
+      if (!current[name]) return current;
       const next = { ...current };
       delete next[name];
       return next;
@@ -1193,7 +1266,7 @@ export default function Checkout() {
   }, []);
 
   function applyVoucher() {
-    setAppliedVoucher(voucherText.trim().toUpperCase());
+    setAppliedVoucher(voucherText.trim().slice(0, FIELD_LIMITS.voucherCode).toUpperCase());
     setVoucherDirty(false);
     setError('');
   }
@@ -1209,13 +1282,27 @@ export default function Checkout() {
     setVoucherText('');
     setAppliedVoucher('');
     setVoucherDirty(false);
+    setFieldErrors((current) => {
+      const next = { ...current };
+      delete next.voucherCode;
+      return next;
+    });
     setError('');
   }
 
   function handleVoucherChange(event) {
-    setVoucherText(event.target.value);
+    const cleaned = String(event.target.value || '')
+      .replace(/[^A-Za-z0-9_-]/g, '')
+      .slice(0, FIELD_LIMITS.voucherCode)
+      .toUpperCase();
+    setVoucherText(cleaned);
     setVoucherDirty(true);
-    setQuote(null);
+    setFieldErrors((current) => {
+      if (!current.voucherCode) return current;
+      const next = { ...current };
+      delete next.voucherCode;
+      return next;
+    });
   }
 
   function handleAcceptedOrder(acceptedOrder) {
@@ -1233,8 +1320,25 @@ export default function Checkout() {
   }
 
   function mapServerErrors(serverError) {
-    setError(serverError.message || 'Something went wrong.');
-    setFieldErrors(serverError.fields || {});
+    const normalizedFields = {};
+    if (Array.isArray(serverError?.fields)) {
+      for (const issue of serverError.fields) {
+        if (issue?.field && !normalizedFields[issue.field]) {
+          normalizedFields[issue.field] = issue.message;
+        }
+      }
+    } else if (serverError?.fields && typeof serverError.fields === 'object') {
+      Object.assign(normalizedFields, serverError.fields);
+    }
+    setFieldErrors(normalizedFields);
+    const firstFieldError = CHECKOUT_FIELD_ORDER.map((k) => normalizedFields[k]).find(Boolean);
+    setError(firstFieldError || serverError.message || 'Something went wrong.');
+    scrollToFirstInvalidField(
+      normalizedFields,
+      CHECKOUT_FIELD_ORDER,
+      FIELD_IDS,
+      '#checkoutError'
+    );
   }
 
   async function placeOrder(event) {
@@ -1246,12 +1350,7 @@ export default function Checkout() {
       return;
     }
 
-    if (!quote) {
-      setError('Please refresh your totals before placing your order.');
-      return;
-    }
-
-    // Strict client-side verification mirroring server/validation.js
+    // Strict client-side verification mirroring server/validation.js in top-to-bottom visual order
     const rawErrors = validateCheckoutFields({
       name: fields.customerName,
       email: fields.customerEmail,
@@ -1264,8 +1363,8 @@ export default function Checkout() {
 
     const mappedErrors = {};
     if (rawErrors.name) mappedErrors.customerName = rawErrors.name;
-    if (rawErrors.email) mappedErrors.customerEmail = rawErrors.email;
     if (rawErrors.phone) mappedErrors.customerPhone = rawErrors.phone;
+    if (rawErrors.email) mappedErrors.customerEmail = rawErrors.email;
     if (rawErrors.address) mappedErrors.shippingAddress = rawErrors.address;
     if (rawErrors.city) mappedErrors.city = rawErrors.city;
     if (rawErrors.barangay) mappedErrors.barangay = rawErrors.barangay;
@@ -1273,7 +1372,20 @@ export default function Checkout() {
 
     if (Object.keys(mappedErrors).length > 0) {
       setFieldErrors(mappedErrors);
-      setError(Object.values(mappedErrors)[0]);
+      const firstOrderedError = CHECKOUT_FIELD_ORDER.map((k) => mappedErrors[k]).find(Boolean);
+      setError(firstOrderedError || Object.values(mappedErrors)[0]);
+      scrollToFirstInvalidField(
+        mappedErrors,
+        CHECKOUT_FIELD_ORDER,
+        FIELD_IDS,
+        '#checkoutError'
+      );
+      return;
+    }
+
+    if (!quote) {
+      setError('Please refresh your totals before placing your order.');
+      scrollToFirstInvalidField({}, CHECKOUT_FIELD_ORDER, FIELD_IDS, '#checkoutError');
       return;
     }
 
@@ -1509,11 +1621,22 @@ export default function Checkout() {
     );
   }
 
-  const QUICK_VOUCHERS = [
-    { code: 'WELCOME10', label: '10% OFF', note: 'Min ₱150' },
-    { code: 'FREESHIP', label: 'FREE SHIPPING', note: 'All orders' },
-    { code: 'SQUISHY50', label: '₱50 OFF', note: 'Min ₱300' },
-  ];
+  const QUICK_VOUCHERS = Array.isArray(availableVouchers) && availableVouchers.length > 0
+    ? availableVouchers.map((v) => ({
+        code: v.code,
+        label:
+          v.type === 'percentage'
+            ? `${v.value}% OFF`
+            : v.type === 'fixed_amount'
+              ? `₱${v.value} OFF`
+              : 'FREE SHIPPING',
+        note: v.minSpend > 0 ? `Min ₱${v.minSpend}` : v.description || 'All orders',
+      }))
+    : [
+        { code: 'WELCOME10', label: '10% OFF', note: 'Min ₱150' },
+        { code: 'FREESHIP', label: 'FREE SHIPPING', note: 'All orders' },
+        { code: 'SQUISHY50', label: '₱50 OFF', note: 'Min ₱300' },
+      ];
 
   const PAYMENT_METHODS_DATA = [
     {
@@ -1644,7 +1767,11 @@ export default function Checkout() {
             <span>A previous checkout request was unconfirmed. Submitting now recovers your reserved items cleanly.</span>
           </div>
         )}
-        {error && <p className="field-error checkout-global-error" role="alert">{error}</p>}
+        {error && (
+          <p id="checkoutError" className="field-error checkout-global-error" role="alert">
+            {error}
+          </p>
+        )}
 
         <form onSubmit={placeOrder} noValidate>
           <div className="checkout-page__layout">
@@ -1665,6 +1792,7 @@ export default function Checkout() {
                     name="customerName"
                     placeholder="Juana Dela Cruz"
                     autoComplete="name"
+                    maxLength={FIELD_LIMITS.name}
                     value={fields.customerName}
                     onChange={updateField}
                     error={fieldErrors.customerName}
@@ -1677,7 +1805,7 @@ export default function Checkout() {
                     inputMode="numeric"
                     placeholder="09171234567"
                     autoComplete="tel"
-                    maxLength={11}
+                    maxLength={FIELD_LIMITS.phone}
                     value={fields.customerPhone}
                     onChange={updateField}
                     error={fieldErrors.customerPhone}
@@ -1692,22 +1820,24 @@ export default function Checkout() {
                     type="email"
                     placeholder="you@email.com"
                     autoComplete="email"
+                    maxLength={FIELD_LIMITS.email}
                     value={fields.customerEmail}
                     onChange={updateField}
                     error={fieldErrors.customerEmail}
                     disabled={Boolean(pending) || submitting}
                   />
-                  <div className="form-field">
+                  <div className={`form-field${fieldErrors.region ? ' has-error' : ''}`}>
                     <label htmlFor="ckRegion">
                       Delivery Region &amp; Transit Zone <span className="required-star">*</span>
                     </label>
                     <div className="form-select-wrap">
                       <select
                         id="ckRegion"
-                        className="form-select"
+                        className={`form-select${fieldErrors.region ? ' is-invalid' : ''}`}
                         value={region}
                         onChange={(event) => setRegion(event.target.value)}
                         required
+                        aria-invalid={Boolean(fieldErrors.region)}
                         disabled={Boolean(pending) || submitting}
                       >
                         {REGIONS.map((item) => (
@@ -1715,7 +1845,7 @@ export default function Checkout() {
                         ))}
                       </select>
                     </div>
-                    <ErrorMessage>{fieldErrors.region}</ErrorMessage>
+                    <ErrorMessage id="err-ckRegion">{fieldErrors.region}</ErrorMessage>
                   </div>
                 </div>
 
@@ -1724,6 +1854,7 @@ export default function Checkout() {
                   name="shippingAddress"
                   placeholder="Unit / House No., Building Name, Street"
                   autoComplete="street-address"
+                  maxLength={FIELD_LIMITS.address}
                   value={fields.shippingAddress}
                   onChange={updateField}
                   error={fieldErrors.shippingAddress}
@@ -1731,44 +1862,50 @@ export default function Checkout() {
                 />
 
                 <div className="form-row form-row--tri">
-                  <div className="form-field">
+                  <div className={`form-field${fieldErrors.city ? ' has-error' : ''}`}>
                     <label htmlFor="ckCity">City / Municipality <span className="required-star">*</span></label>
                     <input
                       id="ckCity"
                       name="city"
                       autoComplete="address-level2"
                       placeholder="e.g. Quezon City"
+                      maxLength={FIELD_LIMITS.city}
                       required
                       value={fields.city}
                       onChange={updateField}
                       disabled={Boolean(pending) || submitting}
                       aria-invalid={Boolean(fieldErrors.city)}
+                      aria-describedby={fieldErrors.city ? 'err-ckCity' : undefined}
+                      className={fieldErrors.city ? 'is-invalid' : ''}
                     />
-                    <ErrorMessage>{fieldErrors.city}</ErrorMessage>
+                    <ErrorMessage id="err-ckCity">{fieldErrors.city}</ErrorMessage>
                   </div>
 
-                  <div className="form-field">
+                  <div className={`form-field${fieldErrors.barangay ? ' has-error' : ''}`}>
                     <label htmlFor="ckBarangay">Barangay <span className="required-star">*</span></label>
                     <input
                       id="ckBarangay"
                       name="barangay"
                       placeholder="Barangay"
+                      maxLength={FIELD_LIMITS.barangay}
                       required
                       value={fields.barangay}
                       onChange={updateField}
                       disabled={Boolean(pending) || submitting}
                       aria-invalid={Boolean(fieldErrors.barangay)}
+                      aria-describedby={fieldErrors.barangay ? 'err-ckBarangay' : undefined}
+                      className={fieldErrors.barangay ? 'is-invalid' : ''}
                     />
-                    <ErrorMessage>{fieldErrors.barangay}</ErrorMessage>
+                    <ErrorMessage id="err-ckBarangay">{fieldErrors.barangay}</ErrorMessage>
                   </div>
 
-                  <div className="form-field form-field--postal">
+                  <div className={`form-field form-field--postal${fieldErrors.postalCode ? ' has-error' : ''}`}>
                     <label htmlFor="ckPostalCode">ZIP / Postal Code (4 Digits) <span className="required-star">*</span></label>
                     <input
                       id="ckPostalCode"
                       name="postalCode"
                       placeholder="1000"
-                      maxLength={4}
+                      maxLength={FIELD_LIMITS.postalCode}
                       inputMode="numeric"
                       pattern="[0-9]{4}"
                       required
@@ -1776,8 +1913,10 @@ export default function Checkout() {
                       onChange={updateField}
                       disabled={Boolean(pending) || submitting}
                       aria-invalid={Boolean(fieldErrors.postalCode)}
+                      aria-describedby={fieldErrors.postalCode ? 'err-ckPostalCode' : undefined}
+                      className={fieldErrors.postalCode ? 'is-invalid' : ''}
                     />
-                    <ErrorMessage>{fieldErrors.postalCode}</ErrorMessage>
+                    <ErrorMessage id="err-ckPostalCode">{fieldErrors.postalCode}</ErrorMessage>
                   </div>
                 </div>
 
@@ -1785,7 +1924,7 @@ export default function Checkout() {
                   label="Message for SISO Seller / Rider (Optional)"
                   name="orderNote"
                   optional
-                  maxLength={240}
+                  maxLength={FIELD_LIMITS.orderNote}
                   placeholder="e.g., Leave parcel at guardhouse or call upon arrival"
                   value={fields.orderNote}
                   onChange={updateField}
@@ -1940,7 +2079,10 @@ export default function Checkout() {
                     <input
                       id="ckVoucherCode"
                       type="text"
+                      maxLength={FIELD_LIMITS.voucherCode}
                       aria-label="Voucher or promo code"
+                      aria-invalid={Boolean(fieldErrors.voucherCode)}
+                      className={fieldErrors.voucherCode ? 'is-invalid' : ''}
                       placeholder="Enter promo code"
                       value={voucherText}
                       onChange={handleVoucherChange}
@@ -1957,7 +2099,7 @@ export default function Checkout() {
                     </button>
                   </div>
 
-                  <ErrorMessage>{fieldErrors.voucherCode}</ErrorMessage>
+                  <ErrorMessage id="err-ckVoucherCode">{fieldErrors.voucherCode}</ErrorMessage>
                   {appliedVoucher && quote && (
                     <div className="voucher-applied-success" role="status">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -2020,13 +2162,14 @@ export default function Checkout() {
                       <span>Total Amount</span>
                       <small>Taxes &amp; handling included</small>
                     </div>
-                    <strong className="final-total-display">
+                    <strong id="ckTotal" className="final-total-display">
                       {quote ? formatPeso(quote.total) : '—'}
                     </strong>
                   </div>
                 </div>
 
                 <button
+                  id="placeOrderBtn"
                   className="checkout-place-order-btn"
                   type="submit"
                   disabled={submitting || quoteLoading || (!quote && !pending)}

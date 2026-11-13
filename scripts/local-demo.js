@@ -35,7 +35,7 @@ function isPortOpen(port, host = '127.0.0.1') {
   if (await isPortOpen(port)) {
     console.log(`Local school demo: http://localhost:${port} (Vite dev: http://127.0.0.1:5173)\nPostgreSQL data persists in .local/. Press Ctrl+C to stop.`);
   } else {
-    const app = createApp({ pool, demoMode: true, origins: ['http://localhost:5173', 'http://127.0.0.1:5173', `http://localhost:${port}`, `http://127.0.0.1:${port}`], serveStatic: true, serveReact: true });
+    const app = createApp({ pool, demoMode: true, origins: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174', `http://localhost:${port}`, `http://127.0.0.1:${port}`], serveStatic: true, serveReact: true });
     server = app.listen(port, () => console.log(`Local school demo: http://localhost:${port} (Vite dev: http://127.0.0.1:5173)\nPostgreSQL data persists in .local/. Press Ctrl+C to stop.`));
   }
   const keepAlive = setInterval(() => {}, 60000);

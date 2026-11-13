@@ -2,15 +2,17 @@ const { z } = require('zod');
 const { fail } = require('./errors');
 
 const region = z.enum(['metro-manila', 'luzon', 'visayas', 'mindanao']);
-const slug = z.string().regex(/^[a-z][a-z0-9-]{0,59}$/);
+const slug = z.string().trim().regex(/^[a-z][a-z0-9-]{0,59}$/, {
+  error: 'Slug must start with a lowercase letter and use only lowercase letters, numbers, and hyphens.',
+});
 const text = (min, max) => z.string().trim().min(min).max(max);
 
 const personName = z
   .string()
   .trim()
   .min(2, { error: 'Full name must be at least 2 characters.' })
-  .max(100, { error: 'Full name cannot exceed 100 characters.' })
-  .regex(/^[\p{L}\p{M}][\p{L}\p{M} .'-]{1,99}$/u, {
+  .max(60, { error: 'Full name cannot exceed 60 characters.' })
+  .regex(/^[\p{L}\p{M}][\p{L}\p{M} .'-]{1,59}$/u, {
     error: 'Use letters only (no numbers or special characters).',
   });
 
@@ -35,8 +37,8 @@ const cityName = z
   .string()
   .trim()
   .min(2, { error: 'Enter your city or municipality.' })
-  .max(100, { error: 'City name is too long.' })
-  .regex(/^[\p{L}\p{M}][\p{L}\p{M} .'-]{1,99}$/u, {
+  .max(50, { error: 'City / Municipality cannot exceed 50 characters.' })
+  .regex(/^[\p{L}\p{M}][\p{L}\p{M} .'-]{1,49}$/u, {
     error: 'City / Municipality must contain letters only.',
   });
 
@@ -44,21 +46,21 @@ const barangayName = z
   .string()
   .trim()
   .min(2, { error: 'Enter your barangay.' })
-  .max(100, { error: 'Barangay name is too long.' })
-  .regex(/^[\p{L}\p{M}0-9][\p{L}\p{M}0-9 .,'()-]{1,99}$/u, {
+  .max(50, { error: 'Barangay cannot exceed 50 characters.' })
+  .regex(/^[\p{L}\p{M}0-9][\p{L}\p{M}0-9 .,'()#/-]{1,49}$/u, {
     error: 'Enter a valid barangay name or number.',
   });
 
 const usernameSchema = z
   .string()
   .trim()
-  .regex(/^[a-zA-Z0-9_]{3,24}$/, {
-    error: 'Username must be 3–24 characters using letters, numbers, or underscores only.',
+  .regex(/^[a-zA-Z0-9_]{3,28}$/, {
+    error: 'Username must be 3–28 characters using letters, numbers, or underscores only.',
   });
 
 const emailSchema = z
   .email({ error: 'Enter a valid email address (e.g. name@example.com).' })
-  .max(254)
+  .max(80, { error: 'Email address cannot exceed 80 characters.' })
   .transform((v) => v.toLowerCase());
 
 const birthdaySchema = z
@@ -82,14 +84,56 @@ const passwordSchema = z
   .regex(/\d/, { error: 'Password must contain at least one number.' });
 
 const defaultAddressSchema = z.strictObject({
-  recipientName: personName.optional(),
-  phone: phMobile.optional(),
-  shippingAddress: text(5, 200),
+  recipientName: personName.optional().or(z.literal('')),
+  phone: phMobile.optional().or(z.literal('')),
+  shippingAddress: text(5, 100),
   city: cityName,
   barangay: barangayName,
   postalCode: phPostalCode,
   region,
 });
+
+const voucherCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9_-]{3,30}$/, {
+    error: 'Voucher code must be 3–30 characters using letters, numbers, hyphens, or underscores.',
+  })
+  .transform((v) => v.toUpperCase());
+
+const imagePathSchema = z
+  .string()
+  .trim()
+  .min(1, { error: 'Image path is required.' })
+  .max(300, { error: 'Image path is too long.' })
+  .refine((v) => !/^(javascript|data|vbscript):/i.test(v), {
+    error: 'Enter a valid image path.',
+  });
+
+const bundleComponentSchema = z.strictObject({
+  slug,
+  quantity: z.number().int().min(1).max(99),
+});
+
+function validateVoucherDiscount(data, ctx) {
+  if (data.type === 'percentage') {
+    if (!Number.isInteger(data.value) || data.value < 1 || data.value > 100) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['value'],
+        message: 'Percentage discount must be a whole number between 1 and 100.',
+      });
+    }
+  } else if (data.type === 'fixed_amount') {
+    if (data.value <= 0 || data.value > 100000) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['value'],
+        message: 'Fixed peso discount must be greater than ₱0.',
+      });
+    }
+  }
+}
 
 const schemas = {
   quote: z.strictObject({
@@ -102,7 +146,7 @@ const schemas = {
     customerName: personName,
     customerEmail: emailSchema,
     customerPhone: phMobile,
-    shippingAddress: text(5, 200),
+    shippingAddress: text(5, 100),
     city: cityName,
     barangay: barangayName,
     postalCode: phPostalCode,
@@ -130,6 +174,8 @@ const schemas = {
   }),
   key: z.string().regex(/^[A-Za-z0-9_-]{16,100}$/),
   uuid: z.uuid(),
+  slug,
+  voucherCode: voucherCodeSchema,
 
   // Auth & Customer Account Schemas
   register: z
@@ -166,7 +212,7 @@ const schemas = {
     email: emailSchema,
     phone: phMobile,
     birthday: birthdaySchema,
-    defaultAddress: defaultAddressSchema.optional(),
+    defaultAddress: defaultAddressSchema.nullable().optional(),
   }),
   changePassword: z
     .strictObject({
@@ -182,12 +228,104 @@ const schemas = {
     password: z.string().min(1, { error: 'Enter your password to confirm.' }).max(72),
     confirmation: z.literal('DELETE', { error: 'Type DELETE exactly to confirm.' }),
   }),
+
+  // Admin Schemas
+  adminLogin: z.strictObject({
+    identifier: z.string().trim().max(254).optional(),
+    password: z.string().min(1, { error: 'Enter your admin password.' }).max(128),
+  }),
+  adminOrderAction: z.strictObject({
+    action: z.enum(['ship', 'out_for_delivery', 'complete', 'cancel']),
+    reason: z.string().trim().min(2).max(300).optional(),
+  }),
+  adminStock: z.strictObject({
+    stock: z
+      .number({ error: 'Stock must be a valid number.' })
+      .int({ error: 'Stock must be a whole number.' })
+      .min(0, { error: 'Stock cannot be negative.' })
+      .max(100000, { error: 'Stock cannot exceed 100,000.' }),
+  }),
+  adminProductCreate: z.strictObject({
+    slug,
+    name: text(2, 100),
+    kind: z.enum(['single', 'bundle']),
+    price: z.number({ error: 'Enter a valid price.' }).min(0, { error: 'Price cannot be negative.' }).max(1000000),
+    stock: z.number().int().min(0).max(100000).optional(),
+    components: z.array(bundleComponentSchema).min(1, { error: 'Add at least one product to the bundle.' }).max(30).optional(),
+    active: z.boolean().optional().default(true),
+    description: z.string().trim().max(1000).optional().default(''),
+    badge: z.string().trim().max(30).optional().default(''),
+    badgeClass: z.enum(['', 'badge--pink', 'badge--purple', 'badge--mint', 'badge--peach']).optional().default(''),
+    image: imagePathSchema,
+    specs: z.record(z.string().trim().min(1).max(60), z.string().trim().min(1).max(300)).optional().default({}),
+    category: z.string().trim().max(40).optional(),
+  }),
+  adminProductUpdate: z.strictObject({
+    slug: slug.optional(),
+    kind: z.enum(['single', 'bundle']).optional(),
+    name: text(2, 100),
+    price: z.number({ error: 'Enter a valid price.' }).min(0, { error: 'Price cannot be negative.' }).max(1000000),
+    stock: z.number().int().min(0).max(100000).optional(),
+    components: z.array(bundleComponentSchema).min(1, { error: 'Add at least one product to the bundle.' }).max(30).optional(),
+    active: z.boolean().optional().default(true),
+    description: z.string().trim().max(1000).optional().default(''),
+    badge: z.string().trim().max(30).optional().default(''),
+    badgeClass: z.enum(['', 'badge--pink', 'badge--purple', 'badge--mint', 'badge--peach']).optional().default(''),
+    image: imagePathSchema,
+    specs: z.record(z.string().trim().min(1).max(60), z.string().trim().min(1).max(300)).optional().default({}),
+    category: z.string().trim().max(40).optional(),
+  }),
+  adminVoucherCreate: z
+    .strictObject({
+      code: voucherCodeSchema,
+      type: z.enum(['percentage', 'fixed_amount', 'free_shipping']),
+      value: z.number({ error: 'Enter a valid discount value.' }).min(0).max(100000),
+      minSpend: z.number({ error: 'Enter a valid minimum spend.' }).min(0).max(1000000).optional().default(0),
+      description: text(3, 200),
+      active: z.boolean().optional().default(true),
+    })
+    .superRefine(validateVoucherDiscount),
+  adminVoucherUpdate: z
+    .strictObject({
+      code: voucherCodeSchema.optional(),
+      type: z.enum(['percentage', 'fixed_amount', 'free_shipping']),
+      value: z.number({ error: 'Enter a valid discount value.' }).min(0).max(100000),
+      minSpend: z.number({ error: 'Enter a valid minimum spend.' }).min(0).max(1000000).optional().default(0),
+      description: text(3, 200),
+      active: z.boolean().optional().default(true),
+    })
+    .superRefine(validateVoucherDiscount),
+  adminUserCreate: z.strictObject({
+    username: usernameSchema,
+    fullName: personName.optional(),
+    email: emailSchema,
+    phone: phMobile,
+    birthday: birthdaySchema.optional().default('2000-01-01'),
+    password: passwordSchema,
+    role: z.enum(['customer', 'admin']).optional().default('customer'),
+    active: z.boolean().optional().default(true),
+  }),
+  adminUserUpdate: z.strictObject({
+    username: usernameSchema.optional(),
+    fullName: personName.optional(),
+    email: emailSchema.optional(),
+    phone: phMobile.optional().or(z.literal('')),
+    birthday: birthdaySchema.optional(),
+    role: z.enum(['customer', 'admin']).optional(),
+    active: z.boolean().optional(),
+    defaultAddress: defaultAddressSchema.nullable().optional(),
+  }),
+  adminUserPasswordReset: z.strictObject({
+    newPassword: passwordSchema,
+  }),
 };
 
 function parse(name, input) {
   const result = schemas[name].safeParse(input);
   if (!result.success) {
-    const fields = Object.fromEntries(result.error.issues.map((i) => [i.path.join('.') || name, i.message]));
+    const fields = Object.fromEntries(
+      result.error.issues.map((i) => [i.path.join('.') || name, i.message])
+    );
     const firstMessage = result.error.issues[0]?.message || 'Please check the submitted details.';
     fail(400, 'VALIDATION_ERROR', firstMessage, fields);
   }

@@ -519,6 +519,62 @@ export default function Shop() {
     [products]
   );
 
+  const catalogItems = useMemo(() => {
+    const knownSlugs = new Set(shopProducts.map((item) => item.slug));
+    const mergedKnown = shopProducts
+      .filter((item) => productsBySlug.has(item.slug))
+      .map((item) => {
+        const live = productsBySlug.get(item.slug);
+        return {
+          ...item,
+          name: live?.name || item.name,
+          description: live?.description || item.description,
+          badge: live?.badge ?? item.badge,
+          badgeClass: live?.badgeClass || item.badgeClass,
+          image: live?.image
+            ? live.image.startsWith('/') || live.image.startsWith('http')
+              ? live.image
+              : `/${live.image}`
+            : item.image,
+        };
+      });
+
+    const dynamicSingles = products
+      .filter((prod) => prod.kind === 'single' && !knownSlugs.has(prod.slug))
+      .map((prod, idx) => ({
+        slug: prod.slug,
+        edition: String(shopProducts.length + idx + 1).padStart(2, '0'),
+        featured: false,
+        name: prod.name,
+        shortName: prod.name.slice(0, 18),
+        category: 'bakery',
+        description:
+          prod.description ||
+          'Slow-rising memory foam squishy crafted for stress relief.',
+        spotlightCopy:
+          prod.description ||
+          'Slow-rising memory foam squishy crafted for stress relief.',
+        image: prod.image
+          ? prod.image.startsWith('/') || prod.image.startsWith('http')
+            ? prod.image
+            : `/${prod.image}`
+          : '/assets/images/product-dumpling.svg',
+        alt: `${prod.name} squishy`,
+        badge: prod.badge || 'New Drop',
+        badgeClass: prod.badgeClass || 'badge--pink',
+        riseTime: '40s Slow-Rise',
+        feel: 'Slow-Rising Foam',
+        scentNote: 'Sweet Vanilla',
+        softness: 96,
+        quote: 'Super squishy!',
+        aura: 'radial-gradient(circle at 50% 48%, rgba(255, 214, 232, 0.78), rgba(255, 130, 184, 0.25) 55%, transparent 75%)',
+        accentColor: '#ff9ac6',
+      }));
+
+    const combined = [...mergedKnown, ...dynamicSingles];
+    return combined.length > 0 ? combined : shopProducts;
+  }, [products, productsBySlug]);
+
   const spotlightItem = shopProducts[activeSlide] || shopProducts[0];
   const spotlightProduct = productsBySlug.get(spotlightItem.slug);
   const spotlightStock = Number(spotlightProduct?.stockQuantity ?? 100);
@@ -553,7 +609,7 @@ export default function Shop() {
   const visibleProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return shopProducts.filter((item) => {
+    return catalogItems.filter((item) => {
       const matchesCategory =
         category === 'all' || item.category === category;
 
@@ -565,7 +621,7 @@ export default function Shop() {
 
       return matchesCategory && matchesSearch;
     });
-  }, [search, category]);
+  }, [catalogItems, search, category]);
 
   const totalPages = Math.max(1, Math.ceil(visibleProducts.length / pageSize));
   const safePage = Math.min(page, totalPages);

@@ -5,6 +5,8 @@ const path = require('node:path');
 const { randomBytes, randomUUID, createHash } = require('node:crypto');
 const { createCommerce } = require('./commerce');
 const { createAuth } = require('./auth');
+const { createAdmin } = require('./admin');
+const { checkDatabaseHealth, pruneExpiredRecords } = require('./db');
 const { AppError, fail } = require('./errors');
 const { parse } = require('./validation');
 
@@ -50,6 +52,7 @@ function createApp({
   const app = express();
   const commerce = createCommerce(pool, { demoMode });
   const auth = createAuth(pool);
+  const admin = createAdmin(pool, { commerce, demoMode });
 
   const userCookieOptions = {
     httpOnly: true,
@@ -85,7 +88,12 @@ function createApp({
       if (!origins.includes(req.get('origin')) || req.get('sec-fetch-site') === 'cross-site') {
         return next(new AppError(403, 'ORIGIN_REJECTED', 'Request origin is not allowed.'));
       }
-      if (!req.is('application/json')) {
+      const hasBody = Boolean(
+        req.get('content-type') ||
+          (req.get('content-length') && req.get('content-length') !== '0') ||
+          req.get('transfer-encoding')
+      );
+      if ((req.method !== 'DELETE' || hasBody) && !req.is('application/json')) {
         return next(new AppError(415, 'JSON_REQUIRED', 'Send application/json.'));
       }
     }
@@ -97,8 +105,8 @@ function createApp({
   app.get(
     '/api/health',
     asyncRoute(async (req, res) => {
-      await pool.query('SELECT 1');
-      res.json({ success: true, data: { status: 'ok', service: 'Squishies API', demoMode } });
+      const database = await checkDatabaseHealth(pool);
+      res.json({ success: true, data: { status: 'ok', service: 'Squishies API', demoMode, database } });
     })
   );
 
@@ -117,8 +125,8 @@ function createApp({
         res.set('Retry-After', '60');
         fail(429, 'RATE_LIMITED', 'Too many requests. Please try again in a minute.');
       }
-      // Bound the shared limiter table without relying on a long-lived process.
-      await pool.query("DELETE FROM rate_limits WHERE expires_at < clock_timestamp()-interval '1 hour'");
+      // Bound the shared limiter and session tables without relying on a long-lived process.
+      await pruneExpiredRecords(pool).catch(() => {});
       next();
     })
   );
@@ -259,14 +267,24 @@ function createApp({
     '/api/account/profile',
     requireAuth,
     send(async (req) => ({
-      user: await auth.updateProfile(req.user.id, parse('updateProfile', req.body)),
+      user: await auth.updateProfile(
+        req.user.id,
+        parse('updateProfile', req.body),
+        req.guestId
+      ),
     }))
   );
 
   app.post(
     '/api/account/password',
     requireAuth,
-    send((req) => auth.changePassword(req.user.id, parse('changePassword', req.body)))
+    send((req) =>
+      auth.changePassword(
+        req.user.id,
+        parse('changePassword', req.body),
+        readCookie(req, 'squishies_user')
+      )
+    )
   );
 
   app.get(
@@ -288,19 +306,25 @@ function createApp({
   // =========================================================
   // STOREFRONT CATALOG, CHECKOUT, PAYMENTS & TRACKING
   // =========================================================
-  app.get('/api/products', sendPublicCached((req) => commerce.getProducts(null, req.query)));
+  app.get('/api/products', sendPublicCached((req) => commerce.getProducts(null, req.query), 0));
   app.get(
     '/api/products/:slug',
-    sendPublicCached(async (req) => (await commerce.getProducts(req.params.slug))[0])
+    sendPublicCached(async (req) => (await commerce.getProducts(req.params.slug))[0], 0)
   );
   app.get(
     '/api/vouchers/available',
     sendPublicCached(async () => {
       const { rows } = await pool.query(
-        'SELECT code,type,description FROM vouchers WHERE active=true ORDER BY code'
+        'SELECT code,type,value,min_spend_minor,description FROM vouchers WHERE active=true ORDER BY code'
       );
-      return rows;
-    }, 30)
+      return rows.map((row) => ({
+        code: row.code,
+        type: row.type,
+        value: row.type === 'fixed_amount' ? Number((row.value / 100).toFixed(2)) : row.value,
+        minSpend: Number((row.min_spend_minor / 100).toFixed(2)),
+        description: row.description,
+      }));
+    }, 0)
   );
 
   app.post('/api/checkout/quote', guest, send((req) => commerce.quote(req.guestId, parse('quote', req.body)), 201));
@@ -383,6 +407,172 @@ function createApp({
     '/api/reviews',
     guest,
     send((req) => commerce.addReview(req.guestId, parse('review', req.body), req.user?.id || null), 201)
+  );
+
+  // =========================================================
+  // ADMIN CONSOLE & USER MANAGEMENT ENDPOINTS
+  // =========================================================
+  const requireAdmin = asyncRoute(async (req, res, next) => {
+    req.admin = await admin.resolveAdmin(readCookie(req, 'squishies_admin'));
+    if (!req.admin) {
+      fail(401, 'ADMIN_AUTH_REQUIRED', 'Admin authentication is required.');
+    }
+    next();
+  });
+
+  app.get(
+    '/api/admin/session',
+    send((req) => admin.getSession(readCookie(req, 'squishies_admin')))
+  );
+
+  app.post(
+    '/api/admin/login',
+    asyncRoute(async (req, res) => {
+      const input = parse('adminLogin', req.body);
+      const { token, admin: adminData } = await admin.login(input);
+      res.cookie('squishies_admin', token, {
+        ...userCookieOptions,
+        maxAge: 12 * 3600000,
+      });
+      res.json({
+        success: true,
+        data: { authenticated: true, demoMode, admin: adminData },
+      });
+    })
+  );
+
+  app.post(
+    '/api/admin/logout',
+    asyncRoute(async (req, res) => {
+      await admin.logout(readCookie(req, 'squishies_admin'));
+      res.clearCookie('squishies_admin', userCookieOptions);
+      res.json({ success: true, data: { loggedOut: true } });
+    })
+  );
+
+  app.get('/api/admin/summary', requireAdmin, send(() => admin.getSummary()));
+
+  app.get('/api/admin/orders', requireAdmin, send((req) => admin.listOrders(req.query)));
+  app.get(
+    '/api/admin/orders/:number',
+    requireAdmin,
+    send((req) => admin.getOrder(req.params.number))
+  );
+  app.post(
+    '/api/admin/orders/:number/action',
+    requireAdmin,
+    send((req) =>
+      admin.orderAction(
+        req.params.number,
+        parse('adminOrderAction', req.body),
+        req.admin.actor
+      )
+    )
+  );
+
+  app.get('/api/admin/products', requireAdmin, send(() => admin.listProducts()));
+  app.post(
+    '/api/admin/products',
+    requireAdmin,
+    send(
+      (req) => admin.createProduct(parse('adminProductCreate', req.body), req.admin.actor),
+      201
+    )
+  );
+  app.put(
+    '/api/admin/products/:slug',
+    requireAdmin,
+    send((req) =>
+      admin.updateProduct(
+        req.params.slug,
+        parse('adminProductUpdate', req.body),
+        req.admin.actor
+      )
+    )
+  );
+  app.patch(
+    '/api/admin/products/:slug/stock',
+    requireAdmin,
+    send((req) =>
+      admin.updateStock(req.params.slug, parse('adminStock', req.body), req.admin.actor)
+    )
+  );
+  app.delete(
+    '/api/admin/products/:slug',
+    requireAdmin,
+    send((req) => admin.deleteProduct(req.params.slug, req.admin.actor))
+  );
+
+  app.get('/api/admin/vouchers', requireAdmin, send(() => admin.listVouchers()));
+  app.post(
+    '/api/admin/vouchers',
+    requireAdmin,
+    send(
+      (req) => admin.createVoucher(parse('adminVoucherCreate', req.body), req.admin.actor),
+      201
+    )
+  );
+  app.put(
+    '/api/admin/vouchers/:code',
+    requireAdmin,
+    send((req) =>
+      admin.updateVoucher(
+        req.params.code,
+        parse('adminVoucherUpdate', req.body),
+        req.admin.actor
+      )
+    )
+  );
+  app.delete(
+    '/api/admin/vouchers/:code',
+    requireAdmin,
+    send((req) => admin.deleteVoucher(req.params.code, req.admin.actor))
+  );
+
+  app.get('/api/admin/reviews', requireAdmin, send((req) => admin.listReviews(req.query)));
+  app.delete(
+    '/api/admin/reviews/:id',
+    requireAdmin,
+    send((req) => admin.deleteReview(parse('uuid', req.params.id), req.admin.actor))
+  );
+
+  app.get('/api/admin/users', requireAdmin, send((req) => admin.listUsers(req.query)));
+  app.get(
+    '/api/admin/users/:id',
+    requireAdmin,
+    send((req) => admin.getUser(parse('uuid', req.params.id)))
+  );
+  app.post(
+    '/api/admin/users',
+    requireAdmin,
+    send((req) => admin.createUser(parse('adminUserCreate', req.body), req.admin.actor), 201)
+  );
+  app.patch(
+    '/api/admin/users/:id',
+    requireAdmin,
+    send((req) =>
+      admin.updateUser(
+        parse('uuid', req.params.id),
+        parse('adminUserUpdate', req.body),
+        req.admin
+      )
+    )
+  );
+  app.post(
+    '/api/admin/users/:id/reset-password',
+    requireAdmin,
+    send((req) =>
+      admin.resetUserPassword(
+        parse('uuid', req.params.id),
+        parse('adminUserPasswordReset', req.body),
+        req.admin.actor
+      )
+    )
+  );
+  app.delete(
+    '/api/admin/users/:id',
+    requireAdmin,
+    send((req) => admin.deleteUser(parse('uuid', req.params.id), req.admin))
   );
 
   app.use('/api', (req, res, next) => next(new AppError(404, 'NOT_FOUND', 'API endpoint not found.')));

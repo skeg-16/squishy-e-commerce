@@ -37,8 +37,17 @@ function serializeUser(row) {
     email: row.email,
     phone: row.phone || '',
     birthday: bday,
-    defaultAddress: row.default_address || {},
+    role: row.role || 'customer',
+    active: row.active !== false,
+    defaultAddress:
+      row.default_address &&
+      typeof row.default_address === 'object' &&
+      Object.keys(row.default_address).length > 0
+        ? row.default_address
+        : null,
+    lastLoginAt: row.last_login_at || null,
     createdAt: row.created_at,
+    updatedAt: row.updated_at || row.created_at,
   };
 }
 
@@ -49,7 +58,9 @@ function createAuth(pool) {
       `SELECT u.*
        FROM user_sessions s
        JOIN users u ON u.id = s.user_id
-       WHERE s.token_hash = $1 AND s.expires_at > clock_timestamp()`,
+       WHERE s.token_hash = $1
+         AND s.expires_at > clock_timestamp()
+         AND COALESCE(u.active, true) = true`,
       [digest(token)]
     );
     return serializeUser(user);
@@ -65,15 +76,24 @@ function createAuth(pool) {
   }
 
   async function claimGuestOrders(q, userId, email, guestId) {
-    if (!guestId) return;
-    await q.query(
-      `UPDATE orders
-       SET user_id = $1
-       WHERE user_id IS NULL
-         AND guest_id = $2
-         AND lower(COALESCE(customer->>'customerEmail', '')) = lower($3)`,
-      [userId, guestId, email]
-    );
+    if (!guestId && !email) return;
+    if (guestId) {
+      await q.query(
+        `UPDATE orders
+         SET user_id = $1
+         WHERE user_id IS NULL
+           AND (guest_id = $2 OR lower(COALESCE(customer->>'customerEmail', '')) = lower($3))`,
+        [userId, guestId, email || '']
+      );
+    } else if (email) {
+      await q.query(
+        `UPDATE orders
+         SET user_id = $1
+         WHERE user_id IS NULL
+           AND lower(COALESCE(customer->>'customerEmail', '')) = lower($2)`,
+        [userId, email]
+      );
+    }
   }
 
   async function register(input, guestId = null) {
@@ -101,8 +121,8 @@ function createAuth(pool) {
       const userId = randomUUID();
       const passwordHash = hashPassword(input.password);
       const { rows: [created] } = await q.query(
-        `INSERT INTO users(id, username, email, password_hash, phone, birthday)
-         VALUES($1, $2, $3, $4, $5, $6)
+        `INSERT INTO users(id, username, email, password_hash, phone, birthday, role, active, last_login_at)
+         VALUES($1, $2, $3, $4, $5, $6, 'customer', true, clock_timestamp())
          RETURNING *`,
         [userId, input.username, input.email.toLowerCase(), passwordHash, input.phone, input.birthday]
       );
@@ -126,15 +146,24 @@ function createAuth(pool) {
       });
     }
 
+    if (row.active === false) {
+      fail(403, 'ACCOUNT_SUSPENDED', 'This account has been suspended by the store administrator.', {
+        identifier: 'Account is currently suspended.',
+      });
+    }
+
     return transaction(pool, async (q) => {
       await claimGuestOrders(q, row.id, row.email, guestId);
-      // Trim old sessions if user accumulated many
       await q.query(
         `DELETE FROM user_sessions WHERE user_id = $1 AND expires_at <= clock_timestamp()`,
         [row.id]
       );
+      const { rows: [updated] } = await q.query(
+        `UPDATE users SET last_login_at = clock_timestamp() WHERE id = $1 RETURNING *`,
+        [row.id]
+      );
       const token = await issueSession(q, row.id);
-      return { user: serializeUser(row), token };
+      return { user: serializeUser(updated || row), token };
     });
   }
 
@@ -158,17 +187,22 @@ function createAuth(pool) {
         fail(404, 'IDENTITY_MISMATCH', 'No account matched that username, email, and birthday combination.');
       }
 
+      if (user.active === false) {
+        fail(403, 'ACCOUNT_SUSPENDED', 'This account is suspended and cannot reset its password.');
+      }
+
       const nextHash = hashPassword(input.newPassword);
       await q.query(
         `UPDATE users SET password_hash = $2, updated_at = clock_timestamp() WHERE id = $1`,
         [user.id, nextHash]
       );
       await q.query('DELETE FROM user_sessions WHERE user_id = $1', [user.id]);
+      await q.query('DELETE FROM admin_sessions WHERE user_id = $1', [user.id]);
       return { updated: true };
     });
   }
 
-  async function updateProfile(userId, input) {
+  async function updateProfile(userId, input, guestId = null) {
     return transaction(pool, async (q) => {
       const { rows: dupUsername } = await q.query(
         'SELECT 1 FROM users WHERE lower(username) = lower($1) AND id <> $2',
@@ -190,13 +224,20 @@ function createAuth(pool) {
         });
       }
 
+      const shouldClearAddress = input.defaultAddress === null;
+      const shouldUpdateAddress = input.defaultAddress !== undefined && input.defaultAddress !== null;
+
       const { rows: [updated] } = await q.query(
         `UPDATE users
          SET username = $2,
              email = $3,
              phone = $4,
              birthday = $5::date,
-             default_address = COALESCE($6::jsonb, default_address),
+             default_address = CASE
+               WHEN $6::boolean THEN '{}'::jsonb
+               WHEN $7::jsonb IS NOT NULL THEN $7::jsonb
+               ELSE default_address
+             END,
              updated_at = clock_timestamp()
          WHERE id = $1
          RETURNING *`,
@@ -206,16 +247,18 @@ function createAuth(pool) {
           input.email.toLowerCase(),
           input.phone,
           input.birthday,
-          input.defaultAddress ? JSON.stringify(input.defaultAddress) : null,
+          shouldClearAddress,
+          shouldUpdateAddress ? JSON.stringify(input.defaultAddress) : null,
         ]
       );
 
       if (!updated) fail(404, 'NOT_FOUND', 'Account not found.');
+      await claimGuestOrders(q, userId, updated.email, guestId);
       return serializeUser(updated);
     });
   }
 
-  async function changePassword(userId, input) {
+  async function changePassword(userId, input, currentToken = null) {
     return transaction(pool, async (q) => {
       const { rows: [user] } = await q.query(
         'SELECT * FROM users WHERE id = $1 FOR UPDATE',
@@ -231,6 +274,13 @@ function createAuth(pool) {
         'UPDATE users SET password_hash = $2, updated_at = clock_timestamp() WHERE id = $1',
         [userId, hashPassword(input.newPassword)]
       );
+      // Revoke all other active sessions for this user while keeping current session active
+      if (currentToken && /^[a-f0-9]{64}$/.test(currentToken)) {
+        await q.query(
+          'DELETE FROM user_sessions WHERE user_id = $1 AND token_hash <> $2',
+          [userId, digest(currentToken)]
+        );
+      }
       return { updated: true };
     });
   }
@@ -264,5 +314,4 @@ function createAuth(pool) {
   };
 }
 
-module.exports = { createAuth, hashPassword, verifyPassword };
-
+module.exports = { createAuth, hashPassword, verifyPassword, serializeUser };
