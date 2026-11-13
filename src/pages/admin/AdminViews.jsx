@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { adminApi, errorText } from '../../services/adminService';
 import PaginationBar from '../../components/PaginationBar';
+import {
+  sanitizePersonName,
+  sanitizePhPhone,
+  sanitizeUsername,
+  sanitizeEmail,
+  getPasswordStrength,
+  PERSON_NAME_REGEX,
+  USERNAME_REGEX,
+  PH_MOBILE_REGEX,
+  EMAIL_REGEX,
+} from '../../utils/validators';
 
 const STATUSES = [
   'To Pay',
@@ -88,12 +99,31 @@ function AdminTable({ headings, rows, emptyText }) {
   );
 }
 
-function AdminField({ label, hint, children, ...props }) {
+function AdminField({
+  label,
+  hint,
+  error,
+  attention,
+  children,
+  id,
+  className = '',
+  ...props
+}) {
   return (
-    <label className="adm-field" {...props}>
+    <label
+      className={`adm-field ${error ? 'is-invalid' : ''} ${attention ? 'is-error-attention' : ''} ${className}`.trim()}
+      htmlFor={id}
+      {...props}
+    >
       <span>{label}</span>
       {children}
-      {hint && <small>{hint}</small>}
+      {error ? (
+        <small className="adm-field-error" role="alert">
+          {error}
+        </small>
+      ) : hint ? (
+        <small>{hint}</small>
+      ) : null}
     </label>
   );
 }
@@ -1897,6 +1927,70 @@ function Users({
   );
 }
 
+function validateAdminUserFields({ username, fullName, email, phone, password, creating }) {
+  const errors = {};
+  const cleanUsername = String(username || '').trim();
+  const cleanFullName = String(fullName || '').trim();
+  const cleanEmail = String(email || '').trim();
+  const cleanPhone = String(phone || '').trim();
+  const cleanPass = String(password || '');
+
+  // Username
+  if (!cleanUsername) {
+    errors.username = 'Username is required.';
+  } else if (cleanUsername.length < 3) {
+    errors.username = 'Username must be at least 3 characters.';
+  } else if (cleanUsername.length > 28) {
+    errors.username = 'Username cannot exceed 28 characters.';
+  } else if (!USERNAME_REGEX.test(cleanUsername)) {
+    errors.username = 'Username can only contain letters, numbers, and underscores.';
+  }
+
+  // Full name
+  if (!cleanFullName) {
+    errors.fullName = 'Full name is required.';
+  } else if (cleanFullName.length < 2) {
+    errors.fullName = 'Full name must be at least 2 characters.';
+  } else if (cleanFullName.length > 60) {
+    errors.fullName = 'Full name cannot exceed 60 characters.';
+  } else if (!PERSON_NAME_REGEX.test(cleanFullName)) {
+    errors.fullName = 'Use letters only (no numbers or special characters).';
+  }
+
+  // Email
+  if (!cleanEmail) {
+    errors.email = 'Email address is required.';
+  } else if (cleanEmail.length > 80) {
+    errors.email = 'Email address cannot exceed 80 characters.';
+  } else if (!EMAIL_REGEX.test(cleanEmail)) {
+    errors.email = 'Enter a valid email address (e.g. name@domain.com).';
+  }
+
+  // Phone
+  if (!cleanPhone) {
+    errors.phone = 'Mobile number is required.';
+  } else if (!PH_MOBILE_REGEX.test(cleanPhone)) {
+    errors.phone = 'Contact number must be strictly 11 digits starting with 09.';
+  }
+
+  // Password (on create)
+  if (creating) {
+    if (!cleanPass) {
+      errors.password = 'Initial password is required.';
+    } else if (cleanPass.length < 8) {
+      errors.password = 'Password must be at least 8 characters.';
+    } else if (cleanPass.length > 72) {
+      errors.password = 'Password cannot exceed 72 characters.';
+    } else if (!/[A-Za-z]/.test(cleanPass)) {
+      errors.password = 'Password must contain at least one letter.';
+    } else if (!/\d/.test(cleanPass)) {
+      errors.password = 'Password must contain at least one number.';
+    }
+  }
+
+  return errors;
+}
+
 function openUserForm({
   user,
   request,
@@ -1919,9 +2013,23 @@ function openUserForm({
     const [orders, setOrders] = useState([]);
     const [loadingOrders, setLoadingOrders] = useState(!creating);
     const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [attentionField, setAttentionField] = useState('');
     const [saving, setSaving] = useState(false);
 
     const isSelf = Boolean(user && adminUser?.userId === user.id);
+    const pwdStrength = getPasswordStrength(password);
+
+    const clearError = (field) => {
+      setFieldErrors((prev) => {
+        if (!prev[field]) return prev;
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+      if (attentionField === field) setAttentionField('');
+      if (error) setError('');
+    };
 
     useEffect(() => {
       if (creating || !user?.id) return;
@@ -1944,6 +2052,30 @@ function openUserForm({
     async function submit(event) {
       event.preventDefault();
       setError('');
+      setAttentionField('');
+
+      const clientErrors = validateAdminUserFields({
+        username,
+        fullName,
+        email,
+        phone,
+        password,
+        creating,
+      });
+
+      if (Object.keys(clientErrors).length > 0) {
+        setFieldErrors(clientErrors);
+        const firstField = Object.keys(clientErrors)[0];
+        setAttentionField(firstField);
+        const inputEl = document.getElementById(`adm-user-${firstField}`);
+        if (inputEl) {
+          inputEl.focus();
+          inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setError('Please resolve the highlighted validation errors before saving.');
+        return;
+      }
+
       setSaving(true);
 
       try {
@@ -1953,7 +2085,7 @@ function openUserForm({
             body: {
               username: username.trim(),
               fullName: fullName.trim(),
-              email: email.trim(),
+              email: email.trim().toLowerCase(),
               phone: phone.trim(),
               password,
               role,
@@ -1967,7 +2099,7 @@ function openUserForm({
             body: {
               username: username.trim(),
               fullName: fullName.trim(),
-              email: email.trim(),
+              email: email.trim().toLowerCase(),
               phone: phone.trim(),
               role,
               active,
@@ -1978,6 +2110,16 @@ function openUserForm({
         closeDialog();
         refresh();
       } catch (err) {
+        if (err.fields && typeof err.fields === 'object') {
+          setFieldErrors(err.fields);
+          const firstField = Object.keys(err.fields)[0];
+          setAttentionField(firstField);
+          const inputEl = document.getElementById(`adm-user-${firstField}`);
+          if (inputEl) {
+            inputEl.focus();
+            inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
         setError(errorText(err));
       } finally {
         setSaving(false);
@@ -1985,69 +2127,142 @@ function openUserForm({
     }
 
     return (
-      <form className="adm-form" onSubmit={submit}>
+      <form className="adm-form" onSubmit={submit} noValidate>
         <div className="adm-form-row">
           <AdminField
+            id="adm-user-username"
             label="Username"
             hint="3–28 letters, numbers, or underscores."
+            error={fieldErrors.username}
+            attention={attentionField === 'username'}
           >
             <input
+              id="adm-user-username"
               type="text"
               required
-              minLength="3"
-              maxLength="28"
-              pattern="[A-Za-z0-9_]{3,28}"
+              minLength={3}
+              maxLength={28}
+              autoComplete="off"
               value={username}
-              onChange={(event) => setUsername(event.target.value)}
+              placeholder="e.g. jdelacruz"
+              className={fieldErrors.username ? 'is-invalid' : ''}
+              onChange={(event) => {
+                setUsername(sanitizeUsername(event.target.value));
+                clearError('username');
+              }}
             />
           </AdminField>
 
-          <AdminField label="Full name">
+          <AdminField
+            id="adm-user-fullName"
+            label="Full name"
+            hint="Letters only (2–60 characters)."
+            error={fieldErrors.fullName}
+            attention={attentionField === 'fullName'}
+          >
             <input
+              id="adm-user-fullName"
               type="text"
               required
-              minLength="2"
-              maxLength="80"
+              minLength={2}
+              maxLength={60}
+              autoComplete="name"
               value={fullName}
-              onChange={(event) => setFullName(event.target.value)}
+              placeholder="e.g. Juan Dela Cruz"
+              className={fieldErrors.fullName ? 'is-invalid' : ''}
+              onChange={(event) => {
+                setFullName(sanitizePersonName(event.target.value));
+                clearError('fullName');
+              }}
             />
           </AdminField>
         </div>
 
         <div className="adm-form-row">
-          <AdminField label="Email address">
+          <AdminField
+            id="adm-user-email"
+            label="Email address"
+            hint="Valid email address up to 80 characters."
+            error={fieldErrors.email}
+            attention={attentionField === 'email'}
+          >
             <input
+              id="adm-user-email"
               type="email"
               required
+              maxLength={80}
+              autoComplete="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              placeholder="name@example.com"
+              className={fieldErrors.email ? 'is-invalid' : ''}
+              onChange={(event) => {
+                setEmail(sanitizeEmail(event.target.value));
+                clearError('email');
+              }}
             />
           </AdminField>
 
-          <AdminField label="Mobile number (PH)">
+          <AdminField
+            id="adm-user-phone"
+            label="Mobile number (PH)"
+            hint="Strictly 11 digits starting with 09."
+            error={fieldErrors.phone}
+            attention={attentionField === 'phone'}
+          >
             <input
-              type="text"
+              id="adm-user-phone"
+              type="tel"
+              inputMode="numeric"
               required
+              maxLength={11}
               placeholder="09171234567"
+              autoComplete="tel"
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
+              className={fieldErrors.phone ? 'is-invalid' : ''}
+              onChange={(event) => {
+                setPhone(sanitizePhPhone(event.target.value));
+                clearError('phone');
+              }}
             />
           </AdminField>
         </div>
 
         {creating && (
           <AdminField
+            id="adm-user-password"
             label="Initial password"
             hint="At least 8 characters with letters and numbers."
+            error={fieldErrors.password}
+            attention={attentionField === 'password'}
           >
             <input
+              id="adm-user-password"
               type="password"
               required
-              minLength="8"
-              maxLength="128"
+              minLength={8}
+              maxLength={72}
+              autoComplete="new-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Create initial password"
+              className={fieldErrors.password ? 'is-invalid' : ''}
+              onChange={(event) => {
+                setPassword(event.target.value.slice(0, 72));
+                clearError('password');
+              }}
             />
+            {password.length > 0 && (
+              <div className="adm-password-meter" aria-hidden="true">
+                <div
+                  className={`adm-password-meter__bar is-${pwdStrength.tone}`}
+                  style={{
+                    width: `${Math.min(100, Math.max(15, pwdStrength.score * 20))}%`,
+                  }}
+                />
+                <span className={`adm-password-meter__label is-${pwdStrength.tone}`}>
+                  Strength: {pwdStrength.label}
+                </span>
+              </div>
+            )}
           </AdminField>
         )}
 
@@ -2117,7 +2332,26 @@ function openUserForm({
           </section>
         )}
 
-        {error && <p className="adm-error" role="alert">{error}</p>}
+        {error && (
+          <div className="adm-error-alert" role="alert">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
 
         <div className="adm-form-actions">
           <button
@@ -2154,22 +2388,72 @@ function openResetPasswordForm({
 }) {
   function ResetPasswordForm() {
     const [newPassword, setNewPassword] = useState('');
+    const [fieldError, setFieldError] = useState('');
+    const [attention, setAttention] = useState(false);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+
+    const pwdStrength = getPasswordStrength(newPassword);
 
     async function submit(event) {
       event.preventDefault();
       setError('');
+      setFieldError('');
+      setAttention(false);
+
+      const pass = newPassword.trim();
+      if (!pass) {
+        setFieldError('Password is required.');
+        setAttention(true);
+        const inputEl = document.getElementById('adm-reset-password');
+        if (inputEl) inputEl.focus();
+        return;
+      }
+      if (pass.length < 8) {
+        setFieldError('Password must be at least 8 characters.');
+        setAttention(true);
+        const inputEl = document.getElementById('adm-reset-password');
+        if (inputEl) inputEl.focus();
+        return;
+      }
+      if (pass.length > 72) {
+        setFieldError('Password cannot exceed 72 characters.');
+        setAttention(true);
+        const inputEl = document.getElementById('adm-reset-password');
+        if (inputEl) inputEl.focus();
+        return;
+      }
+      if (!/[A-Za-z]/.test(pass)) {
+        setFieldError('Password must contain at least one letter.');
+        setAttention(true);
+        const inputEl = document.getElementById('adm-reset-password');
+        if (inputEl) inputEl.focus();
+        return;
+      }
+      if (!/\d/.test(pass)) {
+        setFieldError('Password must contain at least one number.');
+        setAttention(true);
+        const inputEl = document.getElementById('adm-reset-password');
+        if (inputEl) inputEl.focus();
+        return;
+      }
+
       setSaving(true);
 
       try {
         await request(`/users/${encodeURIComponent(user.id)}/reset-password`, {
           method: 'POST',
-          body: { newPassword },
+          body: { newPassword: pass },
         });
         closeDialog();
         showToast(`Password reset for @${user.username}.`);
       } catch (err) {
+        if (err.fields?.newPassword) {
+          setFieldError(err.fields.newPassword);
+          setAttention(true);
+          const inputEl = document.getElementById('adm-reset-password');
+          if (inputEl) inputEl.focus();
+        }
         setError(errorText(err));
       } finally {
         setSaving(false);
@@ -2177,27 +2461,70 @@ function openResetPasswordForm({
     }
 
     return (
-      <form className="adm-form" onSubmit={submit}>
+      <form className="adm-form" onSubmit={submit} noValidate>
         <p className="adm-muted" style={{ margin: 0 }}>
-          Set a new password for <strong>{user.fullName}</strong> (@{user.username}).
+          Set a new password for <strong>{user.fullName || `@${user.username}`}</strong> (@{user.username}).
           All active sessions for this user will be signed out immediately.
         </p>
 
         <AdminField
+          id="adm-reset-password"
           label="New password"
           hint="At least 8 characters with letters and numbers."
+          error={fieldError}
+          attention={attention}
         >
           <input
+            id="adm-reset-password"
             type="password"
             required
-            minLength="8"
-            maxLength="128"
+            minLength={8}
+            maxLength={72}
             value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
+            placeholder="Enter new password"
+            className={fieldError ? 'is-invalid' : ''}
+            onChange={(event) => {
+              setNewPassword(event.target.value.slice(0, 72));
+              if (fieldError) setFieldError('');
+              if (attention) setAttention(false);
+              if (error) setError('');
+            }}
           />
+          {newPassword.length > 0 && (
+            <div className="adm-password-meter" aria-hidden="true">
+              <div
+                className={`adm-password-meter__bar is-${pwdStrength.tone}`}
+                style={{
+                  width: `${Math.min(100, Math.max(15, pwdStrength.score * 20))}%`,
+                }}
+              />
+              <span className={`adm-password-meter__label is-${pwdStrength.tone}`}>
+                Strength: {pwdStrength.label}
+              </span>
+            </div>
+          )}
         </AdminField>
 
-        {error && <p className="adm-error" role="alert">{error}</p>}
+        {error && (
+          <div className="adm-error-alert" role="alert">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
 
         <div className="adm-form-actions">
           <button

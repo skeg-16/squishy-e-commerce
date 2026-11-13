@@ -95,7 +95,10 @@ async function embedded({ directory, port, password, persistent = false } = {}) 
         } catch {}
       }
       if (!persistent) {
-        await rm(base, { recursive: true, force: true }).catch(() => {});
+        await Promise.race([
+          rm(base, { recursive: true, force: true }).catch(() => {}),
+          new Promise((r) => setTimeout(r, 1000)),
+        ]);
       }
     },
   };

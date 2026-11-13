@@ -85,7 +85,18 @@ function createApp({
     req.requestId = randomUUID();
     res.set('X-Request-ID', req.requestId).set('Cache-Control', 'no-store');
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-      if (!origins.includes(req.get('origin')) || req.get('sec-fetch-site') === 'cross-site') {
+      const originHeader = req.get('origin');
+      const isVercelOrigin =
+        Boolean(process.env.VERCEL) &&
+        originHeader &&
+        (() => {
+          try {
+            return new URL(originHeader).hostname.endsWith('.vercel.app');
+          } catch {
+            return false;
+          }
+        })();
+      if ((!origins.includes(originHeader) && !isVercelOrigin) || req.get('sec-fetch-site') === 'cross-site') {
         return next(new AppError(403, 'ORIGIN_REJECTED', 'Request origin is not allowed.'));
       }
       const hasBody = Boolean(

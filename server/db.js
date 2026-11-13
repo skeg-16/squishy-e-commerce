@@ -6,8 +6,12 @@ function resolveConnectionString(explicitUrl) {
   if (explicitUrl && !explicitUrl.includes('USER:PASSWORD@HOST')) {
     return explicitUrl;
   }
-  if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('USER:PASSWORD@HOST')) {
-    return process.env.DATABASE_URL;
+  const envUrl =
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL;
+  if (envUrl && !envUrl.includes('USER:PASSWORD@HOST')) {
+    return envUrl;
   }
   const demoEnvPath = path.join(__dirname, '../.local/demo.env');
   try {

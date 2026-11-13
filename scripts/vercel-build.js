@@ -42,5 +42,21 @@ for (const legacyHtml of ['about.html', 'checkout.html', 'product.html', 'shop.h
   }
 }
 
+// 5. If a database is connected, automatically migrate and seed during deployment build
+const hasDb =
+  (process.env.DATABASE_URL || process.env.POSTGRES_URL) &&
+  !String(process.env.DATABASE_URL || '').includes('USER:PASSWORD@HOST');
+
+if (hasDb) {
+  try {
+    console.log('Running database migrations and seed for Vercel...');
+    run('node scripts/database.js migrate');
+    run('node scripts/database.js seed');
+    console.log('Database migrated & seeded successfully.');
+  } catch (err) {
+    console.warn('Database migration during build skipped or failed:', err.message);
+  }
+}
+
 console.log('Vercel combined Storefront + Admin build ready in dist/');
 

@@ -60,6 +60,7 @@ export async function adminApi(path, { method = 'GET', body, forceRefresh = fals
         new Error(json.error || 'Request failed.'),
         {
           status: response.status,
+          code: json.code,
           fields: json.fields,
         }
       );

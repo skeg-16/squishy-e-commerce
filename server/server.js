@@ -21,10 +21,14 @@ function getApp() {
       process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`,
       process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
     ].filter(Boolean);
-    if (!process.env.VERCEL) origins.push(`http://localhost:${port}`, `http://127.0.0.1:${port}`, 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174');
+    if (!process.env.VERCEL) {
+      origins.push(`http://localhost:${port}`, `http://127.0.0.1:${port}`, 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174');
+    } else if (!origins.length) {
+      origins.push('https://*.vercel.app');
+    }
     if (!origins.length) throw new Error('APP_ORIGIN must be configured.');
     const pool = createPool();
-    app = createApp({ pool, demoMode: process.env.DEMO_MODE === 'true', origins,
+    app = createApp({ pool, demoMode: process.env.DEMO_MODE !== 'false', origins,
       secureCookies: Boolean(process.env.VERCEL) || origins.every(o => o.startsWith('https://')), serveStatic: !process.env.VERCEL, serveReact: !process.env.VERCEL });
   }
   return app;

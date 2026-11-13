@@ -478,6 +478,119 @@ button.adm-stat:hover { transform: translateY(-2px); }
   outline-offset: 2px;
 }
 
+/* Field Validation & Error States */
+
+.adm-field.is-invalid input,
+.adm-field.is-invalid select,
+.adm-field.is-invalid textarea,
+.adm-app input.is-invalid,
+.adm-app select.is-invalid,
+.adm-app textarea.is-invalid {
+  border-color: #f43f5e !important;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.28) !important;
+  background: rgba(244, 63, 94, 0.08) !important;
+}
+
+.adm-field-error {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fda4af !important;
+  margin-top: 5px;
+  line-height: 1.35;
+}
+
+.adm-field.is-error-attention {
+  animation: admFieldShake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes admFieldShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-5px);
+  }
+  40%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.adm-error-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(225, 29, 72, 0.16);
+  border: 1px solid rgba(244, 63, 94, 0.42);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fecdd3;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.adm-error-alert svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  stroke: #fb7185;
+}
+
+.adm-password-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.adm-password-meter__bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.adm-password-meter__bar.is-weak {
+  background: #f43f5e;
+}
+
+.adm-password-meter__bar.is-fair {
+  background: #f59e0b;
+}
+
+.adm-password-meter__bar.is-good {
+  background: #38bdf8;
+}
+
+.adm-password-meter__bar.is-strong {
+  background: #10b981;
+}
+
+.adm-password-meter__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.adm-password-meter__label.is-weak {
+  color: #fda4af;
+}
+
+.adm-password-meter__label.is-fair {
+  color: #fde68a;
+}
+
+.adm-password-meter__label.is-good {
+  color: #bae6fd;
+}
+
+.adm-password-meter__label.is-strong {
+  color: #a7f3d0;
+}
+
 .adm-check {
   color: #fff8fc;
 }
