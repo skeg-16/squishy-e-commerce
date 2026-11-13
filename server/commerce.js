@@ -1,6 +1,7 @@
 const { randomUUID, createHash } = require('node:crypto');
 const { transaction } = require('./db');
 const { fail } = require('./errors');
+const { sendOrderReceiptEmail } = require('./email');
 
 const REGIONS = {
   'metro-manila': { rate: 6000, minDays: 1, maxDays: 2, label: 'Metro Manila' },
@@ -430,7 +431,13 @@ function createCommerce(pool, { demoMode = false } = {}) {
           ? 'COD order confirmed; seller is preparing your squishy parcel.'
           : 'Inventory reserved for 15 minutes while wallet/card payment is pending.'
       );
-      return serialize(q, order);
+      const serialized = await serialize(q, order);
+      if (paymentMethod === 'cod') {
+        sendOrderReceiptEmail(serialized).catch((err) =>
+          console.warn('[Order Email] Error:', err.message)
+        );
+      }
+      return serialized;
     });
   }
 
@@ -646,7 +653,13 @@ function createCommerce(pool, { demoMode = false } = {}) {
           ? `Simulated ${channelLabel} payment confirmed${accountSuffix}. Seller is now packing your parcel.`
           : `Simulated ${channelLabel} payment ${outcome}. No money was transferred.`
       );
-      return { ...paymentView(updated), order: await serialize(q, current) };
+      const serializedOrder = await serialize(q, current);
+      if (outcome === 'success') {
+        sendOrderReceiptEmail(serializedOrder).catch((err) =>
+          console.warn('[Payment Email] Error:', err.message)
+        );
+      }
+      return { ...paymentView(updated), order: serializedOrder };
     }).then((result) => {
       if (result.expired) fail(409, 'RESERVATION_EXPIRED', 'Payment reservation expired.');
       return result;
