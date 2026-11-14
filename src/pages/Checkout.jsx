@@ -756,167 +756,354 @@ function OrderReceipt({
     }
   }
 
+  const displayStatus = stage === 'out_for_delivery' ? 'Out for Delivery' : order.status;
+  const statusSlug = String(displayStatus || '').toLowerCase().replace(/\s+/g, '-');
+  const totalQuantity = (order.items || []).reduce(
+    (sum, item) => sum + Number(item.quantity || 1),
+    0
+  );
+
+  const statusHeadline = isCancelled
+    ? 'This order was cancelled'
+    : isCompleted
+      ? 'Parcel delivered & order completed'
+      : stage === 'out_for_delivery'
+        ? 'Your squishy parcel is out for delivery'
+        : hasShipped
+          ? 'Your squishy parcel is in transit'
+          : order.status === 'To Pay'
+            ? 'Awaiting payment authorization'
+            : 'Preparing your squishy parcel for dispatch';
+
   return (
     <div className="shopee-order-view">
-      <div className="shopee-receipt-card">
-        <div className="shopee-receipt-header">
-          <div className={`shopee-status-badge badge-${String(order.status || '').toLowerCase().replace(/\s+/g, '-')}`}>
-            Order Status: {stage === 'out_for_delivery' ? 'Out for Delivery' : order.status}
-          </div>
-          <p className="shopee-order-ref" style={{ overflowWrap: 'anywhere' }}>
-            Order Reference: {order.orderNumber}
-          </p>
-          <p className="shopee-tracking-ref" style={{ overflowWrap: 'anywhere' }}>
-            Tracking Code: {order.trackingNumber}
-          </p>
-        </div>
-
-        <div className="shopee-timeline shopee-timeline--five">
-          {milestones.map(([label, complete], index) => (
-            <div
-              className={`timeline-step${complete ? ' is-complete' : ''}`}
-              key={label}
-            >
-              <div className="step-icon">{index + 1}</div>
-              <span>{label}</span>
-            </div>
-          ))}
-        </div>
-
-        {nextDeliveryAction && (
-          <div className="delivery-simulator-bar">
-            <div className="delivery-simulator-bar__info">
-              <span className="delivery-sim-tag">Live Logistics Simulator</span>
-              <strong>
-                {order.status === 'To Ship'
-                  ? 'Ready for courier pickup'
-                  : stage === 'out_for_delivery'
-                    ? 'Rider is arriving at buyer address'
-                    : 'Parcel is moving through sortation hub'}
-              </strong>
-              <small>{nextDeliveryAction.helper}</small>
-            </div>
-            <button
-              type="button"
-              className="btn btn--pink"
-              disabled={advanceBusy}
-              onClick={() => onAdvanceDelivery(nextDeliveryAction.stage)}
-            >
-              {advanceBusy ? 'Updating Logistics...' : `${nextDeliveryAction.label} →`}
-            </button>
-          </div>
-        )}
-
-        <div className="shopee-info-grid">
-          <div className="shopee-info-box">
-            <h4>Shipping Address</h4>
-            <p><strong>{order.customerName}</strong> ({order.customerPhone})</p>
-            <p>
-              {order.shippingAddress}, Brgy. {order.barangay}, {order.city},{' '}
-              {order.postalCode}
-            </p>
-          </div>
-
-          <div className="shopee-info-box">
-            <h4>Payment Details</h4>
-            <p>
-              Method: <strong>{order.paymentMethod.toUpperCase()}</strong>
-              {order.paymentDetails?.maskedAccount
-                ? ` (${order.paymentDetails.maskedAccount})`
-                : ''}
-            </p>
-            <p>Status: <strong>{order.paymentStatus}</strong></p>
-            {order.paymentReference && (
-              <p>Gateway Ref: <code>{order.paymentReference}</code></p>
-            )}
-            {order.canPay && order.expiresAt && (
-              <p>
-                Reservation expires:{' '}
-                {new Date(order.expiresAt).toLocaleString('en-PH')}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="shopee-financial-box">
-          {(order.items || []).map((item, index) => (
-            <FinancialRow
-              key={`${item.slug || item.name}-${index}`}
-              label={`${item.name} × ${item.quantity}`}
-              value={formatPeso(item.subtotal)}
-            />
-          ))}
-          <FinancialRow label="Subtotal" value={formatPeso(order.subtotal)} />
-          <FinancialRow
-            label="Shipping"
-            value={order.shippingFee ? formatPeso(order.shippingFee) : 'Free'}
-          />
-          {order.voucherDiscount > 0 && (
-            <FinancialRow
-              label={`Voucher (${order.voucherCode})`}
-              value={`−${formatPeso(order.voucherDiscount)}`}
-            />
-          )}
-          {order.shippingDiscount > 0 && (
-            <FinancialRow
-              label="Shipping savings (already included)"
-              value={formatPeso(order.shippingDiscount)}
-            />
-          )}
-          <FinancialRow
-            label="Total"
-            value={formatPeso(order.total)}
-            total
-          />
-        </div>
-
-        <div className="shopee-actions">
-          {order.canPay && (
-            <button className="btn btn--pink" onClick={onPay}>
-              Pay Now via {order.paymentMethod.toUpperCase()} →
-            </button>
-          )}
-          <button type="button" className="btn btn--outline" onClick={onOpenReceipt}>
-            View / Print E-Receipt
-          </button>
-          {order.canCancel && (
-            <button className="btn btn--outline" onClick={onCancel}>
-              Cancel Order
-            </button>
-          )}
-          <button className="btn btn--outline" onClick={onRefresh}>
-            Refresh Status
-          </button>
-          <Link to="/shop.html" className="btn btn--pink">
-            Continue Shopping →
-          </Link>
-        </div>
-
-        <details className="order-activity" open>
-          <summary>Courier &amp; Order Timeline</summary>
-          <ol>
-            {(order.events || []).map((event, index) => (
-              <li key={`${event.timestamp}-${index}`}>
-                <strong>{event.status}</strong> — {new Date(event.timestamp).toLocaleString('en-PH')} —{' '}
-                {event.description}
-              </li>
-            ))}
-          </ol>
-        </details>
+      {/* Top Breadcrumb Bar */}
+      <div className="order-top-nav">
+        <Link to="/account?mode=orders" className="order-nav-back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>My Purchases</span>
+        </Link>
+        <Link to="/shop.html" className="order-nav-shop">
+          <span>Continue Shopping</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
       </div>
 
-      {order.status === 'Completed' && (
-        <ReviewForm order={order} onReview={onReview} />
-      )}
+      <div className="shopee-receipt-card">
+        {/* Hero Status Banner */}
+        <div className="shopee-receipt-header order-hub-banner">
+          <div className="order-hub-banner__info">
+            <div className="order-hub-banner__badges">
+              <div className={`shopee-status-badge badge-${statusSlug}`}>
+                <span className="status-dot" aria-hidden="true" />
+                <span>Order Status: {displayStatus}</span>
+              </div>
+              <span className="order-payment-pill">
+                {order.paymentMethod.toUpperCase()} • {order.paymentStatus}
+              </span>
+            </div>
+
+            <h1 className="order-hub-banner__title">{statusHeadline}</h1>
+
+            <div className="order-meta-pills">
+              <p className="shopee-order-ref">
+                <span>Order Reference:</span>
+                <code>{order.orderNumber}</code>
+              </p>
+              <p className="shopee-tracking-ref">
+                <span>Tracking Code:</span>
+                <code>{order.trackingNumber}</code>
+              </p>
+            </div>
+          </div>
+
+          <div className="shopee-actions order-hub-banner__actions">
+            {order.canPay && (
+              <button type="button" className="btn btn--pink btn--sm" onClick={onPay}>
+                Pay Now via {order.paymentMethod.toUpperCase()} →
+              </button>
+            )}
+            <button type="button" className="btn btn--outline btn--sm" onClick={onOpenReceipt}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="2" />
+              </svg>
+              <span>View / Print E-Receipt</span>
+            </button>
+            <button type="button" className="btn btn--outline btn--sm" onClick={onRefresh}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span>Refresh Status</span>
+            </button>
+            {order.canCancel && (
+              <button type="button" className="btn btn--danger btn--sm" onClick={onCancel}>
+                Cancel Order
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 5-Step Shopee Fulfillment Progress Tracker */}
+        <div className="order-tracker-panel">
+          <div className="shopee-timeline shopee-timeline--five">
+            {milestones.map(([label, complete], index) => {
+              const isCurrent =
+                complete &&
+                (index === milestones.length - 1 || !milestones[index + 1][1]);
+              return (
+                <div
+                  className={`timeline-step${complete ? ' is-complete' : ''}${isCurrent ? ' is-current' : ''}`}
+                  key={label}
+                >
+                  <div className="step-icon">
+                    {complete ? (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+                  <div className="timeline-step__text">
+                    <small>Step {index + 1}</small>
+                    <span>{label}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {nextDeliveryAction && (
+            <div className="delivery-simulator-bar">
+              <div className="delivery-simulator-bar__info">
+                <span className="delivery-sim-tag">Live Logistics Simulator</span>
+                <strong>
+                  {order.status === 'To Ship'
+                    ? 'Ready for courier pickup'
+                    : stage === 'out_for_delivery'
+                      ? 'Rider is arriving at buyer address'
+                      : 'Parcel is moving through sortation hub'}
+                </strong>
+                <small>{nextDeliveryAction.helper}</small>
+              </div>
+              <button
+                type="button"
+                className="btn btn--pink"
+                disabled={advanceBusy}
+                onClick={() => onAdvanceDelivery(nextDeliveryAction.stage)}
+              >
+                {advanceBusy ? 'Updating Logistics...' : `${nextDeliveryAction.label} →`}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 2-Column Main Order Grid */}
+        <div className="order-details-grid">
+          <div className="order-details-main">
+            {/* Ordered Items & Financial Breakdown */}
+            <div className="shopee-financial-box order-section-card">
+              <div className="order-section-head">
+                <div className="order-section-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                    <path d="M3 6h18M16 10a4 4 0 0 1-8 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h3>Ordered Squishies &amp; Payment Breakdown</h3>
+                  <p>{totalQuantity} {totalQuantity === 1 ? 'item' : 'items'} in this parcel</p>
+                </div>
+              </div>
+
+              <div className="order-items-breakdown">
+                {(order.items || []).map((item, index) => (
+                  <div
+                    className="order-line-item"
+                    key={`${item.slug || item.name}-${index}`}
+                  >
+                    <div className="order-line-item__left">
+                      <span className="order-line-item__qty">{item.quantity}×</span>
+                      <div>
+                        <strong>{item.name}</strong>
+                        <small>
+                          Unit price: {formatPeso(item.unitPrice || item.subtotal / (item.quantity || 1))}
+                        </small>
+                      </div>
+                    </div>
+                    <strong className="order-line-item__price">{formatPeso(item.subtotal)}</strong>
+                  </div>
+                ))}
+              </div>
+
+              <div className="order-totals-breakdown">
+                <FinancialRow label="Merchandise Subtotal" value={formatPeso(order.subtotal)} />
+                <FinancialRow
+                  label="Delivery Shipping"
+                  value={order.shippingFee ? formatPeso(order.shippingFee) : 'Free'}
+                  highlightFree={!order.shippingFee}
+                />
+                {order.voucherDiscount > 0 && (
+                  <FinancialRow
+                    label={`Voucher Discount (${order.voucherCode})`}
+                    value={`−${formatPeso(order.voucherDiscount)}`}
+                    discount
+                  />
+                )}
+                {order.shippingDiscount > 0 && (
+                  <FinancialRow
+                    label="Shipping savings (already included)"
+                    value={`−${formatPeso(order.shippingDiscount)}`}
+                    discount
+                  />
+                )}
+                <FinancialRow
+                  label="Total Paid / Payable"
+                  value={formatPeso(order.total)}
+                  total
+                />
+              </div>
+            </div>
+
+            {/* Courier & Order Activity Log */}
+            <details className="order-activity order-section-card" open>
+              <summary className="order-section-head order-activity__summary">
+                <div className="order-section-icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <rect x="1" y="3" width="15" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
+                    <path d="M16 8h4l3 3v5h-7V8z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                    <circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" strokeWidth="2" />
+                    <circle cx="18.5" cy="18.5" r="2.5" stroke="currentColor" strokeWidth="2" />
+                  </svg>
+                </div>
+                <div>
+                  <h3>Courier &amp; Order Timeline</h3>
+                  <p>Live timestamped fulfillment and rider dispatch events</p>
+                </div>
+              </summary>
+              <ol className="order-timeline-list">
+                {(order.events || []).map((event, index) => (
+                  <li key={`${event.timestamp}-${index}`} className="order-timeline-item">
+                    <span className="order-timeline-dot" aria-hidden="true" />
+                    <div className="order-timeline-content">
+                      <div className="order-timeline-top">
+                        <strong>{event.status}</strong>
+                        <time>{new Date(event.timestamp).toLocaleString('en-PH')}</time>
+                      </div>
+                      <p>{event.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </div>
+
+          {/* Right Column: Shipping Address, Payment Details & Verified Review */}
+          <div className="order-details-side">
+            <div className="shopee-info-grid order-side-stack">
+              <div className="shopee-info-box order-section-card">
+                <div className="order-section-head">
+                  <div className="order-section-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11z" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4>Shipping Address</h4>
+                    <p>Verified Philippine recipient &amp; delivery zone</p>
+                  </div>
+                </div>
+                <div className="order-info-rows">
+                  <div className="order-info-kv">
+                    <span>Recipient</span>
+                    <strong>{order.customerName}</strong>
+                  </div>
+                  <div className="order-info-kv">
+                    <span>Contact Phone</span>
+                    <strong>{order.customerPhone}</strong>
+                  </div>
+                  <div className="order-info-kv order-info-kv--block">
+                    <span>Delivery Street &amp; Barangay</span>
+                    <strong>
+                      {order.shippingAddress}, Brgy. {order.barangay}, {order.city}, {order.postalCode}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="shopee-info-box order-section-card">
+                <div className="order-section-head">
+                  <div className="order-section-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="5" width="20" height="14" rx="2.5" stroke="currentColor" strokeWidth="2" />
+                      <path d="M2 10h20M6 15h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4>Payment Details</h4>
+                    <p>Transaction method &amp; gateway audit record</p>
+                  </div>
+                </div>
+                <div className="order-info-rows">
+                  <div className="order-info-kv">
+                    <span>Method</span>
+                    <strong>
+                      {order.paymentMethod.toUpperCase()}
+                      {order.paymentDetails?.maskedAccount
+                        ? ` (${order.paymentDetails.maskedAccount})`
+                        : ''}
+                    </strong>
+                  </div>
+                  <div className="order-info-kv">
+                    <span>Payment Status</span>
+                    <strong className={`payment-status-chip is-${String(order.paymentStatus || '').toLowerCase()}`}>
+                      {order.paymentStatus}
+                    </strong>
+                  </div>
+                  {order.paymentReference && (
+                    <div className="order-info-kv">
+                      <span>Gateway Ref</span>
+                      <code className="order-gateway-code">{order.paymentReference}</code>
+                    </div>
+                  )}
+                  {order.canPay && order.expiresAt && (
+                    <div className="order-info-kv">
+                      <span>Reservation Expires</span>
+                      <strong>{new Date(order.expiresAt).toLocaleString('en-PH')}</strong>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {order.status === 'Completed' && (
+              <ReviewForm order={order} onReview={onReview} />
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-function FinancialRow({ label, value, total = false }) {
+function FinancialRow({ label, value, total = false, discount = false, highlightFree = false }) {
   return (
-    <div className={`financial-row${total ? ' financial-row--total' : ''}`}>
+    <div
+      className={`financial-row${total ? ' financial-row--total' : ''}${discount ? ' financial-row--discount' : ''}`}
+    >
       <span>{label}</span>
-      {total ? <strong>{value}</strong> : <span>{value}</span>}
+      {total ? (
+        <strong>{value}</strong>
+      ) : (
+        <span className={highlightFree ? 'financial-free-badge' : ''}>{value}</span>
+      )}
     </div>
   );
 }
@@ -929,12 +1116,14 @@ function ReviewForm({ order, onReview }) {
   const [rating, setRating] = useState('5');
   const [comment, setComment] = useState('');
   const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
     setBusy(true);
     setMessage('');
+    setIsError(false);
 
     try {
       await onReview({
@@ -945,17 +1134,29 @@ function ReviewForm({ order, onReview }) {
         comment: comment.trim(),
       });
       setMessage('Thank you! Your verified review was published.');
+      setIsError(false);
       setComment('');
     } catch (error) {
       setMessage(error.message || 'Could not submit your review.');
+      setIsError(true);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <form className="checkout-card squishy-glass-card" onSubmit={submit}>
-      <h2>Rate Your Verified Purchase</h2>
+    <form className="checkout-card squishy-glass-card order-section-card order-review-card" onSubmit={submit}>
+      <div className="order-section-head">
+        <div className="order-section-icon order-section-icon--star" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        </div>
+        <div>
+          <h2>Rate Your Verified Purchase</h2>
+          <p>Share how slow-rising your squishy is with fellow collectors</p>
+        </div>
+      </div>
 
       <div className="form-field">
         <label htmlFor="reviewProduct">Product</label>
@@ -987,9 +1188,25 @@ function ReviewForm({ order, onReview }) {
 
       <div className="form-field">
         <label htmlFor="reviewRating">Rating</label>
+        <div className="review-star-pills" role="group" aria-label="Choose star rating">
+          {[5, 4, 3, 2, 1].map((num) => {
+            const active = String(rating) === String(num);
+            return (
+              <button
+                key={num}
+                type="button"
+                className={`review-star-pill${active ? ' is-active' : ''}`}
+                onClick={() => setRating(String(num))}
+              >
+                <span className="review-star-pill__stars">{'★'.repeat(num)}</span>
+                <span>{num}.0</span>
+              </button>
+            );
+          })}
+        </div>
         <select
           id="reviewRating"
-          className="form-select"
+          className="form-select review-select-fallback"
           value={rating}
           onChange={(event) => setRating(event.target.value)}
         >
@@ -1014,8 +1231,12 @@ function ReviewForm({ order, onReview }) {
         />
       </div>
 
-      <p role="status">{message}</p>
-      <button className="btn btn--pink" type="submit" disabled={busy}>
+      {message && (
+        <p className={`review-status-banner${isError ? ' is-error' : ' is-success'}`} role="status">
+          {message}
+        </p>
+      )}
+      <button className="btn btn--pink btn--full" type="submit" disabled={busy}>
         {busy ? 'Submitting…' : 'Submit Verified Review'}
       </button>
     </form>
@@ -1491,12 +1712,20 @@ export default function Checkout() {
     return (
       <main className="checkout-jelly">
         <div className="container checkout-page">
-          <p>{error || 'Loading your order…'}</p>
-          {error && (
-            <button className="btn btn--pink" onClick={() => window.location.reload()}>
-              Retry loading order
-            </button>
-          )}
+          <div className="checkout-empty squishy-checkout-empty">
+            <h2>{error ? 'Could Not Load Order' : 'Loading Your Squishy Order…'}</h2>
+            <p>{error || `Fetching live status and tracking details for ${orderNumber}…`}</p>
+            {error && (
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className="btn btn--pink" onClick={() => window.location.reload()}>
+                  Retry loading order
+                </button>
+                <Link to="/account?mode=orders" className="btn btn--outline">
+                  Go to My Purchases
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     );

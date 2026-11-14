@@ -8653,6 +8653,10 @@ html[data-theme="dark"] .siso-tab-button.is-active {
 }
 
 /* Checkout page (.checkout-jelly) */
+html[data-theme="dark"] body {
+  background-color: #160924 !important;
+}
+
 html[data-theme="dark"] .checkout-jelly {
   --shop-ink: #fff4fb;
   --shop-muted: #ebd0e5;
@@ -8661,7 +8665,7 @@ html[data-theme="dark"] .checkout-jelly {
     radial-gradient(ellipse at 86% 28%, rgba(124, 48, 186, 0.34), transparent 50%),
     radial-gradient(ellipse at 50% 96%, rgba(190, 44, 118, 0.22), transparent 55%),
     linear-gradient(135deg, #160924 0%, #26103b 48%, #381442 100%) !important;
-  background-attachment: fixed !important;
+  background-attachment: scroll !important;
 }
 
 html[data-theme="dark"] .checkout-jelly .checkout-card.squishy-glass-card,
@@ -8723,7 +8727,7 @@ html[data-theme="dark"] .account-jelly {
     radial-gradient(ellipse at 86% 28%, rgba(124, 48, 186, 0.34), transparent 50%),
     radial-gradient(ellipse at 50% 96%, rgba(190, 44, 118, 0.22), transparent 55%),
     linear-gradient(135deg, #160924 0%, #26103b 48%, #381442 100%) !important;
-  background-attachment: fixed !important;
+  background-attachment: scroll !important;
 }
 
 html[data-theme="dark"] .account-card {
@@ -9245,23 +9249,29 @@ html[data-theme="dark"] .footer__by {
 }
 
 .account-order-card {
-  padding: 16px 18px;
+  padding: 18px 20px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1.5px solid rgba(130, 88, 150, 0.22);
-  color: #2f173c;
-  box-shadow: 0 8px 22px rgba(32, 12, 48, 0.14);
+  background: rgba(20, 7, 34, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff8fc;
+  box-shadow: 0 10px 26px rgba(18, 5, 30, 0.22);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.account-order-card:hover {
+  border-color: rgba(244, 114, 182, 0.48);
 }
 
 .account-order-card .btn--outline {
-  color: #831843 !important;
-  border-color: rgba(219, 39, 119, 0.36) !important;
-  background: rgba(253, 242, 248, 0.9) !important;
+  color: #fff4fb !important;
+  border-color: rgba(255, 255, 255, 0.34) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .account-order-card .btn--outline:hover {
-  background: #fce7f3 !important;
-  border-color: #db2777 !important;
+  background: rgba(244, 114, 182, 0.24) !important;
+  border-color: #f472b6 !important;
+  color: #ffffff !important;
 }
 
 .account-order-card__top {
@@ -9277,13 +9287,13 @@ html[data-theme="dark"] .footer__by {
   display: block;
   font-weight: 800;
   font-size: 0.96rem;
-  color: #2f173c;
+  color: #ffffff;
 }
 
 .account-order-card__date {
   display: block;
   font-size: 0.8rem;
-  color: #6f5278;
+  color: rgba(255, 240, 250, 0.76);
 }
 
 .account-order-pill {
@@ -9293,15 +9303,16 @@ html[data-theme="dark"] .footer__by {
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 800;
-  background: rgba(168, 85, 247, 0.14);
-  color: #6b21a8;
+  background: rgba(168, 85, 247, 0.24);
+  color: #f3e8ff;
+  border: 1px solid rgba(216, 180, 254, 0.35);
 }
 
-.account-order-pill.is-topay { background: rgba(245, 158, 11, 0.18); color: #b45309; }
-.account-order-pill.is-toship { background: rgba(59, 130, 246, 0.16); color: #1d4ed8; }
-.account-order-pill.is-shipped { background: rgba(168, 85, 247, 0.18); color: #7e22ce; }
-.account-order-pill.is-completed { background: rgba(16, 185, 129, 0.18); color: #047857; }
-.account-order-pill.is-cancelled { background: rgba(225, 29, 72, 0.14); color: #be123c; }
+.account-order-pill.is-topay { background: rgba(245, 158, 11, 0.24); color: #fef3c7; border-color: rgba(252, 211, 77, 0.42); }
+.account-order-pill.is-toship { background: rgba(59, 130, 246, 0.24); color: #dbeafe; border-color: rgba(147, 197, 253, 0.42); }
+.account-order-pill.is-shipped { background: rgba(168, 85, 247, 0.26); color: #f3e8ff; border-color: rgba(216, 180, 254, 0.42); }
+.account-order-pill.is-completed { background: rgba(16, 185, 129, 0.24); color: #d1fae5; border-color: rgba(110, 231, 183, 0.42); }
+.account-order-pill.is-cancelled { background: rgba(225, 29, 72, 0.24); color: #ffe4e6; border-color: rgba(253, 164, 175, 0.42); }
 
 .account-order-card__items {
   display: flex;
@@ -9316,9 +9327,9 @@ html[data-theme="dark"] .footer__by {
   gap: 8px;
   padding: 5px 10px 5px 5px;
   border-radius: 12px;
-  background: rgba(245, 232, 255, 0.92);
-  border: 1px solid rgba(130, 88, 150, 0.22);
-  color: #3c1650;
+  background: rgba(42, 16, 64, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff8fc;
   font-size: 0.82rem;
   font-weight: 600;
 }
@@ -9350,7 +9361,7 @@ html[data-theme="dark"] .footer__by {
   gap: 12px;
   flex-wrap: wrap;
   padding-top: 10px;
-  border-top: 1px dashed rgba(130, 88, 150, 0.22);
+  border-top: 1px dashed rgba(255, 255, 255, 0.18);
 }
 
 .account-order-card__meta {
@@ -9358,12 +9369,13 @@ html[data-theme="dark"] .footer__by {
   align-items: center;
   gap: 14px;
   font-size: 0.86rem;
+  color: rgba(255, 240, 250, 0.84);
 }
 
 .account-order-card__total {
   font-weight: 800;
-  font-size: 1rem;
-  color: #be185d;
+  font-size: 1.04rem;
+  color: #ff9ecb;
 }
 
 .account-orders-empty {
@@ -9675,40 +9687,320 @@ html[data-theme="dark"] .footer__by {
   margin-top: 8px;
 }
 
-/* Delivery Simulator Bar & 5-Step Shopee Timeline */
+/* =====================================================================
+   ORDER TRACKING HUB, LIVE RECEIPT, COURIER TIMELINE & VERIFIED REVIEW
+   High-contrast dark plum glass for BOTH Light Mode & Dark Mode
+   ===================================================================== */
+
+.checkout-jelly .shopee-order-view {
+  max-width: 1060px !important;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 0 36px;
+  color: #fff8fc !important;
+}
+
+.order-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.order-nav-back,
+.order-nav-shop {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #fff8fc !important;
+  text-decoration: none;
+  background: rgba(28, 11, 44, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(12px);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.order-nav-back:hover,
+.order-nav-shop:hover {
+  transform: translateY(-1px);
+  background: rgba(244, 114, 182, 0.26);
+  border-color: #f472b6;
+  color: #ffffff !important;
+}
+
+.checkout-jelly .shopee-receipt-card {
+  padding: 28px !important;
+  border-radius: 28px !important;
+  color: #fff8fc !important;
+  background:
+    radial-gradient(circle at 14% 12%, rgba(244, 114, 182, 0.18), transparent 48%),
+    radial-gradient(circle at 88% 85%, rgba(168, 85, 247, 0.18), transparent 52%),
+    linear-gradient(155deg, rgba(40, 16, 60, 0.92) 0%, rgba(24, 9, 38, 0.96) 100%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.34) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    0 26px 60px rgba(18, 6, 30, 0.44) !important;
+  backdrop-filter: blur(24px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+}
+
+/* Order Hero Status Banner */
+.shopee-receipt-header.order-hub-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  text-align: left !important;
+  padding: 22px 24px !important;
+  margin-bottom: 20px !important;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(244, 114, 182, 0.22), transparent 55%),
+    rgba(20, 7, 34, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+}
+
+.order-hub-banner__info {
+  min-width: 0;
+  flex: 1 1 420px;
+}
+
+.order-hub-banner__badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.shopee-status-badge {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  margin: 0 !important;
+  padding: 6px 14px !important;
+  border-radius: 999px !important;
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em;
+  background: rgba(244, 114, 182, 0.24) !important;
+  color: #ffe4f3 !important;
+  border: 1px solid rgba(244, 114, 182, 0.52) !important;
+}
+
+.shopee-status-badge .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f472b6;
+  box-shadow: 0 0 8px #f472b6;
+}
+
+.shopee-status-badge.badge-completed {
+  background: rgba(16, 185, 129, 0.24) !important;
+  color: #d1fae5 !important;
+  border-color: rgba(52, 211, 153, 0.55) !important;
+}
+
+.shopee-status-badge.badge-completed .status-dot {
+  background: #34d399;
+  box-shadow: 0 0 8px #34d399;
+}
+
+.shopee-status-badge.badge-cancelled,
+.shopee-status-badge.badge-expired {
+  background: rgba(225, 29, 72, 0.26) !important;
+  color: #ffe4e6 !important;
+  border-color: rgba(251, 113, 133, 0.55) !important;
+}
+
+.shopee-status-badge.badge-cancelled .status-dot,
+.shopee-status-badge.badge-expired .status-dot {
+  background: #fb7185;
+  box-shadow: 0 0 8px #fb7185;
+}
+
+.order-payment-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #f3e8ff;
+  background: rgba(168, 85, 247, 0.24);
+  border: 1px solid rgba(216, 180, 254, 0.38);
+}
+
+.order-hub-banner__title {
+  margin: 0 0 12px;
+  font-family: Fredoka, 'Baloo 2', sans-serif;
+  font-size: clamp(1.38rem, 2.3vw, 1.85rem);
+  line-height: 1.18;
+  color: #ffffff !important;
+}
+
+.order-meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shopee-order-ref,
+.shopee-tracking-ref {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 !important;
+  padding: 5px 11px;
+  border-radius: 10px;
+  font-size: 0.8rem !important;
+  color: rgba(255, 242, 250, 0.88) !important;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.shopee-order-ref span,
+.shopee-tracking-ref span {
+  font-weight: 700;
+  color: rgba(255, 232, 246, 0.76) !important;
+}
+
+.shopee-order-ref code,
+.shopee-tracking-ref code {
+  padding: 2px 7px !important;
+  border-radius: 6px !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  color: #ffd6ec !important;
+  background: rgba(18, 6, 30, 0.65) !important;
+  border: 1px solid rgba(244, 114, 182, 0.32);
+  overflow-wrap: anywhere;
+}
+
+.order-hub-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.shopee-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.shopee-actions .btn--outline {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.34) !important;
+}
+
+.shopee-actions .btn--outline:hover,
+.shopee-actions .btn--outline:focus-visible {
+  background: rgba(244, 114, 182, 0.26) !important;
+  border-color: #f472b6 !important;
+  color: #ffffff !important;
+}
+
+/* 5-Step Fulfillment Tracker Panel */
+.order-tracker-panel {
+  padding: 22px 20px;
+  margin-bottom: 20px;
+  border-radius: 22px;
+  background: rgba(20, 7, 34, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .shopee-timeline--five {
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 8px;
+  gap: 10px;
   align-items: start;
+  margin-bottom: 0 !important;
+  padding: 4px 6px !important;
+}
+
+.shopee-timeline--five::before {
+  top: 22px !important;
+  left: 9% !important;
+  right: 9% !important;
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.18) !important;
 }
 
 .shopee-timeline--five .timeline-step {
   width: auto !important;
   min-width: 0;
   flex: initial !important;
+  gap: 8px;
+}
+
+.checkout-jelly .timeline-step .step-icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  background: #230d36 !important;
+  border: 2px solid rgba(255, 255, 255, 0.36) !important;
+  color: rgba(255, 240, 250, 0.88) !important;
+  font-size: 0.85rem !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 12px rgba(14, 4, 24, 0.45);
+}
+
+.checkout-jelly .timeline-step.is-complete .step-icon {
+  background: linear-gradient(135deg, #f472b6 0%, #db2777 100%) !important;
+  border-color: #fbcfe8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(236, 72, 153, 0.48) !important;
+}
+
+.checkout-jelly .timeline-step.is-current .step-icon {
+  box-shadow:
+    0 0 0 4px rgba(244, 114, 182, 0.28),
+    0 0 18px rgba(236, 72, 153, 0.65) !important;
+}
+
+.timeline-step__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.timeline-step__text small {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 232, 246, 0.62);
 }
 
 .shopee-timeline--five .timeline-step span {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.88);
-  text-shadow: 0 1px 2px rgba(20, 6, 30, 0.25);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255, 242, 250, 0.84) !important;
 }
 
 .shopee-timeline--five .timeline-step.is-complete span {
-  color: #d1fae5 !important;
+  color: #ffffff !important;
   font-weight: 800;
 }
 
-.shopee-tracking-ref {
-  color: rgba(255, 255, 255, 0.88) !important;
-}
-
-@media (max-width: 640px) {
-  .shopee-timeline--five {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px;
-  }
+.shopee-timeline--five .timeline-step.is-complete .timeline-step__text small {
+  color: #f9a8d4;
 }
 
 .delivery-simulator-bar {
@@ -9717,55 +10009,541 @@ html[data-theme="dark"] .footer__by {
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
-  padding: 14px 18px;
-  margin: 16px 0;
+  padding: 16px 18px;
+  margin: 18px 0 0;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.14), rgba(168, 85, 247, 0.14));
-  border: 1.5px solid rgba(236, 72, 153, 0.28);
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.22), rgba(168, 85, 247, 0.22));
+  border: 1.5px solid rgba(244, 114, 182, 0.45);
+  color: #ffffff;
 }
 
 .delivery-sim-tag {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   background: #db2777;
-  color: #fff;
+  color: #ffffff;
+  margin-bottom: 5px;
+}
+
+.delivery-simulator-bar__info strong {
+  display: block;
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.delivery-simulator-bar__info small {
+  display: block;
+  color: rgba(255, 242, 250, 0.88);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+/* 2-Column Main Order Grid */
+.order-details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.32fr) minmax(320px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.order-details-main,
+.order-details-side,
+.order-side-stack {
+  display: flex !important;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 !important;
+}
+
+.order-section-card,
+.checkout-jelly .shopee-info-box.order-section-card,
+.checkout-jelly .shopee-financial-box.order-section-card,
+.checkout-jelly .order-review-card {
+  padding: 22px !important;
+  margin: 0 !important;
+  border-radius: 22px !important;
+  background: rgba(20, 7, 34, 0.58) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  color: #fff8fc !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+.order-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.order-section-icon {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #fce7f3;
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.32), rgba(168, 85, 247, 0.28));
+  border: 1px solid rgba(255, 255, 255, 0.26);
+}
+
+.order-section-icon--star {
+  color: #fde68a;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.34), rgba(236, 72, 153, 0.3));
+}
+
+.order-section-head h2,
+.order-section-head h3,
+.order-section-head h4,
+.checkout-jelly .shopee-info-box h4 {
+  margin: 0 0 3px !important;
+  font-family: Fredoka, 'Baloo 2', sans-serif;
+  font-size: 1.14rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+
+.order-section-head p {
+  margin: 0 !important;
+  font-size: 0.81rem !important;
+  color: rgba(255, 240, 250, 0.78) !important;
+  line-height: 1.4;
+}
+
+/* Ordered Items Breakdown */
+.order-items-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.order-line-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.order-line-item__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.order-line-item__qty {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #f472b6, #a855f7);
+}
+
+.order-line-item__left strong {
+  display: block;
+  font-size: 0.94rem;
+  color: #ffffff;
+}
+
+.order-line-item__left small {
+  display: block;
+  font-size: 0.77rem;
+  color: rgba(255, 240, 250, 0.74);
+}
+
+.order-line-item__price {
+  font-family: Fredoka, 'Baloo 2', sans-serif;
+  font-size: 1rem;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* Financial Totals Breakdown */
+.order-totals-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.financial-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0 !important;
+  font-size: 0.9rem !important;
+  color: rgba(255, 242, 250, 0.9) !important;
+}
+
+.financial-row span,
+.financial-row strong {
+  color: inherit !important;
+}
+
+.financial-row--discount {
+  color: #6ee7b7 !important;
+  font-weight: 700;
+}
+
+.financial-free-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #d1fae5 !important;
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(52, 211, 153, 0.45);
+}
+
+.financial-row--total {
+  margin-top: 6px !important;
+  padding: 13px 16px !important;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(168, 85, 247, 0.2));
+  border: 1px solid rgba(244, 114, 182, 0.38) !important;
+  font-size: 1.08rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+}
+
+.financial-row--total strong {
+  font-family: Fredoka, 'Baloo 2', sans-serif;
+  font-size: 1.32rem !important;
+  color: #ff9ecb !important;
+}
+
+/* Shipping & Payment Info Rows */
+.order-info-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-info-kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.85rem;
+}
+
+.order-info-kv--block {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.order-info-kv span {
+  color: rgba(255, 235, 248, 0.74) !important;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.order-info-kv strong {
+  color: #ffffff !important;
+  font-weight: 700;
+  line-height: 1.42;
+}
+
+.payment-status-chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: rgba(16, 185, 129, 0.24);
+  color: #d1fae5 !important;
+  border: 1px solid rgba(52, 211, 153, 0.45);
+}
+
+.payment-status-chip.is-unpaid {
+  background: rgba(245, 158, 11, 0.24);
+  color: #fef3c7 !important;
+  border-color: rgba(251, 191, 36, 0.45);
+}
+
+.order-gateway-code {
+  padding: 3px 8px;
+  border-radius: 7px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #ffd6ec !important;
+  background: rgba(14, 4, 24, 0.65);
+  border: 1px solid rgba(244, 114, 182, 0.3);
+}
+
+/* Courier & Order Timeline Log */
+.order-activity {
+  color: #fff8fc !important;
+}
+
+.order-activity__summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.order-activity__summary::-webkit-details-marker {
+  display: none;
+}
+
+.order-timeline-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-timeline-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 !important;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff8fc !important;
+}
+
+.order-timeline-dot {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #f472b6;
+  box-shadow: 0 0 8px rgba(244, 114, 182, 0.8);
+}
+
+.order-timeline-item:last-child .order-timeline-dot {
+  background: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.85);
+}
+
+.order-timeline-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.order-timeline-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 4px;
 }
 
-.delivery-simulator-bar__info strong,
-.delivery-simulator-bar__info small {
-  display: block;
+.order-timeline-top strong {
+  font-size: 0.88rem;
+  color: #ffffff !important;
 }
 
-.delivery-simulator-bar__info small {
-  opacity: 0.82;
-  font-size: 0.8rem;
+.order-timeline-top time {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #f9a8d4 !important;
+}
+
+.order-timeline-content p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.46;
+  color: rgba(255, 242, 250, 0.88) !important;
+}
+
+/* Rate Your Verified Purchase Form */
+.order-review-card .form-field input,
+.order-review-card .form-field textarea,
+.order-review-card .form-select {
+  background: rgba(14, 4, 24, 0.62) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+
+.order-review-card .form-select option {
+  background: #240d38 !important;
+  color: #ffffff !important;
+}
+
+.review-star-pills {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.review-star-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border-radius: 11px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: rgba(255, 240, 250, 0.84);
+  background: rgba(14, 4, 24, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.review-star-pill__stars {
+  color: #fbbf24;
+  font-size: 0.72rem;
+  letter-spacing: -1px;
+}
+
+.review-star-pill.is-active {
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.34), rgba(168, 85, 247, 0.34));
+  border-color: #f472b6;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+}
+
+.review-status-banner {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.review-status-banner.is-success {
+  background: rgba(16, 185, 129, 0.22);
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  color: #d1fae5;
+}
+
+.review-status-banner.is-error {
+  background: rgba(225, 29, 72, 0.25);
+  border: 1px solid rgba(251, 113, 133, 0.5);
+  color: #ffe4e6;
+}
+
+@media (max-width: 880px) {
+  .order-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shopee-receipt-header.order-hub-banner {
+    flex-direction: column;
+    padding: 18px 16px !important;
+  }
+
+  .order-hub-banner__info {
+    flex: initial;
+    width: 100%;
+  }
+
+  .order-hub-banner__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .checkout-jelly .shopee-receipt-card {
+    padding: 18px 14px !important;
+    border-radius: 22px !important;
+  }
+
+  .shopee-timeline--five {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px;
+  }
+
+  .shopee-timeline--five::before {
+    display: none !important;
+  }
+
+  .shopee-timeline--five .timeline-step:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .checkout-jelly .shopee-actions.order-hub-banner__actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .checkout-jelly .shopee-actions.order-hub-banner__actions .btn:nth-child(3):last-child {
+    grid-column: 1 / -1;
+  }
+
+  .checkout-jelly .shopee-actions.order-hub-banner__actions .btn {
+    width: 100%;
+    padding: 9px 10px;
+    font-size: 0.78rem;
+  }
+}
+
+/* Global Toast High-Contrast Override (Light & Dark Mode) */
+.toast,
+html[data-theme="dark"] .toast {
+  background: rgba(24, 8, 38, 0.94) !important;
+  color: #fff8fc !important;
+  border: 1px solid rgba(244, 114, 182, 0.5) !important;
+  box-shadow: 0 14px 32px rgba(12, 3, 22, 0.55) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Official Digital E-Receipt Modal & Print Layout */
 .digital-receipt-modal {
   max-width: 520px;
+  color: #fff8fc !important;
 }
 
 .digital-receipt-sheet {
   padding: 18px 22px 22px;
+  color: #fff8fc !important;
 }
 
 .digital-receipt-brand {
   text-align: center;
   padding-bottom: 12px;
   margin-bottom: 12px;
-  border-bottom: 1.5px dashed rgba(130, 88, 150, 0.28);
+  border-bottom: 1.5px dashed rgba(255, 255, 255, 0.24);
+  color: #ffffff;
 }
 
 .digital-receipt-brand strong,
 .digital-receipt-brand span,
 .digital-receipt-brand small {
   display: block;
+  color: inherit;
 }
 
 .digital-receipt-meta {
@@ -9774,6 +10552,7 @@ html[data-theme="dark"] .footer__by {
   gap: 10px 14px;
   margin-bottom: 14px;
   font-size: 0.82rem;
+  color: #fff8fc;
 }
 
 .digital-receipt-meta > div {
@@ -9782,6 +10561,7 @@ html[data-theme="dark"] .footer__by {
 
 .digital-receipt-meta > div strong {
   display: block;
+  color: #ffffff;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -9800,13 +10580,13 @@ html[data-theme="dark"] .footer__by {
 .digital-receipt-meta > div span {
   display: block;
   font-size: 0.72rem;
-  opacity: 0.75;
+  color: rgba(255, 235, 248, 0.74);
 }
 
 .digital-receipt-items {
   padding: 10px 0;
-  border-top: 1px dashed rgba(130, 88, 150, 0.25);
-  border-bottom: 1px dashed rgba(130, 88, 150, 0.25);
+  border-top: 1px dashed rgba(255, 255, 255, 0.24);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.24);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -9818,6 +10598,7 @@ html[data-theme="dark"] .footer__by {
   justify-content: space-between;
   gap: 12px;
   font-size: 0.86rem;
+  color: #fff8fc;
 }
 
 .digital-receipt-totals {
@@ -9830,13 +10611,15 @@ html[data-theme="dark"] .footer__by {
 .digital-receipt-totals .is-grand {
   margin-top: 4px;
   padding-top: 6px;
-  border-top: 1px solid rgba(130, 88, 150, 0.22);
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
   font-size: 1rem;
+  color: #ff9ecb;
 }
 
 .digital-receipt-footer {
   margin-top: 14px;
   font-size: 0.8rem;
+  color: rgba(255, 240, 250, 0.86);
 }
 
 .digital-receipt-actions {
@@ -9891,45 +10674,6 @@ html[data-theme="dark"] .checkout-shopee-address-strip .btn--outline {
   color: #fff4fb !important;
   border-color: rgba(242, 166, 216, 0.36) !important;
   background: rgba(255, 255, 255, 0.1) !important;
-}
-
-html[data-theme="dark"] .shopee-receipt-card {
-  color: #fff4fb;
-}
-
-html[data-theme="dark"] .shopee-order-ref,
-html[data-theme="dark"] .shopee-info-box h4,
-html[data-theme="dark"] .shopee-financial-box,
-html[data-theme="dark"] .financial-row,
-html[data-theme="dark"] .financial-row span,
-html[data-theme="dark"] .financial-row strong,
-html[data-theme="dark"] .order-activity summary,
-html[data-theme="dark"] .order-activity li {
-  color: #f6dff0 !important;
-}
-
-html[data-theme="dark"] .shopee-financial-box .financial-row--total strong {
-  color: #ffb0db !important;
-}
-
-html[data-theme="dark"] .shopee-status-badge {
-  background: rgba(244, 114, 182, 0.22) !important;
-  color: #ffe4f3 !important;
-  border: 1px solid rgba(244, 114, 182, 0.45);
-}
-
-html[data-theme="dark"] .shopee-actions .btn--outline {
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #fff4fb !important;
-  border-color: rgba(242, 166, 216, 0.36) !important;
-}
-
-html[data-theme="dark"] .shopee-actions .btn--outline:hover,
-html[data-theme="dark"] .shopee-actions .btn--outline:focus,
-html[data-theme="dark"] .shopee-actions .btn--outline:focus-visible {
-  background: rgba(244, 114, 182, 0.24) !important;
-  color: #ffffff !important;
-  border-color: #f472b6 !important;
 }
 
 html[data-theme="dark"] .account-order-card__date,
