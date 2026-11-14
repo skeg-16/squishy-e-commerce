@@ -35,7 +35,16 @@ function getApp() {
 }
 module.exports = (req, res) => {
   try { return getApp()(req, res); }
-  catch { res.statusCode = 503; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ success: false, code: 'SERVICE_UNAVAILABLE', error: 'The backend is not configured. Please try again later.' })); }
+  catch (err) {
+    console.error('[API Startup Error]:', err);
+    res.statusCode = 503;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({
+      success: false,
+      code: 'SERVICE_UNAVAILABLE',
+      error: 'Backend initialization error: ' + (err?.message || 'Database not ready'),
+    }));
+  }
 };
 if (require.main === module) {
   (async () => {
@@ -81,7 +90,7 @@ if (require.main === module) {
     process.on('SIGINT', () => stop().then(() => process.exit()));
     process.on('SIGTERM', () => stop().then(() => process.exit()));
   })().catch(error => {
-    console.error(`Server could not start: ${error.message}`);
+    console.error('Server could not start:', error || 'Unknown error');
     process.exitCode = 1;
   });
 }

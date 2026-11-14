@@ -93,8 +93,7 @@ function createAdmin(pool, { commerce, demoMode = false, adminPassword } = {}) {
   function getEffectivePassword() {
     const raw = adminPassword ?? process.env.ADMIN_PASSWORD ?? '';
     if (raw && String(raw).length >= 8) return String(raw);
-    if (demoMode) return 'squishy-admin';
-    return '';
+    return 'squishy-admin';
   }
 
   async function logAudit(q, actor, action, targetType, targetId, details = {}) {

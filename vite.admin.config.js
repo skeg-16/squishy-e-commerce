@@ -54,14 +54,21 @@ function squishiesAdminDevPlugin() {
           if (listening || apiProcess) return;
           apiProcess = spawn(
             process.execPath,
-            [path.join(__dirname, 'server/server.js')],
+            ['--env-file-if-exists=.env', path.join(__dirname, 'server/server.js')],
             {
               cwd: __dirname,
               stdio: 'inherit',
               env: { ...process.env, DEMO_MODE: process.env.DEMO_MODE || 'true' },
             }
           );
-          apiProcess.on('exit', () => {
+          apiProcess.on('error', (err) => {
+            console.error('[Admin Dev Plugin] Failed to spawn API server:', err.message);
+            apiProcess = null;
+          });
+          apiProcess.on('exit', (code) => {
+            if (code !== 0 && code !== null) {
+              console.warn(`[Admin Dev Plugin] API server exited with code ${code}`);
+            }
             apiProcess = null;
           });
         });
@@ -98,6 +105,20 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:3000',
         changeOrigin: false,
+        configure: (proxy) => {
+          proxy.on('error', (err, _req, res) => {
+            if (res.writeHead && !res.headersSent) {
+              res.writeHead(503, { 'Content-Type': 'application/json' });
+              res.end(
+                JSON.stringify({
+                  success: false,
+                  code: 'BACKEND_STARTING',
+                  error: 'The backend database server is still initializing. Please wait a moment...',
+                })
+              );
+            }
+          });
+        },
       },
     },
   },

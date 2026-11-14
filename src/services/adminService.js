@@ -78,15 +78,42 @@ export async function adminApi(path, { method = 'GET', body, forceRefresh = fals
     return json.data;
   };
 
+  const executeWithRetry = async () => {
+    const maxRetries = isGet ? 3 : 0;
+    let lastError;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await runFetch();
+      } catch (err) {
+        lastError = err;
+        if (
+          isGet &&
+          attempt < maxRetries &&
+          (err.status === 0 ||
+            err.status === 502 ||
+            err.status === 503 ||
+            err.status === 504 ||
+            err.code === 'BACKEND_STARTING')
+        ) {
+          await new Promise((r) => setTimeout(r, 650 * (attempt + 1)));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastError;
+  };
+
   if (isGet) {
-    const promise = runFetch().finally(() => {
+    const promise = executeWithRetry().finally(() => {
       adminInflight.delete(path);
     });
     adminInflight.set(path, promise);
     return promise;
   }
 
-  return runFetch();
+  return executeWithRetry();
 }
 
 export function errorText(error) {

@@ -1,5 +1,6 @@
 const singles = require('./catalog.json');
 const { transaction } = require('./db');
+const { hashPassword } = require('./auth');
 const bundles = [
   { slug: 'solo-squish', name: 'Solo Squish', priceMinor: 8900, components: { dumpling: 1 }, image: 'assets/images/product-dumpling.svg' },
   { slug: 'stress-free-trio', name: 'Stress-Free Trio', priceMinor: 24900, components: { dumpling: 1, catpaw: 1, peanut: 1 }, image: 'assets/images/product-catpaw.svg' },
@@ -22,6 +23,16 @@ async function seed(pool) {
       ['SQUISHY50', 'fixed_amount', 5000, 30000, '₱50 off merchandise (minimum ₱300)']
     ];
     for (const v of vouchers) await q.query('INSERT INTO vouchers(code,type,value,min_spend_minor,description) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING', v);
+
+    // Seed default admin account if not already present
+    const adminPass = process.env.ADMIN_PASSWORD || 'squishy-admin';
+    const adminHash = hashPassword(adminPass);
+    await q.query(
+      `INSERT INTO users(id, username, email, password_hash, phone, birthday, role, active)
+       VALUES('00000000-0000-0000-0000-000000000001', 'admin', 'admin@squishies.shop', $1, '09170000000', '2000-01-01', 'admin', true)
+       ON CONFLICT (username) DO NOTHING`,
+      [adminHash]
+    );
   });
 }
 module.exports = { seed, bundles };

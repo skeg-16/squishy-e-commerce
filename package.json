@@ -22,6 +22,7 @@
     "demo:local": "node scripts/local-demo.js",
     "test": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/*.test.js",
     "test:email": "node --env-file-if-exists=.env scripts/test-email.js",
+    "test:e2e": "node --env-file-if-exists=.env scripts/comprehensive-test.js",
     "test:browser": "node --env-file-if-exists=.env scripts/browser-check.js"
   },
   "dependencies": {
