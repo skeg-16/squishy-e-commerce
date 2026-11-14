@@ -46,6 +46,7 @@ test('buildReceiptHtml includes all order details and branding', () => {
   assert.ok(html.includes('WELCOME10'), 'Voucher code present');
   assert.ok(html.includes('Please call before delivery'), 'Rider note present');
   assert.ok(html.includes(trackingUrl), 'Tracking URL link present');
+  assert.equal(/\p{Extended_Pictographic}/u.test(html), false, 'HTML receipt contains no emojis');
 });
 
 test('buildReceiptPlainText generates clean text receipt', () => {

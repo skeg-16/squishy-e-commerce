@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SquishiesAPI } from '../services/api';
@@ -1687,103 +1687,224 @@ export default function Account() {
           </div>
         </section>
 
-        {/* RIGHT COLUMN: SISO ARTISTIC SHOWCASE */}
+        {/* RIGHT COLUMN: SISO LOGO ONLY (INTERACTIVE SQUISHABLE) */}
         <aside className="account-auth-showcase" aria-label="SISO brand showcase">
-          <div className="account-showcase-backdrop">
-            <div className="account-showcase-sun" aria-hidden="true" />
-            <div className="account-showcase-silhouette" aria-hidden="true">
-              <svg viewBox="0 0 400 300" preserveAspectRatio="none" className="showcase-svg">
-                <defs>
-                  <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#fde047" stopOpacity="0.4" />
-                    <stop offset="50%" stopColor="#f472b6" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#312e81" stopOpacity="0.9" />
-                  </linearGradient>
-                  <linearGradient id="ridgeBack" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#6d28d9" />
-                    <stop offset="100%" stopColor="#3b0764" />
-                  </linearGradient>
-                  <linearGradient id="ridgeFront" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#e879f9" />
-                    <stop offset="50%" stopColor="#a855f7" />
-                    <stop offset="100%" stopColor="#4c1d95" />
-                  </linearGradient>
-                  <linearGradient id="snowShelf" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.65" />
-                    <stop offset="60%" stopColor="#ddd6fe" stopOpacity="0.85" />
-                    <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.95" />
-                  </linearGradient>
-                </defs>
-                {/* Distant Hills */}
-                <path d="M0,160 Q120,110 240,150 T400,130 L400,300 L0,300 Z" fill="url(#ridgeBack)" opacity="0.75" />
-                {/* Foreground Ridge Shelf */}
-                <path d="M120,170 C220,140 320,160 400,185 L400,300 L120,300 Z" fill="url(#snowShelf)" />
-                <path d="M0,210 C140,170 260,250 400,215 L400,300 L0,300 Z" fill="url(#ridgeFront)" opacity="0.9" />
-                {/* Stylized Tree Silhouettes like in the user's reference */}
-                <g stroke="#2e1065" strokeWidth="2.5" strokeLinecap="round" opacity="0.85">
-                  {/* Tree 1 */}
-                  <line x1="60" y1="260" x2="60" y2="200" strokeWidth="3" />
-                  <line x1="60" y1="230" x2="48" y2="218" />
-                  <line x1="60" y1="220" x2="72" y2="208" />
-                  <line x1="60" y1="210" x2="52" y2="202" />
-                  <line x1="60" y1="205" x2="66" y2="198" />
-                  {/* Tree 2 */}
-                  <line x1="95" y1="270" x2="95" y2="185" strokeWidth="3.5" />
-                  <line x1="95" y1="240" x2="80" y2="225" />
-                  <line x1="95" y1="230" x2="110" y2="212" />
-                  <line x1="95" y1="215" x2="84" y2="200" />
-                  <line x1="95" y1="200" x2="106" y2="190" />
-                  <line x1="95" y1="190" x2="90" y2="180" />
-                  {/* Tree 3 */}
-                  <line x1="330" y1="265" x2="330" y2="195" strokeWidth="3" />
-                  <line x1="330" y1="235" x2="318" y2="220" />
-                  <line x1="330" y1="225" x2="342" y2="212" />
-                  <line x1="330" y1="212" x2="322" y2="204" />
-                </g>
-              </svg>
-            </div>
-          </div>
-
-          <div className="account-showcase-content">
-            <div className="account-showcase-top">
-              <span className="account-showcase-tag">SISO COLLECTIVE</span>
-            </div>
-
-            <div className="account-showcase-brand">
-              <div className="account-showcase-logo-frame">
-                <img
-                  src="/assets/images/logo-mark.svg"
-                  alt="SISO Squishies Logo"
-                  className="account-showcase-logo-img"
-                />
-              </div>
-              <h2 className="account-showcase-brand-name">SISO</h2>
-              <span className="account-showcase-brand-sub">Squishies Collective</span>
-            </div>
-
-            <div className="account-showcase-footer">
-              <h3 className="account-showcase-quote">
-                Finally, all your squishies in one place.
-              </h3>
-              <p className="account-showcase-desc">
-                Sensory tactile slow-rising toys crafted to soothe stress and spark joy.
-              </p>
-
-              <div className="account-showcase-controls">
-                <div className="account-showcase-paddles" aria-hidden="true">
-                  <span className="showcase-paddle">←</span>
-                  <span className="showcase-paddle">→</span>
-                </div>
-                <div className="account-showcase-dots" aria-hidden="true">
-                  <span className="dot is-active" />
-                  <span className="dot" />
-                  <span className="dot" />
-                </div>
-              </div>
-            </div>
-          </div>
+          <SquishableSisoLogo />
         </aside>
       </div>
     </main>
+  );
+}
+
+let sharedSqueakCtx = null;
+function playLogoPlushSqueak(isRelease = false) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!sharedSqueakCtx) sharedSqueakCtx = new AudioCtx();
+    if (sharedSqueakCtx.state === 'suspended') sharedSqueakCtx.resume();
+    const now = sharedSqueakCtx.currentTime;
+    const osc = sharedSqueakCtx.createOscillator();
+    const gain = sharedSqueakCtx.createGain();
+    osc.type = 'sine';
+    if (!isRelease) {
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(340, now + 0.09);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.055, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.connect(gain);
+      gain.connect(sharedSqueakCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.11);
+    } else {
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.exponentialRampToValueAtTime(640, now + 0.12);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.045, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+      osc.connect(gain);
+      gain.connect(sharedSqueakCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.14);
+    }
+  } catch {
+    // Ignore audio errors on restricted autoplay contexts
+  }
+}
+
+function SquishableSisoLogo() {
+  const wrapRef = useRef(null);
+  const imgRef = useRef(null);
+  const stateRef = useRef({
+    pressed: false,
+    sq: 0,
+    sqv: 0,
+    nx: 0,
+    ny: 0,
+    tx: 0,
+    ty: 0,
+    rafId: 0,
+    lastTime: 0,
+  });
+
+  const startLoop = useCallback(() => {
+    const st = stateRef.current;
+    if (st.rafId) return;
+    st.lastTime = performance.now();
+
+    const tick = (now) => {
+      const dt = Math.min(0.032, (now - st.lastTime) / 1000 || 0.016);
+      st.lastTime = now;
+
+      const target = st.pressed ? 1 : 0;
+      const k = st.pressed ? 165 : 46;
+      const d = st.pressed ? 14 : 3.8;
+      st.sqv += (k * (target - st.sq) - d * st.sqv) * dt;
+      st.sq += st.sqv * dt;
+
+      const lerp = Math.min(1, dt * 12);
+      st.tx += (st.nx - st.tx) * lerp;
+      st.ty += (st.ny - st.ty) * lerp;
+
+      const img = imgRef.current;
+      if (img) {
+        const sx = 1 + st.sq * 0.28;
+        const sy = Math.max(0.56, 1 - st.sq * 0.33);
+        const shiftY = st.sq * 18;
+        const rotX = -st.ty * (10 + st.sq * 8);
+        const rotY = st.tx * (12 + st.sq * 8);
+        const skewX = st.tx * st.sq * -6;
+        img.style.transform = `perspective(620px) translate3d(${(st.tx * 6).toFixed(2)}px, ${shiftY.toFixed(2)}px, 0) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) skewX(${skewX.toFixed(2)}deg) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
+      }
+
+      const stillMoving =
+        st.pressed ||
+        Math.abs(st.sq) > 0.002 ||
+        Math.abs(st.sqv) > 0.008 ||
+        Math.abs(st.tx - st.nx) > 0.003 ||
+        Math.abs(st.ty - st.ny) > 0.003;
+
+      if (stillMoving) {
+        st.rafId = requestAnimationFrame(tick);
+      } else {
+        st.sq = 0;
+        st.sqv = 0;
+        st.rafId = 0;
+        if (img && !st.nx && !st.ny) {
+          img.style.transform = '';
+        }
+      }
+    };
+
+    st.rafId = requestAnimationFrame(tick);
+  }, []);
+
+  useEffect(() => {
+    const st = stateRef.current;
+    return () => {
+      if (st.rafId) cancelAnimationFrame(st.rafId);
+    };
+  }, []);
+
+  const updatePointerNormal = (e) => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const nx = Math.max(-1, Math.min(1, (e.clientX - cx) / (r.width * 0.45 || 1)));
+    const ny = Math.max(-1, Math.min(1, (e.clientY - cy) / (r.height * 0.45 || 1)));
+    stateRef.current.nx = nx;
+    stateRef.current.ny = ny;
+  };
+
+  const handlePointerDown = (e) => {
+    const st = stateRef.current;
+    st.pressed = true;
+    st.sqv = Math.max(st.sqv, 3.8);
+    updatePointerNormal(e);
+    if (wrapRef.current?.setPointerCapture && e.pointerId != null) {
+      try {
+        wrapRef.current.setPointerCapture(e.pointerId);
+      } catch {
+        // Ignore synthetic pointer capture errors
+      }
+    }
+    if (navigator.vibrate) navigator.vibrate(8);
+    playLogoPlushSqueak(false);
+    startLoop();
+  };
+
+  const handlePointerMove = (e) => {
+    updatePointerNormal(e);
+    startLoop();
+  };
+
+  const handlePointerUp = () => {
+    const st = stateRef.current;
+    if (!st.pressed) return;
+    st.pressed = false;
+    playLogoPlushSqueak(true);
+    startLoop();
+  };
+
+  const handlePointerLeave = () => {
+    const st = stateRef.current;
+    st.nx = 0;
+    st.ny = 0;
+    if (st.pressed) {
+      st.pressed = false;
+      playLogoPlushSqueak(true);
+    }
+    startLoop();
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      const st = stateRef.current;
+      if (!st.pressed) {
+        st.pressed = true;
+        st.sqv = 4.2;
+        playLogoPlushSqueak(false);
+        startLoop();
+      }
+    }
+  };
+
+  const handleKeyUp = (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      const st = stateRef.current;
+      st.pressed = false;
+      playLogoPlushSqueak(true);
+      startLoop();
+    }
+  };
+
+  return (
+    <div
+      ref={wrapRef}
+      className="account-showcase-logo-wrapper is-squishable"
+      role="button"
+      tabIndex={0}
+      aria-label="Squish the SISO logo"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
+    >
+      <img
+        ref={imgRef}
+        src="/assets/images/logo-mark.svg"
+        alt="SISO Logo"
+        className="account-showcase-logo-large"
+        draggable={false}
+      />
+    </div>
   );
 }

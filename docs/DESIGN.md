@@ -65,6 +65,14 @@
 - **`Product` (`src/pages/Product.jsx`)**: Breadcrumb bar, interactive 3D GLTF model stage (`ProductViewer3D`) with SVG fallback, rating summary, stock pill, quantity stepper, `Add to Cart` / `Buy it now` CTAs, specifications table, FAQ accordion, and verified buyer reviews.
 - **`ProductViewer3D` (`src/components/ProductViewer3D.jsx`)**: Three.js / React Three Fiber canvas with normalized bounding-box centering, local studio environment lighting (`RoomEnvironment`), auto-rotating `OrbitControls`, and WebGL error fallback.
 - **`Checkout` (`src/pages/Checkout.jsx`)**: Regional shipping selector, voucher code applicator (`WELCOME10`, `FREESHIP`, `SQUISHY50`), payment method selector (`COD`, `GCash`, `Maya`, `Card`), payment simulation modal, order status tracker, and verified review submission.
-- **`Account` (`src/pages/Account.jsx`)**: Split-card aesthetic authentication hub (`account-auth-split`) inspired by warm dusk-sunset studio layout. Features a clean 2-column layout on desktop (>860px) and stacked adaptive view on mobile. Left pane contains high-readability form fields (`border-radius: 14px`, high-contrast typography, inline error feedback, eye toggle visibility for passwords, and segmented pill tabs). Right pane features the official SISO logo mark framed in a sunset glass aura with brand taglines, sensory badges, and interactive carousel navigation, omitting third-party social logins.
+- **`Account` (`src/pages/Account.jsx`)**: Split-card aesthetic authentication hub (`account-auth-split`). Features a clean 2-column layout on desktop (>880px) and a focused single-column card on mobile (<=880px). Left pane contains high-readability form fields (`border-radius: 14px`, high-contrast typography, inline error feedback, eye toggle visibility for passwords, and segmented pill tabs). Right pane features **ONLY** the official SISO logo mark, rendered large and bold inside an original aesthetic glassmorphism frame with ambient glow, subtle floating animation, and theme-matching palette (no decorative scenic background, mountains, quotes, or extraneous controls). On mobile views, the right-side logo is cleanly hidden (`display: none;`) to prevent vertical bloat, and the form pane seamlessly expands to 100% with no empty gaps or awkward margins.
+
+## 5. Site-Wide Responsive Architecture (Mobile-First Polish)
+
+- **Mobile Viewport Strategy (<768px & <880px)**:
+  - Eliminate endless vertical scrolling by utilizing compact 2-column product grids, horizontal card carousels, collapsible accordions for secondary content, and tabbed interfaces.
+  - Apply fluid typography with `clamp()` to maintain proportional scale across 360px–1440px displays.
+  - Maintain touch accessibility: minimum 44px tap targets for all clickable triggers, steppers, and navigation items.
+  - Generous tap padding with reduced vertical margin to keep viewports clean, dense, and engaging without feeling cramped.
 
 

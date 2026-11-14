@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Header({ onOpenCart }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoSquishing, setLogoSquishing] = useState(false);
   const { totalCount } = useCart();
   const { isDark, toggleTheme } = useTheme();
   const { user, authenticated } = useAuth();
@@ -21,11 +22,27 @@ export default function Header({ onOpenCart }) {
     setMenuOpen(false);
   }
 
+  function triggerLogoSquish() {
+    setLogoSquishing(false);
+    requestAnimationFrame(() => {
+      setLogoSquishing(true);
+    });
+  }
+
   return (
     <header className="site-header product-jelly-header site-header--jelly-dock" id="top">
       <div className="container header__outer">
         <div className="header__inner header__dock">
-          <Link to="/" className="logo logo--jelly" onClick={closeMenu}>
+          <Link
+            to="/"
+            className={`logo logo--jelly${logoSquishing ? ' is-squishing' : ''}`}
+            onClick={() => {
+              closeMenu();
+              triggerLogoSquish();
+            }}
+            onPointerDown={triggerLogoSquish}
+            onAnimationEnd={() => setLogoSquishing(false)}
+          >
             <span className="logo__orb" aria-hidden="true">
               <img
                 src="/assets/images/logo-mark.svg"
@@ -37,7 +54,6 @@ export default function Header({ onOpenCart }) {
             </span>
             <span className="logo__wordmark">
               <span className="logo__text">Squishies</span>
-              <span className="logo__tag">3D Soft-Rise</span>
             </span>
           </Link>
 

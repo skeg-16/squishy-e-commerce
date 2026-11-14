@@ -492,30 +492,34 @@ html[data-theme="dark"] .pet-send-home {
 
 @media (max-width: 860px) {
   .home-jelly .hero .hero__hint-wrap {
-    bottom: 12.4%;
+    top: 340px;
+    bottom: auto;
     gap: 4px 8px;
+    width: calc(100% - 28px);
   }
   .home-jelly .hero.hero--pet-out .intro {
-    bottom: 19.5%;
+    bottom: 20px;
   }
   .home-jelly .hero .hero__hint-wrap .hint {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
   .hero__roam-btn {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     padding: 4px 9px;
   }
 }
 
 @media (max-width: 480px) {
   .home-jelly .hero .hero__hint-wrap {
-    bottom: 12.4%;
+    top: 340px;
+    bottom: auto;
   }
   .home-jelly .hero.hero--pet-out .hero__hint-wrap {
-    bottom: 12.6%;
+    top: 340px;
+    bottom: auto;
   }
   .home-jelly .hero .hero__hint-wrap .hint {
-    font-size: 0.75rem;
+    font-size: 0.74rem;
   }
 }
 

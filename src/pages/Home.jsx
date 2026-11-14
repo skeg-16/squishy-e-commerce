@@ -365,8 +365,9 @@ export default function Home() {
       c.width = W * d;
       c.height = H * d;
       x.setTransform(d, 0, 0, d, 0, 0);
-      R = Math.min(W * 0.3, H * 0.25);
-      floor = H * (W < 860 ? 0.62 : 0.8);
+      const isMob = W < 860;
+      R = isMob ? Math.min(W * 0.215, H * 0.17) : Math.min(W * 0.3, H * 0.25);
+      floor = H * (isMob ? 0.48 : 0.8);
       cx = W / 2;
     }
 

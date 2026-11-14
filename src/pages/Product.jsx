@@ -58,6 +58,7 @@ export default function Product() {
   const [loadError, setLoadError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [openFaqs, setOpenFaqs] = useState([]);
+  const [activeDetailTab, setActiveDetailTab] = useState('specs');
   const [reviews, setReviews] = useState(null);
   const [reviewsError, setReviewsError] = useState(false);
   const [reviewPage, setReviewPage] = useState(1);
@@ -344,7 +345,38 @@ export default function Product() {
           </div>
         </div>
 
-        <div className="product-page__specs">
+        {/* Responsive Segmented Tabs for Mobile */}
+        <div className="product-details-tabnav" role="tablist" aria-label="Product details and reviews">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeDetailTab === 'specs'}
+            className={`pdp-tab-btn${activeDetailTab === 'specs' ? ' is-active' : ''}`}
+            onClick={() => setActiveDetailTab('specs')}
+          >
+            Specifications
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeDetailTab === 'faq'}
+            className={`pdp-tab-btn${activeDetailTab === 'faq' ? ' is-active' : ''}`}
+            onClick={() => setActiveDetailTab('faq')}
+          >
+            FAQ
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeDetailTab === 'reviews'}
+            className={`pdp-tab-btn${activeDetailTab === 'reviews' ? ' is-active' : ''}`}
+            onClick={() => setActiveDetailTab('reviews')}
+          >
+            Reviews {reviews?.reviews?.length ? `(${reviews.reviews.length})` : ''}
+          </button>
+        </div>
+
+        <div className={`product-page__specs pdp-section-pane${activeDetailTab === 'specs' ? ' is-active-pane' : ''}`}>
           <h2>Specifications</h2>
           <dl className="specs-list">
             {orderedSpecs.map(([label, value]) => (
@@ -356,7 +388,8 @@ export default function Product() {
           </dl>
         </div>
 
-        <div className="product-page__faqs">
+        <div className={`product-page__faqs pdp-section-pane${activeDetailTab === 'faq' ? ' is-active-pane' : ''}`}>
+          <h2>Frequently Asked Questions</h2>
           {PRODUCT_FAQS.map((faq, index) => {
             const isOpen = openFaqs.includes(index);
 
@@ -391,7 +424,7 @@ export default function Product() {
         </div>
 
         <section
-          className="product-page__specs"
+          className={`product-page__specs pdp-section-pane${activeDetailTab === 'reviews' ? ' is-active-pane' : ''}`}
           id="verifiedReviewsContainer"
         >
           <h2>Verified Buyer Reviews</h2>

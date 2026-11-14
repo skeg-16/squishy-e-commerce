@@ -1058,6 +1058,7 @@ export default function Checkout() {
   const [cancelBusy, setCancelBusy] = useState(false);
   const [voucherDirty, setVoucherDirty] = useState(false);
   const [availableVouchers, setAvailableVouchers] = useState(null);
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
   const prefilledForUserRef = useRef(null);
 
@@ -2010,14 +2011,31 @@ export default function Checkout() {
             {/* Sticky Order Summary Column */}
             <div className="checkout-side-col">
               <div className="checkout-card squishy-glass-card checkout-summary-card">
-                <div className="summary-header-row">
-                  <h2>Order Summary</h2>
-                  <span className="summary-item-count">
-                    {(quote?.items || []).reduce((acc, it) => acc + (it.quantity || 1), 0)} items
+                <button
+                  type="button"
+                  className="checkout-mobile-summary-toggle"
+                  aria-expanded={mobileSummaryOpen}
+                  onClick={() => setMobileSummaryOpen((prev) => !prev)}
+                >
+                  <span className="mobile-summary-toggle__text">
+                    <span className="summary-bag-icon" aria-hidden="true">🛍️</span>
+                    <span>{mobileSummaryOpen ? 'Hide' : 'Show'} Order Summary ({(quote?.items || []).reduce((acc, it) => acc + (it.quantity || 1), 0)})</span>
+                    <span className="summary-chevron" aria-hidden="true">{mobileSummaryOpen ? ' ▲' : ' ▼'}</span>
                   </span>
-                </div>
+                  <span className="mobile-summary-toggle__price">
+                    {quote ? formatPeso(quote.total) : '—'}
+                  </span>
+                </button>
 
-                <div id="orderSummaryItems" className="order-summary-list">
+                <div className={`checkout-summary-collapsible${mobileSummaryOpen ? ' is-open' : ''}`}>
+                  <div className="summary-header-row">
+                    <h2>Order Summary</h2>
+                    <span className="summary-item-count">
+                      {(quote?.items || []).reduce((acc, it) => acc + (it.quantity || 1), 0)} items
+                    </span>
+                  </div>
+
+                  <div id="orderSummaryItems" className="order-summary-list">
                   {(quote?.items || []).map((item, index) => (
                     <div className="order-summary__item squishy-summary-item" key={`${item.slug || item.name}-${index}`}>
                       <div className="summary-thumb-cushion">
@@ -2167,6 +2185,7 @@ export default function Checkout() {
                     </strong>
                   </div>
                 </div>
+              </div>
 
                 <button
                   id="placeOrderBtn"

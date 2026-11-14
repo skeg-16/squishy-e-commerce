@@ -727,6 +727,16 @@ button.adm-stat:hover { transform: translateY(-2px); }
   .adm-tabs {
     order: 3;
     flex-basis: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .adm-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .adm-header-actions {

@@ -1172,18 +1172,47 @@ html[data-theme="dark"] .siso-svg-shadow {
 
 @media (max-width: 640px) {
   .siso-studio-hero {
-    padding-top: 108px;
+    padding-top: 88px;
+    padding-bottom: 24px;
   }
 
   .siso-editorial-col,
   .siso-anatomy-card,
   .siso-panel {
-    padding: 20px;
-    border-radius: 20px;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .siso-display-heading {
+    font-size: clamp(1.75rem, 6vw, 2.3rem);
+    line-height: 1.15;
+  }
+
+  .siso-lead-copy {
+    font-size: 0.9rem;
+    line-height: 1.45;
   }
 
   .siso-ledger-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .siso-ledger-cell strong {
+    font-size: 1.2rem;
+  }
+
+  .siso-cta-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .siso-btn-primary,
+  .siso-btn-copy {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 16px;
   }
 
   .siso-blueprint-stage,
@@ -1192,16 +1221,76 @@ html[data-theme="dark"] .siso-svg-shadow {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .siso-layer-pills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .siso-layer-btn {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .siso-blueprint-canvas {
+    min-height: 170px;
+  }
+
+  .siso-dumpling-svg {
+    max-width: 190px;
+    height: auto;
+  }
+
   .siso-pkg-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .siso-pkg-btn {
-    padding: 11px;
+    padding: 10px;
   }
 
+  /* Team member rail as horizontal touch slider */
   .siso-member-rail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 6px;
+    padding: 4px 2px 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .siso-member-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .siso-rail-chip {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Knowledge dossier tabs as horizontal scroll */
+  .siso-dossier-tabs {
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 6px;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .siso-dossier-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .siso-tab-chip {
+    flex: 0 0 auto;
+    padding: 7px 12px;
+    font-size: 0.8rem;
   }
 
   .siso-spec-row {
