@@ -678,48 +678,131 @@ export default function Account() {
 
   // ── AUTHENTICATED COLLECTOR HUB ──────────────────────────────────
   if (authenticated && user) {
+    const activeOrdersCount =
+      (orderCounts['To Pay'] || 0) +
+      (orderCounts['To Ship'] || 0) +
+      (orderCounts['Shipped'] || 0);
+    const hasSavedAddress = Boolean(
+      user.defaultAddress?.shippingAddress && user.defaultAddress?.city
+    );
+    const regionLabel =
+      PH_REGIONS.find((r) => r.value === (user.defaultAddress?.region || 'metro-manila'))?.label ||
+      user.defaultAddress?.region ||
+      'Metro Manila';
+
     return (
       <main className="account-jelly">
         <section className="account-card account-card--wide account-hub-card">
-          <div className="account-dashboard-heading">
-            <div>
-              <span className="account-eyebrow">SISO COLLECTOR HUB</span>
-              <h1>Welcome, @{user.username}</h1>
-              <p>
-                Track live orders, pay via GCash simulation, manage saved Shopee-style addresses, and secure your profile.
-              </p>
-            </div>
-            <div className="account-hub-right">
+          {/* UNIFIED COLLECTOR HERO BANNER */}
+          <header className="account-hub-banner">
+            <div className="account-hub-banner__identity">
               <div className="account-avatar" title={user.email}>
                 {user.username.charAt(0).toUpperCase()}
               </div>
+              <div className="account-hub-banner__text">
+                <div className="account-hub-banner__eyebrow-row">
+                  <span className="account-eyebrow">SISO COLLECTOR HUB</span>
+                  <span className="account-verified-badge">
+                    {user.role === 'admin' ? 'Admin Account' : 'Verified Collector'}
+                  </span>
+                </div>
+                <h1>Welcome, @{user.username}</h1>
+                <div className="account-hub-meta-pills">
+                  <span className="account-meta-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect width="20" height="16" x="2" y="4" rx="2" />
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    </svg>
+                    {user.email}
+                  </span>
+                  <span className="account-meta-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                    {user.phone || 'No mobile set'}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="account-profile-summary">
-            <div>
-              <span className="account-summary-label">SIGNED IN COLLECTOR</span>
-              <strong>@{user.username}</strong>
-              <span className="account-summary-meta">{user.email} • {user.phone || 'No mobile set'}</span>
-            </div>
-            <div className="account-summary-badges">
-              <span className="account-verified-badge">
-                {user.role === 'admin' ? 'Admin Account' : 'Verified Session'}
-              </span>
+            <div className="account-hub-banner__actions">
               {user.role === 'admin' && (
                 <Link to="/admin" className="btn btn--outline btn--sm">
                   Admin Console
                 </Link>
               )}
               <Link to="/shop.html" className="btn btn--outline btn--sm">
-                Browse Squishies
+                Browse Shop
               </Link>
               <Link to="/checkout.html" className="btn btn--pink btn--sm">
                 Checkout Bag
               </Link>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm account-signout-top"
+                onClick={handleLogout}
+              >
+                Sign Out
+              </button>
             </div>
+          </header>
+
+          {/* AT-A-GLANCE COLLECTOR OVERVIEW STRIP */}
+          <div className="account-hub-kpis" aria-label="Account summary">
+            <button
+              type="button"
+              className={`account-kpi-card${hubTab === 'orders' && orderFilter === 'all' ? ' is-selected' : ''}`}
+              onClick={() => {
+                setHubTab('orders');
+                setOrderFilter('all');
+                setStatusBanner(null);
+              }}
+            >
+              <span className="account-kpi-card__label">Total Purchases</span>
+              <strong className="account-kpi-card__value">{orders.length}</strong>
+              <span className="account-kpi-card__sub">
+                {orders.length === 1 ? '1 recorded order' : `${orders.length} recorded orders`}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={`account-kpi-card${hubTab === 'orders' && orderFilter !== 'all' ? ' is-selected' : ''}`}
+              onClick={() => {
+                setHubTab('orders');
+                setOrderFilter(orderCounts['To Pay'] ? 'To Pay' : orderCounts['To Ship'] ? 'To Ship' : 'all');
+                setStatusBanner(null);
+              }}
+            >
+              <span className="account-kpi-card__label">Active / In Transit</span>
+              <strong className="account-kpi-card__value">{activeOrdersCount}</strong>
+              <span className="account-kpi-card__sub">
+                {activeOrdersCount > 0 ? 'Track live delivery status' : 'No pending shipments'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={`account-kpi-card${hubTab === 'profile' ? ' is-selected' : ''}`}
+              onClick={() => {
+                setHubTab('profile');
+                setFieldErrors({});
+                setStatusBanner(null);
+              }}
+            >
+              <span className="account-kpi-card__label">Default Delivery Address</span>
+              <strong className="account-kpi-card__value account-kpi-card__value--text">
+                {hasSavedAddress ? `${user.defaultAddress.city}, ${regionLabel}` : 'Not Set Yet'}
+              </strong>
+              <span className="account-kpi-card__sub">
+                {hasSavedAddress
+                  ? `${user.defaultAddress.shippingAddress}`
+                  : 'Add address for instant checkout →'}
+              </span>
+            </button>
           </div>
 
+          {/* PRIMARY NAVIGATION TABS */}
           <div className="account-hub-tabs" role="tablist" aria-label="Account sections">
             <button
               type="button"
@@ -731,7 +814,13 @@ export default function Account() {
                 setStatusBanner(null);
               }}
             >
-              My Purchases ({orders.length})
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                <path d="M3 6h18" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              <span>My Purchases</span>
+              <small className="account-tab-badge">{orders.length}</small>
             </button>
             <button
               type="button"
@@ -744,7 +833,11 @@ export default function Account() {
                 setStatusBanner(null);
               }}
             >
-              Profile &amp; Saved Address
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span>Profile &amp; Saved Address</span>
             </button>
             <button
               type="button"
@@ -757,7 +850,10 @@ export default function Account() {
                 setStatusBanner(null);
               }}
             >
-              Security &amp; Session
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+              </svg>
+              <span>Security &amp; Session</span>
             </button>
           </div>
 
@@ -771,7 +867,22 @@ export default function Account() {
           )}
 
           {hubTab === 'orders' && (
-            <div className="account-orders-panel">
+            <div className="account-orders-panel account-setting-section">
+              <div className="account-orders-header">
+                <div>
+                  <h2>Order History &amp; Live Tracking</h2>
+                  <p>Filter by fulfillment stage to pay, track shipments, or download official receipts.</p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn--outline btn--xs"
+                  onClick={loadOrders}
+                  disabled={ordersLoading}
+                >
+                  {ordersLoading ? 'Syncing...' : 'Refresh Orders'}
+                </button>
+              </div>
+
               <div className="account-order-filters" role="tablist" aria-label="Filter purchases">
                 {ORDER_TABS.map((tab) => (
                   <button
@@ -794,13 +905,31 @@ export default function Account() {
                 </div>
               ) : filteredOrders.length === 0 ? (
                 <div className="account-orders-empty">
+                  <div className="account-orders-empty__icon" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                      <path d="m3.3 7 8.7 5 8.7-5" />
+                      <path d="M12 22V12" />
+                    </svg>
+                  </div>
                   <h3>No orders in {orderFilter === 'all' ? 'your account yet' : `"${orderFilter}"`}</h3>
                   <p>
                     Orders placed while signed in—or with your matching account email—appear here automatically with live tracking and receipts.
                   </p>
-                  <Link to="/shop.html" className="btn btn--primary">
-                    Explore Catalog
-                  </Link>
+                  <div className="account-orders-empty__actions">
+                    {orderFilter !== 'all' && (
+                      <button
+                        type="button"
+                        className="btn btn--outline btn--sm"
+                        onClick={() => setOrderFilter('all')}
+                      >
+                        Show All Orders
+                      </button>
+                    )}
+                    <Link to="/shop.html" className="btn btn--primary">
+                      Explore Catalog
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <div className="account-orders-list">
@@ -862,7 +991,12 @@ export default function Account() {
               <div className="account-settings-grid">
                 <section className="account-setting-section">
                   <div className="account-section-heading">
-                    <span className="account-section-icon" aria-hidden="true">ID</span>
+                    <span className="account-section-icon" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </span>
                     <div>
                       <h2>Collector Identity</h2>
                       <p>Keep your username, contact email, mobile number, and birthday up to date.</p>
@@ -905,98 +1039,117 @@ export default function Account() {
                       {fieldErrors.email && <small className="account-field-error">{fieldErrors.email}</small>}
                     </div>
 
-                    <div className="account-field">
-                      <label htmlFor="profile-phone">Mobile Number (PH Digits Only)</label>
-                      <input
-                        id="profile-phone"
-                        type="tel"
-                        inputMode="numeric"
-                        maxLength={FIELD_LIMITS.phone}
-                        placeholder="09171234567"
-                        value={profileForm.phone}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            phone: sanitizePhPhone(e.target.value),
-                          }))
-                        }
-                        className={fieldErrors.phone ? 'is-invalid' : ''}
-                      />
-                      {fieldErrors.phone && <small className="account-field-error">{fieldErrors.phone}</small>}
+                    <div className="account-field-row">
+                      <div className="account-field">
+                        <label htmlFor="profile-phone">Mobile Number (11 Digits)</label>
+                        <input
+                          id="profile-phone"
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={FIELD_LIMITS.phone}
+                          placeholder="09171234567"
+                          value={profileForm.phone}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              phone: sanitizePhPhone(e.target.value),
+                            }))
+                          }
+                          className={fieldErrors.phone ? 'is-invalid' : ''}
+                        />
+                        {fieldErrors.phone && <small className="account-field-error">{fieldErrors.phone}</small>}
+                      </div>
+
+                      <div className="account-field">
+                        <label htmlFor="profile-birthday">Birthday</label>
+                        <input
+                          id="profile-birthday"
+                          type="date"
+                          value={profileForm.birthday}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({ ...prev, birthday: e.target.value }))
+                          }
+                          className={fieldErrors.birthday ? 'is-invalid' : ''}
+                        />
+                        {fieldErrors.birthday && <small className="account-field-error">{fieldErrors.birthday}</small>}
+                      </div>
                     </div>
 
-                    <div className="account-field">
-                      <label htmlFor="profile-birthday">Birthday</label>
-                      <input
-                        id="profile-birthday"
-                        type="date"
-                        value={profileForm.birthday}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({ ...prev, birthday: e.target.value }))
-                        }
-                        className={fieldErrors.birthday ? 'is-invalid' : ''}
-                      />
-                      {fieldErrors.birthday && <small className="account-field-error">{fieldErrors.birthday}</small>}
+                    <div className="account-identity-note">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                        <path d="m9 12 2 2 4-4" />
+                      </svg>
+                      <span>
+                        Your username, email, and birthday are also used to verify identity during password recovery.
+                      </span>
                     </div>
                   </div>
                 </section>
 
                 <section className="account-setting-section">
                   <div className="account-section-heading">
-                    <span className="account-section-icon" aria-hidden="true">PH</span>
+                    <span className="account-section-icon" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                    </span>
                     <div>
                       <h2>Default Delivery Address</h2>
-                      <p>Auto-fills Shopee-style when you open Checkout.</p>
+                      <p>Auto-fills your recipient and shipping details when you open Checkout.</p>
                     </div>
                   </div>
                   <div className="account-form">
-                    <div className="account-field">
-                      <label htmlFor="addr-recipient">Recipient Full Name (Letters Only)</label>
-                      <input
-                        id="addr-recipient"
-                        type="text"
-                        maxLength={FIELD_LIMITS.name}
-                        placeholder="Juana Dela Cruz"
-                        value={profileForm.defaultAddress.recipientName}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            defaultAddress: {
-                              ...prev.defaultAddress,
-                              recipientName: sanitizePersonName(e.target.value),
-                            },
-                          }))
-                        }
-                        className={fieldErrors['defaultAddress.recipientName'] ? 'is-invalid' : ''}
-                      />
-                      {fieldErrors['defaultAddress.recipientName'] && (
-                        <small className="account-field-error">{fieldErrors['defaultAddress.recipientName']}</small>
-                      )}
-                    </div>
+                    <div className="account-field-row">
+                      <div className="account-field">
+                        <label htmlFor="addr-recipient">Recipient Full Name</label>
+                        <input
+                          id="addr-recipient"
+                          type="text"
+                          maxLength={FIELD_LIMITS.name}
+                          placeholder="Juana Dela Cruz"
+                          value={profileForm.defaultAddress.recipientName}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              defaultAddress: {
+                                ...prev.defaultAddress,
+                                recipientName: sanitizePersonName(e.target.value),
+                              },
+                            }))
+                          }
+                          className={fieldErrors['defaultAddress.recipientName'] ? 'is-invalid' : ''}
+                        />
+                        {fieldErrors['defaultAddress.recipientName'] && (
+                          <small className="account-field-error">{fieldErrors['defaultAddress.recipientName']}</small>
+                        )}
+                      </div>
 
-                    <div className="account-field">
-                      <label htmlFor="addr-phone">Delivery Contact (11 Digits)</label>
-                      <input
-                        id="addr-phone"
-                        type="tel"
-                        inputMode="numeric"
-                        maxLength={FIELD_LIMITS.phone}
-                        placeholder="09171234567"
-                        value={profileForm.defaultAddress.phone}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            defaultAddress: {
-                              ...prev.defaultAddress,
-                              phone: sanitizePhPhone(e.target.value),
-                            },
-                          }))
-                        }
-                        className={fieldErrors['defaultAddress.phone'] ? 'is-invalid' : ''}
-                      />
-                      {fieldErrors['defaultAddress.phone'] && (
-                        <small className="account-field-error">{fieldErrors['defaultAddress.phone']}</small>
-                      )}
+                      <div className="account-field">
+                        <label htmlFor="addr-phone">Delivery Contact (11 Digits)</label>
+                        <input
+                          id="addr-phone"
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={FIELD_LIMITS.phone}
+                          placeholder="09171234567"
+                          value={profileForm.defaultAddress.phone}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              defaultAddress: {
+                                ...prev.defaultAddress,
+                                phone: sanitizePhPhone(e.target.value),
+                              },
+                            }))
+                          }
+                          className={fieldErrors['defaultAddress.phone'] ? 'is-invalid' : ''}
+                        />
+                        {fieldErrors['defaultAddress.phone'] && (
+                          <small className="account-field-error">{fieldErrors['defaultAddress.phone']}</small>
+                        )}
+                      </div>
                     </div>
 
                     <div className="account-field">
@@ -1075,7 +1228,7 @@ export default function Account() {
 
                     <div className="account-field-row">
                       <div className="account-field">
-                        <label htmlFor="addr-postal">ZIP / Postal Code (4 Digits)</label>
+                        <label htmlFor="addr-postal">ZIP / Postal Code</label>
                         <input
                           id="addr-postal"
                           type="text"
@@ -1125,6 +1278,9 @@ export default function Account() {
               </div>
 
               <div className="account-save-bar">
+                <span className="account-save-bar__hint">
+                  Changes apply immediately to your profile and auto-fill on your next Checkout.
+                </span>
                 <button
                   type="submit"
                   className="btn btn--primary"
@@ -1137,10 +1293,15 @@ export default function Account() {
           )}
 
           {hubTab === 'security' && (
-            <div className="account-settings-grid">
-              <section className="account-setting-section account-setting-section--full">
+            <div className="account-settings-grid account-security-grid">
+              <section className="account-setting-section">
                 <div className="account-section-heading">
-                  <span className="account-section-icon" aria-hidden="true">KEY</span>
+                  <span className="account-section-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </span>
                   <div>
                     <h2>Change Password</h2>
                     <p>Verified against your current password before hashing and saving.</p>
@@ -1199,79 +1360,103 @@ export default function Account() {
                       <small className="account-field-error">{fieldErrors.confirmPassword}</small>
                     )}
                   </div>
-                  <button type="submit" className="btn btn--secondary" disabled={passwordSaving}>
-                    {passwordSaving ? 'Updating Password...' : 'Update Password'}
-                  </button>
+                  <div className="account-form-footer">
+                    <button type="submit" className="btn btn--primary" disabled={passwordSaving}>
+                      {passwordSaving ? 'Updating Password...' : 'Update Password'}
+                    </button>
+                  </div>
                 </form>
               </section>
 
-              <div className="account-logout-section">
-                <div>
-                  <h2>Sign Out</h2>
-                  <p>Ends your current authenticated browser session cleanly.</p>
-                </div>
-                <button type="button" className="btn btn--secondary" onClick={handleLogout}>
-                  Log Out
-                </button>
-              </div>
-
-              <div className="account-danger-section">
-                <div>
-                  <h2>Delete Account</h2>
-                  <p>
-                    Permanently deletes your collector profile while preserving anonymized historical order records.
-                  </p>
-                </div>
-                {!showDeleteConfirm ? (
-                  <button
-                    type="button"
-                    className="btn btn--danger-outline"
-                    onClick={() => setShowDeleteConfirm(true)}
-                  >
-                    Delete Account
-                  </button>
-                ) : (
-                  <form className="account-delete-confirm" onSubmit={handleDeleteAccount}>
-                    <p>
-                      Enter your current password and type <strong>DELETE</strong> to permanently remove @{user.username}:
-                    </p>
-                    <PasswordInput
-                      id="delete-password"
-                      name="deletePassword"
-                      value={deletePassword}
-                      onChange={(e) => setDeletePassword(e.target.value)}
-                      placeholder="Current password"
-                      autoComplete="current-password"
-                    />
-                    <input
-                      type="text"
-                      value={deleteWord}
-                      onChange={(e) => setDeleteWord(e.target.value)}
-                      placeholder="Type DELETE"
-                      aria-label="Type DELETE to confirm"
-                    />
-                    <div className="account-delete-actions">
-                      <button
-                        type="submit"
-                        className="btn btn--danger"
-                        disabled={deleting || deleteWord !== 'DELETE' || !deletePassword}
-                      >
-                        {deleting ? 'Deleting...' : 'Confirm Permanent Deletion'}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn--ghost"
-                        onClick={() => {
-                          setShowDeleteConfirm(false);
-                          setDeleteWord('');
-                          setDeletePassword('');
-                        }}
-                      >
-                        Cancel
-                      </button>
+              <div className="account-security-side">
+                <section className="account-setting-section account-logout-card">
+                  <div className="account-section-heading">
+                    <span className="account-section-icon" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" x2="9" y1="12" y2="12" />
+                      </svg>
+                    </span>
+                    <div>
+                      <h2>Active Browser Session</h2>
+                      <p>
+                        Signed in as <strong>@{user.username}</strong>. Ending your session clears your active browser token cleanly.
+                      </p>
                     </div>
-                  </form>
-                )}
+                  </div>
+                  <button type="button" className="btn btn--secondary" onClick={handleLogout}>
+                    Log Out of Session
+                  </button>
+                </section>
+
+                <section className="account-danger-section">
+                  <div className="account-section-heading">
+                    <span className="account-section-icon account-section-icon--danger" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      </svg>
+                    </span>
+                    <div>
+                      <h2>Delete Collector Account</h2>
+                      <p>
+                        Permanently removes your collector profile while preserving anonymized historical order records.
+                      </p>
+                    </div>
+                  </div>
+                  {!showDeleteConfirm ? (
+                    <button
+                      type="button"
+                      className="btn btn--danger-outline"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      Delete Account
+                    </button>
+                  ) : (
+                    <form className="account-delete-confirm" onSubmit={handleDeleteAccount}>
+                      <p>
+                        Enter your current password and type <strong>DELETE</strong> to permanently remove @{user.username}:
+                      </p>
+                      <PasswordInput
+                        id="delete-password"
+                        name="deletePassword"
+                        value={deletePassword}
+                        onChange={(e) => setDeletePassword(e.target.value)}
+                        placeholder="Current password"
+                        autoComplete="current-password"
+                      />
+                      <input
+                        type="text"
+                        value={deleteWord}
+                        onChange={(e) => setDeleteWord(e.target.value)}
+                        placeholder="Type DELETE"
+                        aria-label="Type DELETE to confirm"
+                      />
+                      <div className="account-delete-actions">
+                        <button
+                          type="submit"
+                          className="btn btn--danger"
+                          disabled={deleting || deleteWord !== 'DELETE' || !deletePassword}
+                        >
+                          {deleting ? 'Deleting...' : 'Confirm Permanent Deletion'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost"
+                          onClick={() => {
+                            setShowDeleteConfirm(false);
+                            setDeleteWord('');
+                            setDeletePassword('');
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </section>
               </div>
             </div>
           )}
