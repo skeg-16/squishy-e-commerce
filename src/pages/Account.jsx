@@ -1282,307 +1282,167 @@ export default function Account() {
 
   // ── UNAUTHENTICATED LOGIN / CREATE ACCOUNT / FORGOT PASSWORD ─────
   return (
-    <main className="account-jelly">
-      <section className="account-card account-auth-card">
-        <div className="account-heading">
-          <span className="account-eyebrow">SISO COLLECTOR ACCESS</span>
-          <h1>
-            {authTab === 'login'
-              ? 'Sign in to Squishies'
-              : authTab === 'register'
-                ? 'Create Collector Account'
-                : 'Reset Your Password'}
-          </h1>
-          <p>
-            {authTab === 'login'
-              ? 'Sign in to access saved delivery addresses, GCash order history, and tracking.'
-              : authTab === 'register'
-                ? 'Unlock saved addresses, instant Shopee-style checkout, and full delivery receipts.'
-                : 'Verify your username, email, and birthday to choose a strong new password.'}
-          </p>
-        </div>
+    <main className="account-jelly account-jelly--split">
+      <div className="account-auth-split account-auth-card">
+        {/* LEFT COLUMN: AUTHENTICATION FORM */}
+        <section className="account-auth-pane" aria-labelledby="authHeading">
+          <div className="account-auth-header">
+            <h1 id="authHeading" className="account-split-title">
+              {authTab === 'login'
+                ? 'Hello Again!'
+                : authTab === 'register'
+                  ? 'Join the Collective!'
+                  : 'Reset Password'}
+            </h1>
+            <p className="account-split-subtitle">
+              {authTab === 'login'
+                ? "Let's get started with your squishy collection."
+                : authTab === 'register'
+                  ? 'Unlock saved delivery addresses, instant checkout, and order receipts.'
+                  : 'Verify your username, email, and birthday to set a new password.'}
+            </p>
+          </div>
 
-        <div className="account-switch" role="tablist" aria-label="Authentication mode">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={authTab === 'login'}
-            className={authTab === 'login' ? 'is-active' : ''}
-            onClick={() => switchAuthTab('login')}
-          >
-            Log In
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={authTab === 'register'}
-            className={authTab === 'register' ? 'is-active' : ''}
-            onClick={() => switchAuthTab('register')}
-          >
-            Create Account
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={authTab === 'forgot'}
-            className={authTab === 'forgot' ? 'is-active' : ''}
-            onClick={() => switchAuthTab('forgot')}
-          >
-            Reset
-          </button>
-        </div>
-
-        {statusBanner && (
-          <p
-            className={`account-message account-message--${statusBanner.tone}`}
-            role={statusBanner.tone === 'error' ? 'alert' : 'status'}
-          >
-            {statusBanner.text}
-          </p>
-        )}
-
-        {authTab === 'login' && (
-          <form className="account-form" onSubmit={handleLoginSubmit} noValidate>
-            <div className="account-field">
-              <label htmlFor="login-identifier">Username or Email Address</label>
-              <input
-                id="login-identifier"
-                name="identifier"
-                type="text"
-                maxLength={FIELD_LIMITS.email}
-                placeholder="collector_name or you@email.com"
-                autoComplete="username"
-                value={loginForm.identifier}
-                onChange={(e) =>
-                  setLoginForm((prev) => ({
-                    ...prev,
-                    identifier: sanitizeEmail(e.target.value),
-                  }))
-                }
-                className={fieldErrors.identifier ? 'is-invalid' : ''}
-                required
-              />
-              {fieldErrors.identifier && (
-                <small className="account-field-error">{fieldErrors.identifier}</small>
-              )}
-            </div>
-
-            <div className="account-field">
-              <label htmlFor="login-password">Password</label>
-              <PasswordInput
-                id="login-password"
-                name="password"
-                value={loginForm.password}
-                onChange={(e) =>
-                  setLoginForm((prev) => ({ ...prev, password: e.target.value }))
-                }
-                placeholder="Enter your password"
-                autoComplete="current-password"
-                hasError={Boolean(fieldErrors.password)}
-              />
-              {fieldErrors.password && (
-                <small className="account-field-error">{fieldErrors.password}</small>
-              )}
-            </div>
-
-            <div className="account-forgot">
-              <button type="button" onClick={() => switchAuthTab('forgot')}>
-                Forgot password?
-              </button>
-            </div>
-
+          <div className="account-switch account-switch--pill" role="tablist" aria-label="Authentication mode">
             <button
-              type="submit"
-              className={`account-submit${submitting ? ' is-loading' : ''}`}
-              disabled={submitting}
+              type="button"
+              role="tab"
+              aria-selected={authTab === 'login'}
+              className={authTab === 'login' ? 'is-active' : ''}
+              onClick={() => switchAuthTab('login')}
             >
-              {submitting ? 'Signing In...' : 'Log In to Squishies'}
+              Log In
             </button>
-          </form>
-        )}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={authTab === 'register'}
+              className={authTab === 'register' ? 'is-active' : ''}
+              onClick={() => switchAuthTab('register')}
+            >
+              Create Account
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={authTab === 'forgot'}
+              className={authTab === 'forgot' ? 'is-active' : ''}
+              onClick={() => switchAuthTab('forgot')}
+            >
+              Reset
+            </button>
+          </div>
 
-        {authTab === 'register' && (
-          <form className="account-form" onSubmit={handleRegisterSubmit} noValidate>
-            <div className="account-field">
-              <label htmlFor="reg-username">Username (Letters, Numbers &amp; _)</label>
-              <input
-                id="reg-username"
-                name="username"
-                type="text"
-                maxLength={28}
-                placeholder="squishy_collector"
-                autoComplete="username"
-                value={registerForm.username}
-                onChange={(e) =>
-                  setRegisterForm((prev) => ({
-                    ...prev,
-                    username: sanitizeUsername(e.target.value),
-                  }))
-                }
-                className={fieldErrors.username ? 'is-invalid' : ''}
-                required
-              />
-              {fieldErrors.username && (
-                <small className="account-field-error">{fieldErrors.username}</small>
-              )}
-            </div>
+          {statusBanner && (
+            <p
+              className={`account-message account-message--${statusBanner.tone}`}
+              role={statusBanner.tone === 'error' ? 'alert' : 'status'}
+            >
+              {statusBanner.text}
+            </p>
+          )}
 
-            <div className="account-field">
-              <label htmlFor="reg-email">Email Address</label>
-              <input
-                id="reg-email"
-                name="email"
-                type="email"
-                maxLength={FIELD_LIMITS.email}
-                placeholder="you@domain.com"
-                autoComplete="email"
-                value={registerForm.email}
-                onChange={(e) =>
-                  setRegisterForm((prev) => ({
-                    ...prev,
-                    email: sanitizeEmail(e.target.value),
-                  }))
-                }
-                className={fieldErrors.email ? 'is-invalid' : ''}
-                required
-              />
-              {fieldErrors.email && (
-                <small className="account-field-error">{fieldErrors.email}</small>
-              )}
-            </div>
-
-            <div className="account-field-row">
+          {authTab === 'login' && (
+            <form className="account-form" onSubmit={handleLoginSubmit} noValidate>
               <div className="account-field">
-                <label htmlFor="reg-phone">Contact Number (11 Digits Only)</label>
+                <label htmlFor="login-identifier">Email Address or Username</label>
                 <input
-                  id="reg-phone"
-                  name="phone"
-                  type="tel"
-                  inputMode="numeric"
-                  maxLength={11}
-                  placeholder="09171234567"
-                  autoComplete="tel-national"
-                  value={registerForm.phone}
+                  id="login-identifier"
+                  name="identifier"
+                  type="text"
+                  maxLength={FIELD_LIMITS.email}
+                  placeholder="name@email.com or username"
+                  autoComplete="username"
+                  value={loginForm.identifier}
+                  onChange={(e) =>
+                    setLoginForm((prev) => ({
+                      ...prev,
+                      identifier: sanitizeEmail(e.target.value),
+                    }))
+                  }
+                  className={fieldErrors.identifier ? 'is-invalid' : ''}
+                  required
+                />
+                {fieldErrors.identifier && (
+                  <small className="account-field-error">{fieldErrors.identifier}</small>
+                )}
+              </div>
+
+              <div className="account-field">
+                <div className="account-field-header">
+                  <label htmlFor="login-password">Password</label>
+                  <button
+                    type="button"
+                    className="account-link-recovery"
+                    onClick={() => switchAuthTab('forgot')}
+                  >
+                    Recovery Password
+                  </button>
+                </div>
+                <PasswordInput
+                  id="login-password"
+                  name="password"
+                  value={loginForm.password}
+                  onChange={(e) =>
+                    setLoginForm((prev) => ({ ...prev, password: e.target.value }))
+                  }
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  hasError={Boolean(fieldErrors.password)}
+                />
+                {fieldErrors.password && (
+                  <small className="account-field-error">{fieldErrors.password}</small>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className={`account-submit account-submit--mauve${submitting ? ' is-loading' : ''}`}
+                disabled={submitting}
+              >
+                {submitting ? 'Signing In...' : 'Sign In'}
+              </button>
+            </form>
+          )}
+
+          {authTab === 'register' && (
+            <form className="account-form" onSubmit={handleRegisterSubmit} noValidate>
+              <div className="account-field">
+                <label htmlFor="reg-username">Username (Letters, Numbers &amp; _)</label>
+                <input
+                  id="reg-username"
+                  name="username"
+                  type="text"
+                  maxLength={28}
+                  placeholder="squishy_collector"
+                  autoComplete="username"
+                  value={registerForm.username}
                   onChange={(e) =>
                     setRegisterForm((prev) => ({
                       ...prev,
-                      phone: sanitizePhPhone(e.target.value),
+                      username: sanitizeUsername(e.target.value),
                     }))
                   }
-                  className={fieldErrors.phone ? 'is-invalid' : ''}
+                  className={fieldErrors.username ? 'is-invalid' : ''}
                   required
                 />
-                {fieldErrors.phone && (
-                  <small className="account-field-error">{fieldErrors.phone}</small>
+                {fieldErrors.username && (
+                  <small className="account-field-error">{fieldErrors.username}</small>
                 )}
               </div>
 
               <div className="account-field">
-                <label htmlFor="reg-birthday">Birthday</label>
+                <label htmlFor="reg-email">Email Address</label>
                 <input
-                  id="reg-birthday"
-                  name="birthday"
-                  type="date"
-                  value={registerForm.birthday}
-                  onChange={(e) =>
-                    setRegisterForm((prev) => ({ ...prev, birthday: e.target.value }))
-                  }
-                  className={fieldErrors.birthday ? 'is-invalid' : ''}
-                  required
-                />
-                {fieldErrors.birthday && (
-                  <small className="account-field-error">{fieldErrors.birthday}</small>
-                )}
-              </div>
-            </div>
-
-            <div className="account-field">
-              <label htmlFor="reg-password">Password</label>
-              <PasswordInput
-                id="reg-password"
-                name="password"
-                value={registerForm.password}
-                onChange={(e) =>
-                  setRegisterForm((prev) => ({ ...prev, password: e.target.value }))
-                }
-                placeholder="8+ chars, upper + lower + number"
-                autoComplete="new-password"
-                hasError={Boolean(fieldErrors.password)}
-              />
-              <PasswordStrengthMeter password={registerForm.password} />
-              {fieldErrors.password && (
-                <small className="account-field-error">{fieldErrors.password}</small>
-              )}
-            </div>
-
-            <div className="account-field">
-              <label htmlFor="reg-confirm">Confirm Password</label>
-              <PasswordInput
-                id="reg-confirm"
-                name="confirmPassword"
-                value={registerForm.confirmPassword}
-                onChange={(e) =>
-                  setRegisterForm((prev) => ({
-                    ...prev,
-                    confirmPassword: e.target.value,
-                  }))
-                }
-                placeholder="Repeat password"
-                autoComplete="new-password"
-                hasError={Boolean(fieldErrors.confirmPassword)}
-              />
-              {fieldErrors.confirmPassword && (
-                <small className="account-field-error">{fieldErrors.confirmPassword}</small>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className={`account-submit${submitting ? ' is-loading' : ''}`}
-              disabled={submitting}
-            >
-              {submitting ? 'Creating Account...' : 'Create Collector Account'}
-            </button>
-          </form>
-        )}
-
-        {authTab === 'forgot' && (
-          <form className="account-form" onSubmit={handleResetSubmit} noValidate>
-            <div className="account-field">
-              <label htmlFor="reset-username">Account Username</label>
-              <input
-                id="reset-username"
-                name="username"
-                type="text"
-                maxLength={28}
-                placeholder="Your username"
-                value={resetForm.username}
-                onChange={(e) =>
-                  setResetForm((prev) => ({
-                    ...prev,
-                    username: sanitizeUsername(e.target.value),
-                  }))
-                }
-                className={fieldErrors.username ? 'is-invalid' : ''}
-                required
-              />
-              {fieldErrors.username && (
-                <small className="account-field-error">{fieldErrors.username}</small>
-              )}
-            </div>
-
-            <div className="account-field-row">
-              <div className="account-field">
-                <label htmlFor="reset-email">Registered Email</label>
-                <input
-                  id="reset-email"
+                  id="reg-email"
                   name="email"
                   type="email"
                   maxLength={FIELD_LIMITS.email}
                   placeholder="you@domain.com"
-                  value={resetForm.email}
+                  autoComplete="email"
+                  value={registerForm.email}
                   onChange={(e) =>
-                    setResetForm((prev) => ({
+                    setRegisterForm((prev) => ({
                       ...prev,
                       email: sanitizeEmail(e.target.value),
                     }))
@@ -1595,93 +1455,335 @@ export default function Account() {
                 )}
               </div>
 
+              <div className="account-field-row">
+                <div className="account-field">
+                  <label htmlFor="reg-phone">Contact Number (11 Digits)</label>
+                  <input
+                    id="reg-phone"
+                    name="phone"
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={11}
+                    placeholder="09171234567"
+                    autoComplete="tel-national"
+                    value={registerForm.phone}
+                    onChange={(e) =>
+                      setRegisterForm((prev) => ({
+                        ...prev,
+                        phone: sanitizePhPhone(e.target.value),
+                      }))
+                    }
+                    className={fieldErrors.phone ? 'is-invalid' : ''}
+                    required
+                  />
+                  {fieldErrors.phone && (
+                    <small className="account-field-error">{fieldErrors.phone}</small>
+                  )}
+                </div>
+
+                <div className="account-field">
+                  <label htmlFor="reg-birthday">Birthday</label>
+                  <input
+                    id="reg-birthday"
+                    name="birthday"
+                    type="date"
+                    value={registerForm.birthday}
+                    onChange={(e) =>
+                      setRegisterForm((prev) => ({ ...prev, birthday: e.target.value }))
+                    }
+                    className={fieldErrors.birthday ? 'is-invalid' : ''}
+                    required
+                  />
+                  {fieldErrors.birthday && (
+                    <small className="account-field-error">{fieldErrors.birthday}</small>
+                  )}
+                </div>
+              </div>
+
               <div className="account-field">
-                <label htmlFor="reset-birthday">Registered Birthday</label>
-                <input
-                  id="reset-birthday"
-                  name="birthday"
-                  type="date"
-                  value={resetForm.birthday}
+                <label htmlFor="reg-password">Password</label>
+                <PasswordInput
+                  id="reg-password"
+                  name="password"
+                  value={registerForm.password}
                   onChange={(e) =>
-                    setResetForm((prev) => ({ ...prev, birthday: e.target.value }))
+                    setRegisterForm((prev) => ({ ...prev, password: e.target.value }))
                   }
-                  className={fieldErrors.birthday ? 'is-invalid' : ''}
-                  required
+                  placeholder="8+ chars, upper + lower + number"
+                  autoComplete="new-password"
+                  hasError={Boolean(fieldErrors.password)}
                 />
-                {fieldErrors.birthday && (
-                  <small className="account-field-error">{fieldErrors.birthday}</small>
+                <PasswordStrengthMeter password={registerForm.password} />
+                {fieldErrors.password && (
+                  <small className="account-field-error">{fieldErrors.password}</small>
                 )}
               </div>
-            </div>
 
-            <div className="account-field">
-              <label htmlFor="reset-newpw">New Password</label>
-              <PasswordInput
-                id="reset-newpw"
-                name="newPassword"
-                value={resetForm.newPassword}
-                onChange={(e) =>
-                  setResetForm((prev) => ({ ...prev, newPassword: e.target.value }))
-                }
-                placeholder="8+ chars, upper + lower + number"
-                autoComplete="new-password"
-                hasError={Boolean(fieldErrors.newPassword)}
-              />
-              <PasswordStrengthMeter password={resetForm.newPassword} />
-              {fieldErrors.newPassword && (
-                <small className="account-field-error">{fieldErrors.newPassword}</small>
-              )}
-            </div>
+              <div className="account-field">
+                <label htmlFor="reg-confirm">Confirm Password</label>
+                <PasswordInput
+                  id="reg-confirm"
+                  name="confirmPassword"
+                  value={registerForm.confirmPassword}
+                  onChange={(e) =>
+                    setRegisterForm((prev) => ({
+                      ...prev,
+                      confirmPassword: e.target.value,
+                    }))
+                  }
+                  placeholder="Repeat password"
+                  autoComplete="new-password"
+                  hasError={Boolean(fieldErrors.confirmPassword)}
+                />
+                {fieldErrors.confirmPassword && (
+                  <small className="account-field-error">{fieldErrors.confirmPassword}</small>
+                )}
+              </div>
 
-            <div className="account-field">
-              <label htmlFor="reset-confirm">Confirm New Password</label>
-              <PasswordInput
-                id="reset-confirm"
-                name="confirmPassword"
-                value={resetForm.confirmPassword}
-                onChange={(e) =>
-                  setResetForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
-                }
-                placeholder="Repeat new password"
-                autoComplete="new-password"
-                hasError={Boolean(fieldErrors.confirmPassword)}
-              />
-              {fieldErrors.confirmPassword && (
-                <small className="account-field-error">{fieldErrors.confirmPassword}</small>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className={`account-submit${submitting ? ' is-loading' : ''}`}
-              disabled={submitting}
-            >
-              {submitting ? 'Verifying & Updating...' : 'Reset Password'}
-            </button>
-          </form>
-        )}
-
-        <div className="account-bottom">
-          {authTab === 'login' ? (
-            <p>
-              New collector?{' '}
-              <button type="button" onClick={() => switchAuthTab('register')}>
-                Create an account
+              <button
+                type="submit"
+                className={`account-submit account-submit--mauve${submitting ? ' is-loading' : ''}`}
+                disabled={submitting}
+              >
+                {submitting ? 'Creating Account...' : 'Create Account'}
               </button>
-            </p>
-          ) : (
-            <p>
-              Remembered your password?{' '}
-              <button type="button" onClick={() => switchAuthTab('login')}>
-                Back to Log In
-              </button>
-            </p>
+            </form>
           )}
-          <Link to="/shop.html" className="account-back">
-            ← Back to Squishies Shop
-          </Link>
-        </div>
-      </section>
+
+          {authTab === 'forgot' && (
+            <form className="account-form" onSubmit={handleResetSubmit} noValidate>
+              <div className="account-field">
+                <label htmlFor="reset-username">Account Username</label>
+                <input
+                  id="reset-username"
+                  name="username"
+                  type="text"
+                  maxLength={28}
+                  placeholder="Your username"
+                  value={resetForm.username}
+                  onChange={(e) =>
+                    setResetForm((prev) => ({
+                      ...prev,
+                      username: sanitizeUsername(e.target.value),
+                    }))
+                  }
+                  className={fieldErrors.username ? 'is-invalid' : ''}
+                  required
+                />
+                {fieldErrors.username && (
+                  <small className="account-field-error">{fieldErrors.username}</small>
+                )}
+              </div>
+
+              <div className="account-field-row">
+                <div className="account-field">
+                  <label htmlFor="reset-email">Registered Email</label>
+                  <input
+                    id="reset-email"
+                    name="email"
+                    type="email"
+                    maxLength={FIELD_LIMITS.email}
+                    placeholder="you@domain.com"
+                    value={resetForm.email}
+                    onChange={(e) =>
+                      setResetForm((prev) => ({
+                        ...prev,
+                        email: sanitizeEmail(e.target.value),
+                      }))
+                    }
+                    className={fieldErrors.email ? 'is-invalid' : ''}
+                    required
+                  />
+                  {fieldErrors.email && (
+                    <small className="account-field-error">{fieldErrors.email}</small>
+                  )}
+                </div>
+
+                <div className="account-field">
+                  <label htmlFor="reset-birthday">Registered Birthday</label>
+                  <input
+                    id="reset-birthday"
+                    name="birthday"
+                    type="date"
+                    value={resetForm.birthday}
+                    onChange={(e) =>
+                      setResetForm((prev) => ({ ...prev, birthday: e.target.value }))
+                    }
+                    className={fieldErrors.birthday ? 'is-invalid' : ''}
+                    required
+                  />
+                  {fieldErrors.birthday && (
+                    <small className="account-field-error">{fieldErrors.birthday}</small>
+                  )}
+                </div>
+              </div>
+
+              <div className="account-field">
+                <label htmlFor="reset-newpw">New Password</label>
+                <PasswordInput
+                  id="reset-newpw"
+                  name="newPassword"
+                  value={resetForm.newPassword}
+                  onChange={(e) =>
+                    setResetForm((prev) => ({ ...prev, newPassword: e.target.value }))
+                  }
+                  placeholder="8+ chars, upper + lower + number"
+                  autoComplete="new-password"
+                  hasError={Boolean(fieldErrors.newPassword)}
+                />
+                <PasswordStrengthMeter password={resetForm.newPassword} />
+                {fieldErrors.newPassword && (
+                  <small className="account-field-error">{fieldErrors.newPassword}</small>
+                )}
+              </div>
+
+              <div className="account-field">
+                <label htmlFor="reset-confirm">Confirm New Password</label>
+                <PasswordInput
+                  id="reset-confirm"
+                  name="confirmPassword"
+                  value={resetForm.confirmPassword}
+                  onChange={(e) =>
+                    setResetForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                  }
+                  placeholder="Repeat new password"
+                  autoComplete="new-password"
+                  hasError={Boolean(fieldErrors.confirmPassword)}
+                />
+                {fieldErrors.confirmPassword && (
+                  <small className="account-field-error">{fieldErrors.confirmPassword}</small>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className={`account-submit account-submit--mauve${submitting ? ' is-loading' : ''}`}
+                disabled={submitting}
+              >
+                {submitting ? 'Verifying & Updating...' : 'Reset Password'}
+              </button>
+            </form>
+          )}
+
+          <div className="account-bottom">
+            {authTab === 'login' ? (
+              <p>
+                Don't have an account?{' '}
+                <button type="button" onClick={() => switchAuthTab('register')}>
+                  Create an account
+                </button>
+              </p>
+            ) : (
+              <p>
+                Already have an account?{' '}
+                <button type="button" onClick={() => switchAuthTab('login')}>
+                  Back to Sign In
+                </button>
+              </p>
+            )}
+            <Link to="/shop.html" className="account-back">
+              ← Back to Squishies Shop
+            </Link>
+          </div>
+        </section>
+
+        {/* RIGHT COLUMN: SISO ARTISTIC SHOWCASE */}
+        <aside className="account-auth-showcase" aria-label="SISO brand showcase">
+          <div className="account-showcase-backdrop">
+            <div className="account-showcase-sun" aria-hidden="true" />
+            <div className="account-showcase-silhouette" aria-hidden="true">
+              <svg viewBox="0 0 400 300" preserveAspectRatio="none" className="showcase-svg">
+                <defs>
+                  <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#fde047" stopOpacity="0.4" />
+                    <stop offset="50%" stopColor="#f472b6" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#312e81" stopOpacity="0.9" />
+                  </linearGradient>
+                  <linearGradient id="ridgeBack" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#6d28d9" />
+                    <stop offset="100%" stopColor="#3b0764" />
+                  </linearGradient>
+                  <linearGradient id="ridgeFront" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#e879f9" />
+                    <stop offset="50%" stopColor="#a855f7" />
+                    <stop offset="100%" stopColor="#4c1d95" />
+                  </linearGradient>
+                  <linearGradient id="snowShelf" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.65" />
+                    <stop offset="60%" stopColor="#ddd6fe" stopOpacity="0.85" />
+                    <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.95" />
+                  </linearGradient>
+                </defs>
+                {/* Distant Hills */}
+                <path d="M0,160 Q120,110 240,150 T400,130 L400,300 L0,300 Z" fill="url(#ridgeBack)" opacity="0.75" />
+                {/* Foreground Ridge Shelf */}
+                <path d="M120,170 C220,140 320,160 400,185 L400,300 L120,300 Z" fill="url(#snowShelf)" />
+                <path d="M0,210 C140,170 260,250 400,215 L400,300 L0,300 Z" fill="url(#ridgeFront)" opacity="0.9" />
+                {/* Stylized Tree Silhouettes like in the user's reference */}
+                <g stroke="#2e1065" strokeWidth="2.5" strokeLinecap="round" opacity="0.85">
+                  {/* Tree 1 */}
+                  <line x1="60" y1="260" x2="60" y2="200" strokeWidth="3" />
+                  <line x1="60" y1="230" x2="48" y2="218" />
+                  <line x1="60" y1="220" x2="72" y2="208" />
+                  <line x1="60" y1="210" x2="52" y2="202" />
+                  <line x1="60" y1="205" x2="66" y2="198" />
+                  {/* Tree 2 */}
+                  <line x1="95" y1="270" x2="95" y2="185" strokeWidth="3.5" />
+                  <line x1="95" y1="240" x2="80" y2="225" />
+                  <line x1="95" y1="230" x2="110" y2="212" />
+                  <line x1="95" y1="215" x2="84" y2="200" />
+                  <line x1="95" y1="200" x2="106" y2="190" />
+                  <line x1="95" y1="190" x2="90" y2="180" />
+                  {/* Tree 3 */}
+                  <line x1="330" y1="265" x2="330" y2="195" strokeWidth="3" />
+                  <line x1="330" y1="235" x2="318" y2="220" />
+                  <line x1="330" y1="225" x2="342" y2="212" />
+                  <line x1="330" y1="212" x2="322" y2="204" />
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <div className="account-showcase-content">
+            <div className="account-showcase-top">
+              <span className="account-showcase-tag">SISO COLLECTIVE</span>
+            </div>
+
+            <div className="account-showcase-brand">
+              <div className="account-showcase-logo-frame">
+                <img
+                  src="/assets/images/logo-mark.svg"
+                  alt="SISO Squishies Logo"
+                  className="account-showcase-logo-img"
+                />
+              </div>
+              <h2 className="account-showcase-brand-name">SISO</h2>
+              <span className="account-showcase-brand-sub">Squishies Collective</span>
+            </div>
+
+            <div className="account-showcase-footer">
+              <h3 className="account-showcase-quote">
+                Finally, all your squishies in one place.
+              </h3>
+              <p className="account-showcase-desc">
+                Sensory tactile slow-rising toys crafted to soothe stress and spark joy.
+              </p>
+
+              <div className="account-showcase-controls">
+                <div className="account-showcase-paddles" aria-hidden="true">
+                  <span className="showcase-paddle">←</span>
+                  <span className="showcase-paddle">→</span>
+                </div>
+                <div className="account-showcase-dots" aria-hidden="true">
+                  <span className="dot is-active" />
+                  <span className="dot" />
+                  <span className="dot" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }
