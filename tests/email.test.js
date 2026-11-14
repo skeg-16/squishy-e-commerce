@@ -81,26 +81,35 @@ test('buildReceiptPlainText generates clean text receipt', () => {
 });
 
 test('sendOrderReceiptEmail handles simulation fallback gracefully', async () => {
-  const result = await sendOrderReceiptEmail({
-    orderNumber: 'SQ-SIMULATED-01',
-    customerEmail: 'collector@example.com',
-    customerName: 'Collector User',
-    customerPhone: '09171234567',
-    shippingAddress: 'Sample St',
-    barangay: 'Brgy 1',
-    city: 'Manila',
-    postalCode: '1000',
-    paymentMethod: 'cod',
-    subtotal: 100,
-    shippingFee: 60,
-    voucherDiscount: 0,
-    total: 160,
-    items: [],
-  });
+  const origKey = process.env.BREVO_API_KEY;
+  const origSmtp = process.env.SMTP_PASS;
+  try {
+    delete process.env.BREVO_API_KEY;
+    delete process.env.SMTP_PASS;
+    const result = await sendOrderReceiptEmail({
+      orderNumber: 'SQ-SIMULATED-01',
+      customerEmail: 'collector@example.com',
+      customerName: 'Collector User',
+      customerPhone: '09171234567',
+      shippingAddress: 'Sample St',
+      barangay: 'Brgy 1',
+      city: 'Manila',
+      postalCode: '1000',
+      paymentMethod: 'cod',
+      subtotal: 100,
+      shippingFee: 60,
+      voucherDiscount: 0,
+      total: 160,
+      items: [],
+    });
 
-  assert.equal(result.success, true);
-  assert.equal(result.simulated, true);
-  assert.equal(result.orderNumber, 'SQ-SIMULATED-01');
+    assert.equal(result.success, true);
+    assert.equal(result.simulated, true);
+    assert.equal(result.orderNumber, 'SQ-SIMULATED-01');
+  } finally {
+    if (origKey) process.env.BREVO_API_KEY = origKey;
+    if (origSmtp) process.env.SMTP_PASS = origSmtp;
+  }
 });
 
 test('sendOrderReceiptEmail skips when order has no email', async () => {
